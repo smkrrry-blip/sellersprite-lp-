@@ -25,7 +25,9 @@ a{color:inherit;text-decoration:none;}
 .hero-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:56px;}
 .hero-left{flex:1;min-width:0;}
 .hero-right{flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.hero-prof{display:flex;flex-direction:column;align-items:center;gap:18px;}
 .hero-photo{width:240px;height:240px;border-radius:50%;object-fit:cover;object-position:top;border:4px solid #FB8C1E;box-shadow:0 8px 32px rgba(251,140,30,0.25);}
+.hero-prof-text{font-size:14px;color:#555;line-height:1.8;border-left:3px solid #FB8C1E;padding-left:12px;max-width:220px;}
 .hero .badge{display:inline-block;background:#FB8C1E;color:#fff;font-size:11px;font-weight:bold;padding:4px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:1px;}
 .hero h1{font-size:36px;font-weight:bold;line-height:1.4;margin-bottom:16px;color:#1a1a1a;}
 .hero h1 em{color:#FB8C1E;font-style:normal;}
@@ -43,9 +45,6 @@ a{color:inherit;text-decoration:none;}
 .copy-btn.ok{background:#27ae60;}
 .hero-note{font-size:12px;color:#aaa;margin-bottom:32px;}
 
-.hero-cta{display:inline-block;background:#FB8C1E;color:#fff;font-size:18px;font-weight:bold;padding:20px 56px;border-radius:8px;letter-spacing:0.5px;transition:opacity 0.2s;box-shadow:0 6px 24px rgba(251,140,30,0.35);}
-.hero-cta:hover{opacity:0.88;}
-.hero-cta-note{font-size:12px;color:#aaa;margin-top:12px;}
 
 /* ===== SECTIONS COMMON ===== */
 .section{padding:80px 24px;}
@@ -158,7 +157,7 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
     <span class="partner-bar-label">公式パートナー</span>
     <img class="partner-logo"
       src="https://www.sellersprite.com/assets/img/home/seller-sprite-logo.svg"
-      onerror="this.src='https://amazing-japan.jp/wp-content/uploads/2022/04/seller30.png'"
+      onerror="this.style.display='none'"
       alt="SellerSprite">
   </div>
 </div>
@@ -185,14 +184,14 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
         <span class="coupon-code">CJ9852</span>
         <button class="copy-btn" id="heroBtn" onclick="copyCode('heroBtn')">コピー</button>
       </div>
-      <p class="hero-note">登録画面のクーポン欄に入力するだけで30%OFFが適用されます</p>
-
-      <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="hero-cta">セラースプライトを今すぐ始める →</a>
-      <p class="hero-cta-note">公式サイトへ遷移します</p>
+      <p class="hero-note">コードをコピーして、公式サイト登録画面で入力するだけ。30%OFFが即適用されます</p>
     </div>
     <!-- RIGHT -->
     <div class="hero-right">
-      <img class="hero-photo" src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一">
+      <div class="hero-prof">
+        <img class="hero-photo" src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一">
+        <p class="hero-prof-text">週1時間のリサーチのみで年商3億円達成。セラースプライト公式アンバサダー。鬼束壮一</p>
+      </div>
     </div>
   </div>
 </div>
@@ -273,14 +272,14 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
 <div class="section compare">
   <div class="section-inner">
     <h2 class="section-title">他ツールとの<em>比較</em></h2>
-    <p class="section-desc">Helium10・ジャングルスカウトと主要項目を比較しました。</p>
+    <p class="section-desc">Amazon物販で使われる主要ツールと「リサーチ総合力」を比較しました。</p>
     <table class="compare-table">
       <thead>
         <tr>
           <th style="text-align:left;">比較項目</th>
-          <th class="highlight">セラースプライト</th>
-          <th>Helium10</th>
-          <th>Jungle Scout</th>
+          <th class="highlight">セラースプライト<br><span style="font-size:11px;font-weight:normal;">総合リサーチ</span></th>
+          <th>Keepa<br><span style="font-size:11px;font-weight:normal;">価格追跡</span></th>
+          <th>プライスター<br><span style="font-size:11px;font-weight:normal;">価格管理</span></th>
         </tr>
       </thead>
       <tbody>
@@ -288,59 +287,53 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
           <td>日本語UI</td>
           <td class="highlight"><span class="check">✔ 完全対応</span></td>
           <td><span class="cross">✘ 英語のみ</span></td>
-          <td><span class="cross">✘ 英語のみ</span></td>
+          <td><span class="check">✔ 対応</span></td>
         </tr>
         <tr>
           <td>月額費用（目安）</td>
           <td class="highlight">$29〜（コードで30%OFF）</td>
-          <td>$99〜</td>
-          <td>$49〜</td>
+          <td>€19〜</td>
+          <td>¥4,980〜</td>
         </tr>
         <tr>
-          <td>逆引きASINリサーチ</td>
+          <td>商品リサーチ</td>
+          <td class="highlight"><span class="check">✔ 売上推定・BSR分析</span></td>
+          <td><span class="check">✔ 価格履歴のみ</span></td>
+          <td><span class="cross">✘</span></td>
+        </tr>
+        <tr>
+          <td>キーワードリサーチ</td>
+          <td class="highlight"><span class="check">✔ 月間検索数・転換率</span></td>
+          <td><span class="cross">✘</span></td>
+          <td><span class="cross">✘</span></td>
+        </tr>
+        <tr>
+          <td>競合分析</td>
+          <td class="highlight"><span class="check">✔ ライバル全商品調査</span></td>
+          <td>△ 価格比較のみ</td>
+          <td>△ 相乗り監視のみ</td>
+        </tr>
+        <tr>
+          <td>逆引きASIN</td>
           <td class="highlight"><span class="check">✔</span></td>
-          <td><span class="check">✔</span></td>
-          <td><span class="check">✔</span></td>
-        </tr>
-        <tr>
-          <td>キーワード転換率</td>
-          <td class="highlight"><span class="check">✔</span></td>
           <td><span class="cross">✘</span></td>
           <td><span class="cross">✘</span></td>
         </tr>
         <tr>
-          <td>ABAデータ連携</td>
-          <td class="highlight"><span class="check">✔</span></td>
-          <td><span class="check">✔</span></td>
-          <td><span class="cross">✘</span></td>
-        </tr>
-        <tr>
-          <td>レビューAI分析</td>
-          <td class="highlight"><span class="check">✔</span></td>
+          <td>市場全体分析</td>
+          <td class="highlight"><span class="check">✔ 市場規模・参入難易度</span></td>
           <td><span class="cross">✘</span></td>
           <td><span class="cross">✘</span></td>
         </tr>
         <tr>
-          <td>ブラウザ拡張機能</td>
-          <td class="highlight"><span class="check">✔ 無料</span></td>
-          <td><span class="check">✔ 有料プランのみ</span></td>
-          <td><span class="check">✔</span></td>
-        </tr>
-        <tr>
-          <td>導入ユーザー数</td>
-          <td class="highlight">170万人以上</td>
-          <td>非公開</td>
-          <td>70万人以上</td>
-        </tr>
-        <tr>
-          <td>日本市場データ精度</td>
-          <td class="highlight"><span class="check">★★★ 高精度</span></td>
-          <td>★★ 中</td>
-          <td>★ 低</td>
+          <td>日本市場特化度</td>
+          <td class="highlight"><span class="check">★★★ 最高</span></td>
+          <td>★★ 中（全世界向け）</td>
+          <td>★★★ 高（日本特化）</td>
         </tr>
       </tbody>
     </table>
-    <p class="compare-note">※ 料金・機能は2026年時点の情報をもとにした参考値です。最新情報は各公式サイトでご確認ください。</p>
+    <p class="compare-note">※ KeepaとプライスターはAmazon物販の「運用」を支援するツールです。セラースプライトは「何を売るか」を決めるリサーチ段階から圧倒的な強みを発揮します。料金は2026年時点の参考値です。</p>
   </div>
 </div>
 
@@ -414,19 +407,20 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
 
 <!-- CTA -->
 <div class="cta">
-  <h2>まず、割引コードを使って<br>始めてみてください。</h2>
+  <h2>割引コードをコピーして<br>セラースプライトを始める。</h2>
   <p class="sub">データで動ける人と、感覚で動く人。結果は時間が証明します。</p>
 
-  <div style="margin-bottom:28px;">
+  <div style="margin-bottom:12px;">
     <div class="cta-coupon">
       <span class="cl">30%OFF</span>
       <span class="cc">CJ9852</span>
-      <button class="cb" id="ctaBtn" onclick="copyCode('ctaBtn')">コピー</button>
+      <button class="cb" id="ctaBtn" onclick="copyCode('ctaBtn')">① コピー</button>
     </div>
   </div>
+  <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:28px;">↑ まずコードをコピー、次に公式サイトで登録時に入力</p>
 
-  <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="cta-btn">セラースプライト公式サイトへ →</a>
-  <p class="cta-btn-note">登録画面でコード「CJ9852」を入力すると30%OFFになります</p>
+  <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="cta-btn">② セラースプライト公式サイトへ →</a>
+  <p class="cta-btn-note">支払い画面の「クーポンコード」欄に「CJ9852」を入力して30%OFFを適用</p>
 </div>
 
 <!-- PROF -->
