@@ -25,9 +25,15 @@ a{color:inherit;text-decoration:none;}
 .hero-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:56px;}
 .hero-left{flex:1;min-width:0;}
 .hero-right{flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-.hero-prof{display:flex;flex-direction:column;align-items:center;gap:18px;}
-.hero-photo{width:240px;height:240px;border-radius:50%;object-fit:cover;object-position:top;border:4px solid #FB8C1E;box-shadow:0 8px 32px rgba(251,140,30,0.25);}
-.hero-prof-text{font-size:14px;color:#555;line-height:1.8;border-left:3px solid #FB8C1E;padding-left:12px;max-width:220px;}
+.hero-prof{display:flex;flex-direction:row;align-items:flex-start;gap:20px;}
+.hero-photo{width:200px;height:200px;border-radius:50%;object-fit:cover;object-position:top;border:4px solid #FB8C1E;box-shadow:0 8px 32px rgba(251,140,30,0.25);flex-shrink:0;}
+.hero-prof-text{font-size:14px;color:#555;line-height:1.85;border-left:3px solid #FB8C1E;padding-left:14px;}
+
+/* ===== MESSAGE BLOCK ===== */
+.message-wrap{background:#fff;padding:0 24px 80px;}
+.message-block{display:flex;align-items:center;gap:28px;border-left:4px solid #FB8C1E;padding:24px 28px;border-radius:0 10px 10px 0;box-shadow:0 2px 14px rgba(0,0,0,0.07);max-width:760px;margin:0 auto;}
+.message-text{flex:1;font-size:15px;color:#444;line-height:1.9;}
+.message-photo{width:60px;height:60px;border-radius:50%;object-fit:cover;object-position:top;flex-shrink:0;border:2px solid #FB8C1E;}
 .hero .badge{display:inline-block;background:#FB8C1E;color:#fff;font-size:11px;font-weight:bold;padding:4px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:1px;}
 .hero h1{font-size:36px;font-weight:bold;line-height:1.4;margin-bottom:16px;color:#1a1a1a;}
 .hero h1 em{color:#FB8C1E;font-style:normal;}
@@ -128,6 +134,8 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
 @media(max-width:760px){
   .hero-inner{flex-direction:column;gap:36px;text-align:center;}
   .hero-right{order:-1;}
+  .hero-prof{flex-direction:column;align-items:center;}
+  .hero-prof-text{border-left:none;border-top:3px solid #FB8C1E;padding-left:0;padding-top:12px;text-align:center;}
   .hero-photo{width:180px;height:180px;}
   .hero .nums{justify-content:center;gap:20px;}
   .hero h1{font-size:26px;}
@@ -139,7 +147,8 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
   .step-list::before{display:none;}
   .compare-table th,.compare-table td{font-size:12px;padding:10px 10px;}
   .prof-in{flex-direction:column;text-align:center;}
-  .hero-cta{font-size:16px;padding:18px 36px;}
+  .message-block{flex-direction:column;text-align:center;}
+  .message-photo{order:-1;}
 }
 @media(max-width:420px){
   .feature-grid{grid-template-columns:1fr;}
@@ -190,7 +199,7 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
     <div class="hero-right">
       <div class="hero-prof">
         <img class="hero-photo" src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一">
-        <p class="hero-prof-text">週1時間のリサーチのみで年商3億円達成。セラースプライト公式アンバサダー。鬼束壮一</p>
+        <p class="hero-prof-text">週1時間のリサーチのみで年商3億円達成。セラースプライト公式代理店。鬼束壮一</p>
       </div>
     </div>
   </div>
@@ -402,6 +411,14 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
       </div>
 
     </div>
+  </div>
+</div>
+
+<!-- MESSAGE -->
+<div class="message-wrap">
+  <div class="message-block">
+    <p class="message-text">正直に言います。セラースプライトを使えば必ず稼げる、とは言いません。ただ、私が使い始めてから商品リサーチの時間が10分の1になったのは事実です。何もなければそれで良い。気になるなら、まず割引コードで始めてみてください。<strong>― 鬼束壮一</strong></p>
+    <img class="message-photo" src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一">
   </div>
 </div>
 
