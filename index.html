@@ -30,10 +30,15 @@ body{font-family:'Hiragino Sans','Meiryo',sans-serif;color:#222;background:#fff;
 .form-section .sub{font-size:14px;color:#666;margin-bottom:32px;}
 .form-inner{background:#fff;border-radius:12px;padding:32px 20px;max-width:560px;margin:0 auto;box-shadow:0 4px 20px rgba(0,0,0,0.07);}
 .profile-section{background:#0f2027;color:#fff;padding:60px 24px;}
-.profile-inner{max-width:640px;margin:0 auto;}
-.profile-inner h2{font-size:18px;font-weight:bold;margin-bottom:20px;color:#f0a500;}
-.profile-inner p{font-size:14px;line-height:2;color:#bcd;}
-.profile-inner .name{font-size:16px;font-weight:bold;color:#fff;margin-bottom:12px;}
+.profile-inner{max-width:640px;margin:0 auto;display:flex;gap:32px;align-items:flex-start;}
+.profile-photo{width:120px;height:120px;border-radius:50%;object-fit:cover;flex-shrink:0;border:3px solid #f0a500;}
+.profile-text h2{font-size:18px;font-weight:bold;margin-bottom:12px;color:#f0a500;}
+.profile-text .name{font-size:16px;font-weight:bold;color:#fff;margin-bottom:12px;}
+.profile-text p{font-size:14px;line-height:2;color:#bcd;margin-bottom:10px;}
+@media(max-width:480px){
+  .profile-inner{flex-direction:column;align-items:center;}
+  .profile-photo{width:100px;height:100px;}
+}
 footer{background:#0a1520;color:#445;text-align:center;padding:20px;font-size:12px;}
 </style>
 </head>
@@ -108,6 +113,19 @@ footer{background:#0a1520;color:#445;text-align:center;padding:20px;font-size:12
 
 <div class="profile-section">
   <div class="profile-inner">
-    <h2>■ プロフィール</h2>
-    <p class="name">鬼束壮一（おにつか そういち）</p>
-    <p>1986年生まれ。東証一部上場企業のマネージャーを経て起業・独立。2019年にAmazon輸入を開始し、1年で月収100万円を達成。現在は年商3億円（年収9,000万円ペ
+    <img class="profile-photo" src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一">
+    <div class="profile-text">
+      <h2>■ プロフィール</h2>
+      <p class="name">鬼束壮一（おにつか そういち）</p>
+      <p>1986年生まれ。東証一部上場企業のマネージャーを経て起業・独立。2019年にAmazon輸入を開始し、1年で月収100万円を達成。現在は年商3億円ペース。</p>
+      <p>パソコン1台でどこでも仕事できる環境を構築し、タイ・フランス・ドバイ・シンガポールなど世界中を旅しながらビジネスを回しています。</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <p>© 2026 鬼束壮一 | 配信解除はメール内のリンクから</p>
+</footer>
+
+</body>
+</html>
