@@ -14,16 +14,26 @@ a{color:inherit;text-decoration:none;}
 .topbar{background:#1a1a1a;color:#fff;text-align:center;padding:10px 16px;font-size:13px;letter-spacing:0.3px;}
 .topbar span{color:#FB8C1E;font-weight:bold;}
 
+/* ===== PARTNER BAR ===== */
+.partner-bar{background:#fff;border-bottom:1px solid #f0f0f0;padding:14px 24px;text-align:center;}
+.partner-bar-inner{display:inline-flex;align-items:center;gap:14px;}
+.partner-bar-label{font-size:11px;font-weight:bold;color:#aaa;letter-spacing:1px;white-space:nowrap;}
+.partner-logo{height:32px;width:auto;display:block;}
+
 /* ===== HERO ===== */
-.hero{background:linear-gradient(160deg,#fff8f2 0%,#fff 60%);padding:80px 24px 72px;text-align:center;border-bottom:1px solid #f0f0f0;}
+.hero{background:linear-gradient(160deg,#fff8f2 0%,#fff 60%);padding:80px 24px 72px;border-bottom:1px solid #f0f0f0;}
+.hero-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;gap:56px;}
+.hero-left{flex:1;min-width:0;}
+.hero-right{flex-shrink:0;display:flex;align-items:center;justify-content:center;}
+.hero-photo{width:240px;height:240px;border-radius:50%;object-fit:cover;object-position:top;border:4px solid #FB8C1E;box-shadow:0 8px 32px rgba(251,140,30,0.25);}
 .hero .badge{display:inline-block;background:#FB8C1E;color:#fff;font-size:11px;font-weight:bold;padding:4px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:1px;}
-.hero h1{font-size:38px;font-weight:bold;line-height:1.4;margin-bottom:16px;color:#1a1a1a;}
+.hero h1{font-size:36px;font-weight:bold;line-height:1.4;margin-bottom:16px;color:#1a1a1a;}
 .hero h1 em{color:#FB8C1E;font-style:normal;}
-.hero .sub{font-size:17px;color:#555;margin-bottom:12px;line-height:1.8;}
-.hero .nums{display:flex;justify-content:center;gap:40px;margin:28px 0 36px;flex-wrap:wrap;}
+.hero .sub{font-size:16px;color:#555;margin-bottom:12px;line-height:1.8;}
+.hero .nums{display:flex;gap:28px;margin:24px 0 32px;flex-wrap:wrap;}
 .hero .num-item{text-align:center;}
-.hero .num-val{font-size:32px;font-weight:bold;color:#FB8C1E;line-height:1.1;}
-.hero .num-label{font-size:12px;color:#888;margin-top:4px;}
+.hero .num-val{font-size:28px;font-weight:bold;color:#FB8C1E;line-height:1.1;}
+.hero .num-label{font-size:11px;color:#888;margin-top:4px;}
 
 .coupon-block{display:inline-flex;align-items:stretch;border:2px solid #FB8C1E;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(251,140,30,0.2);margin-bottom:10px;}
 .coupon-label{background:#fff8f2;color:#FB8C1E;font-size:12px;font-weight:bold;padding:0 18px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid #fddbb5;}
@@ -111,11 +121,18 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
 /* ===== DIVIDER ===== */
 .divider{height:1px;background:#f0f0f0;max-width:760px;margin:0 auto;}
 
+/* ===== SCREEN SHOT ===== */
+.screen-section{background:#f4f6f9;padding:0;}
+.screen-section img{display:block;width:100%;height:auto;}
+
 /* ===== RESPONSIVE ===== */
-@media(max-width:680px){
+@media(max-width:760px){
+  .hero-inner{flex-direction:column;gap:36px;text-align:center;}
+  .hero-right{order:-1;}
+  .hero-photo{width:180px;height:180px;}
+  .hero .nums{justify-content:center;gap:20px;}
   .hero h1{font-size:26px;}
-  .hero .nums{gap:24px;}
-  .hero .num-val{font-size:24px;}
+  .hero .num-val{font-size:22px;}
   .coupon-label{display:none;}
   .coupon-code{font-size:22px;padding:12px 18px;letter-spacing:4px;}
   .feature-grid{grid-template-columns:1fr 1fr;}
@@ -135,29 +152,49 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
 <!-- TOP BAR -->
 <div class="topbar">⚡ 期間限定：割引コード <span>CJ9852</span> でセラースプライトが <span>30%OFF</span></div>
 
+<!-- PARTNER BAR -->
+<div class="partner-bar">
+  <div class="partner-bar-inner">
+    <span class="partner-bar-label">公式パートナー</span>
+    <img class="partner-logo"
+      src="https://www.sellersprite.com/assets/img/home/seller-sprite-logo.svg"
+      onerror="this.src='https://amazing-japan.jp/wp-content/uploads/2022/04/seller30.png'"
+      alt="SellerSprite">
+  </div>
+</div>
+
 <!-- HERO -->
 <div class="hero">
-  <div class="badge">世界170万人が導入 × Amazon物販の必須ツール</div>
-  <h1>商品リサーチの時間を<br><em>10分の1</em>に。<br>データで勝つAmazon物販へ。</h1>
-  <p class="sub">セラースプライトは、売れる商品・キーワード・競合情報を<br>一画面で分析できるAmazonリサーチツールです。</p>
+  <div class="hero-inner">
+    <!-- LEFT -->
+    <div class="hero-left">
+      <div class="badge">世界170万人が導入 × Amazon物販の必須ツール</div>
+      <h1>商品リサーチの時間を<br><em>10分の1</em>に。<br>データで勝つAmazon物販へ。</h1>
+      <p class="sub">セラースプライトは、売れる商品・キーワード・競合情報を一画面で分析できるAmazonリサーチツールです。</p>
 
-  <div class="nums">
-    <div class="num-item"><div class="num-val">170万+</div><div class="num-label">導入出品者数</div></div>
-    <div class="num-item"><div class="num-val">15万+</div><div class="num-label">日間訪問者数</div></div>
-    <div class="num-item"><div class="num-val">10+</div><div class="num-label">専門ツール数</div></div>
-    <div class="num-item"><div class="num-val">30%OFF</div><div class="num-label">割引コードあり</div></div>
+      <div class="nums">
+        <div class="num-item"><div class="num-val">170万+</div><div class="num-label">導入出品者数</div></div>
+        <div class="num-item"><div class="num-val">15万+</div><div class="num-label">日間訪問者数</div></div>
+        <div class="num-item"><div class="num-val">10+</div><div class="num-label">専門ツール数</div></div>
+        <div class="num-item"><div class="num-val">30%OFF</div><div class="num-label">割引コードあり</div></div>
+      </div>
+
+      <p style="font-size:13px;color:#888;margin-bottom:10px;">今すぐコードをコピーして登録時に入力：</p>
+      <div class="coupon-block">
+        <span class="coupon-label">30%OFF CODE</span>
+        <span class="coupon-code">CJ9852</span>
+        <button class="copy-btn" id="heroBtn" onclick="copyCode('heroBtn')">コピー</button>
+      </div>
+      <p class="hero-note">登録画面のクーポン欄に入力するだけで30%OFFが適用されます</p>
+
+      <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="hero-cta">セラースプライトを今すぐ始める →</a>
+      <p class="hero-cta-note">公式サイトへ遷移します</p>
+    </div>
+    <!-- RIGHT -->
+    <div class="hero-right">
+      <img class="hero-photo" src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一">
+    </div>
   </div>
-
-  <p style="font-size:13px;color:#888;margin-bottom:10px;">今すぐコードをコピーして登録時に入力：</p>
-  <div class="coupon-block">
-    <span class="coupon-label">30%OFF CODE</span>
-    <span class="coupon-code">CJ9852</span>
-    <button class="copy-btn" id="heroBtn" onclick="copyCode('heroBtn')">コピー</button>
-  </div>
-  <p class="hero-note">登録画面のクーポン欄に入力するだけで30%OFFが適用されます</p>
-
-  <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="hero-cta">セラースプライトを今すぐ始める →</a>
-  <p class="hero-cta-note">公式サイトへ遷移します</p>
 </div>
 
 <!-- FEATURES -->
@@ -223,6 +260,11 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
 
     </div>
   </div>
+</div>
+
+<!-- SCREEN SHOT -->
+<div class="screen-section">
+  <img src="https://amazing-japan.jp/wp-content/uploads/2022/07/セラースプライト-3.jpg" alt="セラースプライト 実際の画面">
 </div>
 
 <div class="divider"></div>
