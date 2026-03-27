@@ -20,11 +20,17 @@ SEO・CVR・デザイン・表記の観点で評価する
 ### STEP4：git push
 git -C ~/sellersprite-lp- add . && git -C ~/sellersprite-lp- commit -m "fix: auto improvement" && git -C ~/sellersprite-lp- push
 
-### STEP5：メール通知
-以下のPythonスクリプトで完了報告メールを送信する：
-- 送信先：smkrrry@gmail.com
-- 件名：【LP自動改善完了】修正内容レポート
-- 本文：修正した内容の箇条書き＋LPのURL
+### STEP5：デスクトップ通知
+以下のコマンドで完了をmacOSデスクトップ通知で報告する：
+
+```bash
+python3 ~/sellersprite-lp-/send_report.py "修正内容の箇条書きテキスト"
+```
+
+または直接osascriptで実行：
+```bash
+osascript -e 'display notification "修正内容テキスト" with title "【LP自動改善完了】" subtitle "sellersprite-lp" sound name "Glass"'
+```
 
 ## 固定情報
 - 割引コード：CJ9852（30%OFF）
