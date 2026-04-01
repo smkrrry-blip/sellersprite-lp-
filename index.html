@@ -104,235 +104,282 @@
 }
 </script>
 <style>
+/* ===== RESET & BASE ===== */
 *{margin:0;padding:0;box-sizing:border-box;}
-body{font-family:'Hiragino Sans','Meiryo',sans-serif;color:#1a1a1a;background:#fff;line-height:1.8;}
-a{color:inherit;text-decoration:none;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Meiryo",sans-serif;font-size:16px;line-height:1.7;color:#333;background:#fff;}
+a{color:#FB8C1E;text-decoration:none;}
+img{max-width:100%;height:auto;display:block;}
 
-/* ===== TOP BAR ===== */
-.topbar{background:#1a1a1a;color:#fff;text-align:center;padding:10px 16px;font-size:13px;letter-spacing:0.3px;}
-.topbar span{color:#FB8C1E;font-weight:bold;}
+/* ===== ANNOUNCE BAR ===== */
+.announce-bar{background:#FB8C1E;color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:bold;letter-spacing:0.5px;}
+.announce-bar a{color:#fff;text-decoration:underline;}
 
-/* ===== PARTNER BAR ===== */
-.partner-bar{background:#fff;border-bottom:1px solid #f0f0f0;padding:14px 24px;text-align:center;}
-.partner-bar-inner{display:inline-flex;align-items:center;gap:14px;}
-.partner-bar-label{font-size:11px;font-weight:bold;color:#aaa;letter-spacing:1px;white-space:nowrap;}
-.partner-logo{height:32px;width:auto;display:block;}
+/* ===== NAV BAR ===== */
+.nav-bar{background:#fff;border-bottom:1px solid #efefef;padding:12px 24px;}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.nav-brand{display:flex;align-items:center;gap:10px;}
+.nav-badge{font-size:11px;font-weight:bold;color:#FB8C1E;background:#fff5eb;border:1px solid #fddbb5;border-radius:4px;padding:3px 10px;letter-spacing:0.5px;white-space:nowrap;}
+.nav-logo{height:28px;width:auto;}
+.nav-cta{background:#FB8C1E;color:#fff;font-size:13px;font-weight:bold;padding:9px 20px;border-radius:6px;white-space:nowrap;transition:opacity 0.2s,transform 0.2s;}
+.nav-cta:hover{opacity:0.88;transform:translateY(-1px);color:#fff;}
 
 /* ===== HERO ===== */
-.hero{background:linear-gradient(160deg,#fff8f2 0%,#fff 60%);padding:80px 24px 72px;border-bottom:1px solid #f0f0f0;}
-.hero-inner{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:56px;}
-.hero-left{flex:1;min-width:0;}
-.hero-right{flex-shrink:0;display:flex;align-items:center;justify-content:center;}
-.hero-prof{display:flex;flex-direction:row;align-items:flex-start;gap:20px;}
-.hero-photo{width:200px;height:200px;border-radius:50%;object-fit:cover;object-position:top;border:4px solid #FB8C1E;box-shadow:0 8px 32px rgba(251,140,30,0.25);flex-shrink:0;}
-.hero-prof-text{font-size:14px;color:#555;line-height:1.85;border-left:3px solid #FB8C1E;padding-left:14px;}
-
-/* ===== MESSAGE BLOCK ===== */
-.message-wrap{background:#fff;padding:0 24px 80px;}
-.message-block{display:flex;align-items:center;gap:28px;border-left:4px solid #FB8C1E;padding:24px 28px;border-radius:0 10px 10px 0;box-shadow:0 2px 14px rgba(0,0,0,0.07);max-width:760px;margin:0 auto;}
-.message-text{flex:1;font-size:15px;color:#444;line-height:1.9;}
-.message-photo{width:60px;height:60px;border-radius:50%;object-fit:cover;object-position:top;flex-shrink:0;border:2px solid #FB8C1E;}
-.hero .badge{display:inline-block;background:#FB8C1E;color:#fff;font-size:11px;font-weight:bold;padding:4px 14px;border-radius:20px;margin-bottom:20px;letter-spacing:1px;}
-.hero h1{font-size:36px;font-weight:bold;line-height:1.4;margin-bottom:16px;color:#1a1a1a;}
+.hero{background:linear-gradient(150deg,#fff8f2 0%,#fffcf9 50%,#fff 100%);padding:72px 24px 56px;border-bottom:1px solid #f0ede8;}
+.hero-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:60px;}
+.hero-text{flex:0 0 60%;min-width:0;}
+.hero-image{flex:0 0 40%;display:flex;flex-direction:column;align-items:center;gap:14px;}
+.hero-sub{font-size:13px;color:#999;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
+.hero h1{font-size:clamp(28px,4vw,44px);font-weight:800;line-height:1.3;color:#1a1a1a;margin-bottom:16px;letter-spacing:-0.5px;}
 .hero h1 em{color:#FB8C1E;font-style:normal;}
-.hero .sub{font-size:16px;color:#555;margin-bottom:12px;line-height:1.8;}
-.hero .nums{display:flex;gap:28px;margin:24px 0 32px;flex-wrap:wrap;}
-.hero .num-item{text-align:center;}
-.hero .num-val{font-size:28px;font-weight:bold;color:#FB8C1E;line-height:1.1;}
-.hero .num-label{font-size:11px;color:#888;margin-top:4px;}
-
-.coupon-block{display:inline-flex;align-items:stretch;border:2px solid #FB8C1E;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(251,140,30,0.2);margin-bottom:10px;}
-.coupon-label{background:#fff8f2;color:#FB8C1E;font-size:12px;font-weight:bold;padding:0 18px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid #fddbb5;}
-.coupon-code{font-size:30px;font-weight:bold;color:#FB8C1E;padding:14px 28px;letter-spacing:6px;font-family:'Courier New',monospace;}
-.copy-btn{background:#FB8C1E;color:#fff;border:none;font-size:14px;font-weight:bold;padding:0 24px;cursor:pointer;transition:background 0.15s;white-space:nowrap;}
-.copy-btn:hover{background:#e07a10;}
+.hero-lead{font-size:16px;color:#555;margin-bottom:28px;line-height:1.75;}
+.coupon-wrap{margin-bottom:8px;}
+.coupon-label-sm{font-size:12px;color:#888;margin-bottom:8px;}
+.coupon-block{display:inline-flex;align-items:stretch;border:2px solid #FB8C1E;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(251,140,30,0.18);}
+.coupon-tag{background:#fff5eb;color:#FB8C1E;font-size:11px;font-weight:bold;padding:0 16px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid #fddbb5;white-space:nowrap;}
+.coupon-code{font-size:28px;font-weight:bold;color:#FB8C1E;padding:12px 24px;letter-spacing:6px;font-family:'Courier New',Courier,monospace;}
+.copy-btn{background:#FB8C1E;color:#fff;border:none;font-size:14px;font-weight:bold;padding:0 22px;cursor:pointer;transition:background 0.15s;white-space:nowrap;}
+.copy-btn:hover{background:#e07010;}
 .copy-btn.ok{background:#27ae60;}
-.hero-note{font-size:12px;color:#aaa;margin-bottom:32px;}
+.coupon-note{font-size:11px;color:#bbb;margin-bottom:24px;margin-top:6px;}
+.hero-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:18px;font-weight:bold;padding:18px 40px;border-radius:8px;letter-spacing:0.3px;transition:opacity 0.2s,transform 0.2s;box-shadow:0 6px 24px rgba(251,140,30,0.35);}
+.hero-btn:hover{opacity:0.9;transform:translateY(-1px);color:#fff;}
+.hero-assure{font-size:12px;color:#aaa;margin-top:10px;}
+.hero-photo{width:100%;max-width:320px;aspect-ratio:1/1;border-radius:16px;object-fit:cover;object-position:top;box-shadow:0 8px 40px rgba(0,0,0,0.12);}
+.hero-photo-caption{font-size:13px;color:#666;text-align:center;line-height:1.6;}
+.hero-photo-caption strong{color:#1a1a1a;font-weight:700;}
 
+/* ===== TRUST BADGES ===== */
+.trust-bar{background:#fff;border-bottom:1px solid #f0ede8;padding:32px 24px;}
+.trust-inner{max-width:1100px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:0;}
+.trust-item{text-align:center;padding:16px 12px;border-right:1px solid #f0ede8;}
+.trust-item:last-child{border-right:none;}
+.trust-val{font-size:2em;font-weight:800;color:#FB8C1E;line-height:1.1;letter-spacing:-1px;}
+.trust-label{font-size:0.85em;color:#666;margin-top:4px;}
 
 /* ===== SECTIONS COMMON ===== */
-.section{padding:80px 24px;}
-.section-inner{max-width:760px;margin:0 auto;}
-.section-title{font-size:26px;font-weight:bold;text-align:center;margin-bottom:10px;line-height:1.4;}
+.section{padding:60px 24px;}
+.section-inner{max-width:900px;margin:0 auto;}
+.section-title{font-size:1.6em;font-weight:bold;text-align:center;margin-bottom:12px;line-height:1.4;color:#1a1a1a;}
 .section-title em{color:#FB8C1E;font-style:normal;}
-.section-desc{text-align:center;font-size:15px;color:#666;margin-bottom:48px;line-height:1.8;}
+.section-desc{text-align:center;font-size:15px;color:#666;margin-bottom:44px;line-height:1.8;}
+
+/* ===== BG ALTERNATING ===== */
+.bg-white{background:#fff;}
+.bg-gray{background:#f9f8f6;}
 
 /* ===== FOR WHO ===== */
-.forwho{background:#fff;}
 .forwho-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;}
-.forwho-card{border-top:3px solid #FB8C1E;padding:24px 20px;background:#fff;}
-.forwho-card-title{font-size:15px;font-weight:bold;color:#1a1a1a;margin-bottom:10px;line-height:1.5;}
+.forwho-card{background:#fff;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.06);padding:28px 22px;transition:box-shadow 0.2s,transform 0.2s;}
+.forwho-card:hover{box-shadow:0 6px 24px rgba(0,0,0,0.1);transform:translateY(-2px);}
+.forwho-icon{font-size:40px;margin-bottom:14px;line-height:1;}
+.forwho-card-title{font-size:16px;font-weight:bold;color:#1a1a1a;margin-bottom:10px;line-height:1.4;}
 .forwho-card-body{font-size:14px;color:#666;line-height:1.75;}
 
 /* ===== FEATURES ===== */
-.features{background:#fff;}
-.feature-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:24px;}
-.feature-card{background:#fafafa;border-radius:12px;padding:28px 22px;border:1px solid #f0f0f0;transition:box-shadow 0.2s,border-color 0.2s;}
-.feature-card:hover{box-shadow:0 4px 20px rgba(251,140,30,0.12);border-color:#fddbb5;}
-.feature-icon{font-size:36px;margin-bottom:14px;}
-.feature-name{font-size:16px;font-weight:bold;margin-bottom:8px;color:#1a1a1a;}
-.feature-desc{font-size:14px;color:#666;line-height:1.75;}
+.feature-list{display:flex;flex-direction:column;gap:0;}
+.feature-item{display:flex;align-items:flex-start;gap:20px;padding:22px 0;border-bottom:1px solid #f0ede8;}
+.feature-item:last-child{border-bottom:none;}
+.feature-icon-wrap{font-size:32px;flex-shrink:0;width:52px;text-align:center;line-height:1;}
+.feature-name{font-size:16px;font-weight:bold;color:#1a1a1a;margin-bottom:6px;}
+.feature-desc{font-size:14px;color:#666;line-height:1.7;}
 
 /* ===== COMPARE ===== */
-.compare{background:#fafafa;}
-.compare-table{width:100%;border-collapse:collapse;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.compare-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.compare-table{width:100%;border-collapse:collapse;min-width:560px;}
 .compare-table th{padding:16px 18px;font-size:14px;font-weight:bold;text-align:center;background:#1a1a1a;color:#fff;}
-.compare-table th.highlight{background:#FB8C1E;}
-.compare-table td{padding:14px 18px;font-size:14px;text-align:center;border-bottom:1px solid #eee;background:#fff;}
-.compare-table td.highlight{background:#fff8f2;font-weight:bold;color:#FB8C1E;}
+.compare-table th.hl{background:#FB8C1E;color:#fff;}
+.compare-table th:first-child{text-align:left;}
+.compare-table td{padding:14px 18px;font-size:14px;text-align:center;border-bottom:1px solid #f0ede8;background:#fff;}
+.compare-table td.hl{background:#fff5eb;font-weight:bold;}
 .compare-table tr:last-child td{border-bottom:none;}
 .compare-table td:first-child{text-align:left;color:#555;font-weight:500;}
-.check{color:#FB8C1E;font-size:17px;}
-.cross{color:#ccc;font-size:17px;}
+.ck{color:#FB8C1E;font-size:16px;font-weight:bold;}
+.cx{color:#ccc;font-size:16px;}
 .compare-note{text-align:center;font-size:12px;color:#aaa;margin-top:14px;}
 
 /* ===== STEPS ===== */
-.steps{background:#fff;}
 .step-list{display:flex;gap:0;position:relative;}
-.step-list::before{content:'';position:absolute;top:28px;left:calc(16.6% + 14px);right:calc(16.6% + 14px);height:2px;background:#fddbb5;z-index:0;}
-.step-item{flex:1;text-align:center;position:relative;z-index:1;padding:0 12px;}
-.step-n{width:56px;height:56px;border-radius:50%;background:#FB8C1E;color:#fff;font-size:20px;font-weight:bold;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;}
-.step-title{font-size:16px;font-weight:bold;margin-bottom:8px;color:#1a1a1a;}
+.step-connector{position:absolute;top:28px;left:calc(16.66% + 28px);right:calc(16.66% + 28px);height:2px;background:#fddbb5;z-index:0;}
+.step-item{flex:1;text-align:center;position:relative;z-index:1;padding:0 16px;}
+.step-n{width:56px;height:56px;border-radius:50%;background:#FB8C1E;color:#fff;font-size:20px;font-weight:bold;display:flex;align-items:center;justify-content:center;margin:0 auto 18px;box-shadow:0 4px 16px rgba(251,140,30,0.3);}
+.step-title{font-size:15px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;}
 .step-body{font-size:13px;color:#666;line-height:1.75;}
 
 /* ===== FAQ ===== */
-.faq{background:#fafafa;}
-.faq-list{display:flex;flex-direction:column;gap:12px;}
-.faq-item{background:#fff;border-radius:10px;border:1px solid #f0f0f0;overflow:hidden;}
-.faq-q{padding:18px 22px;font-size:15px;font-weight:bold;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:#1a1a1a;}
-.faq-q::after{content:'＋';font-size:20px;color:#FB8C1E;flex-shrink:0;transition:transform 0.2s;}
+.faq-list{display:flex;flex-direction:column;gap:10px;}
+.faq-item{background:#fff;border-radius:12px;border:1px solid #efefef;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
+.faq-q{padding:18px 22px;font-size:15px;font-weight:bold;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:#1a1a1a;line-height:1.5;}
+.faq-q::after{content:'＋';font-size:20px;color:#FB8C1E;flex-shrink:0;transition:transform 0.2s;margin-left:12px;}
 .faq-item.open .faq-q::after{transform:rotate(45deg);}
 .faq-a{padding:0 22px;max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease;font-size:14px;color:#555;line-height:1.85;}
 .faq-item.open .faq-a{max-height:300px;padding:0 22px 18px;}
 
-/* ===== CTA ===== */
-.cta{background:linear-gradient(135deg,#FB8C1E 0%,#e07010 100%);padding:80px 24px;text-align:center;}
-.cta h2{font-size:28px;font-weight:bold;color:#fff;margin-bottom:12px;line-height:1.4;}
-.cta .sub{font-size:15px;color:rgba(255,255,255,0.85);margin-bottom:32px;}
-.cta-coupon{display:inline-flex;align-items:stretch;border:2px solid #fff;border-radius:10px;overflow:hidden;margin-bottom:32px;}
-.cta-coupon .cl{background:rgba(255,255,255,0.2);color:#fff;font-size:12px;font-weight:bold;padding:0 16px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid rgba(255,255,255,0.3);}
-.cta-coupon .cc{font-size:28px;font-weight:bold;color:#fff;padding:14px 24px;letter-spacing:6px;font-family:'Courier New',monospace;}
-.cta-coupon .cb{background:#fff;color:#FB8C1E;border:none;font-size:14px;font-weight:bold;padding:0 22px;cursor:pointer;transition:opacity 0.2s;white-space:nowrap;}
+/* ===== MESSAGE ===== */
+.message-section{background:#fff5eb;padding:40px 24px;}
+.message-block{max-width:760px;margin:0 auto;display:flex;align-items:center;gap:28px;background:#fff;border-radius:12px;border-left:4px solid #FB8C1E;padding:28px;box-shadow:0 2px 12px rgba(0,0,0,0.06);}
+.message-photo{width:72px;height:72px;border-radius:50%;object-fit:cover;object-position:top;flex-shrink:0;border:3px solid #FB8C1E;}
+.message-text{font-size:15px;color:#444;line-height:1.9;}
+
+/* ===== CTA SECTION ===== */
+.cta-section{background:#1a1a1a;padding:72px 24px;text-align:center;}
+.cta-section h2{font-size:1.6em;font-weight:bold;color:#fff;margin-bottom:10px;line-height:1.4;}
+.cta-section .cta-sub{font-size:15px;color:rgba(255,255,255,0.6);margin-bottom:36px;}
+.cta-steps{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:28px;flex-wrap:wrap;}
+.cta-step{display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.08);border-radius:8px;padding:12px 18px;}
+.cta-step-n{width:28px;height:28px;border-radius:50%;background:#FB8C1E;color:#fff;font-size:13px;font-weight:bold;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.cta-step-text{font-size:13px;color:rgba(255,255,255,0.85);text-align:left;line-height:1.4;}
+.cta-arrow{color:rgba(255,255,255,0.3);font-size:20px;}
+.cta-coupon{display:inline-flex;align-items:stretch;border:2px solid rgba(255,255,255,0.3);border-radius:10px;overflow:hidden;margin-bottom:24px;background:rgba(255,255,255,0.05);}
+.cta-coupon .cl{color:rgba(255,255,255,0.7);font-size:11px;font-weight:bold;padding:0 16px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid rgba(255,255,255,0.15);white-space:nowrap;}
+.cta-coupon .cc{font-size:26px;font-weight:bold;color:#FB8C1E;padding:14px 22px;letter-spacing:6px;font-family:'Courier New',Courier,monospace;}
+.cta-coupon .cb{background:#FB8C1E;color:#fff;border:none;font-size:14px;font-weight:bold;padding:0 22px;cursor:pointer;transition:opacity 0.2s;white-space:nowrap;}
 .cta-coupon .cb:hover{opacity:0.85;}
-.cta-coupon .cb.ok{background:#27ae60;color:#fff;}
-.cta-btn{display:block;max-width:400px;margin:0 auto;background:#fff;color:#FB8C1E;font-size:19px;font-weight:bold;padding:22px 40px;border-radius:8px;letter-spacing:0.5px;transition:opacity 0.2s;box-shadow:0 6px 24px rgba(0,0,0,0.15);}
-.cta-btn:hover{opacity:0.92;}
-.cta-btn-note{font-size:12px;color:rgba(255,255,255,0.7);margin-top:12px;}
+.cta-coupon .cb.ok{background:#27ae60;}
+.cta-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:19px;font-weight:bold;padding:20px 52px;border-radius:8px;letter-spacing:0.3px;transition:opacity 0.2s,transform 0.2s;box-shadow:0 6px 28px rgba(251,140,30,0.4);}
+.cta-btn:hover{opacity:0.9;transform:translateY(-1px);color:#fff;}
+.cta-btn-note{font-size:12px;color:rgba(255,255,255,0.45);margin-top:12px;}
 
 /* ===== PROF ===== */
-.prof{background:#1a1a1a;color:#fff;padding:56px 24px;}
-.prof-in{max-width:680px;margin:0 auto;display:flex;gap:28px;align-items:center;}
-.prof-img{width:88px;height:88px;border-radius:50%;object-fit:cover;flex-shrink:0;border:2px solid #FB8C1E;}
-.prof-name{font-size:15px;font-weight:bold;color:#fff;margin-bottom:6px;}
-.prof-text p{font-size:13px;color:#999;line-height:1.9;}
+.prof-section{background:#111;color:#fff;padding:60px 24px;}
+.prof-inner{max-width:760px;margin:0 auto;display:flex;gap:36px;align-items:flex-start;}
+.prof-photo{width:140px;height:140px;border-radius:12px;object-fit:cover;object-position:top;flex-shrink:0;border:3px solid #FB8C1E;box-shadow:0 4px 20px rgba(0,0,0,0.3);}
+.prof-name{font-size:18px;font-weight:bold;color:#fff;margin-bottom:6px;}
+.prof-title{font-size:13px;color:#FB8C1E;margin-bottom:14px;font-weight:600;}
+.prof-body{font-size:14px;color:#888;line-height:1.9;}
 
-footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;}
+/* ===== RELATED LINKS ===== */
+.related-section{background:#f8f6f3;padding:56px 24px;}
+.related-inner{max-width:900px;margin:0 auto;}
+.related-title{font-size:18px;font-weight:bold;text-align:center;margin-bottom:28px;color:#1a1a1a;}
+.related-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
+.related-card{display:flex;flex-direction:column;gap:4px;background:#fff;border-radius:10px;padding:16px 18px;text-decoration:none;border:1px solid #ece9e4;transition:box-shadow 0.15s,transform 0.15s;}
+.related-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08);transform:translateY(-1px);}
+.related-card-title{font-size:14px;font-weight:bold;color:#1a1a1a;}
+.related-card-desc{font-size:12px;color:#888;line-height:1.6;}
 
-/* ===== DIVIDER ===== */
-.divider{height:1px;background:#f0f0f0;max-width:760px;margin:0 auto;}
-
-/* ===== SCREEN SHOT ===== */
-.screen-section{background:#f4f6f9;padding:0;}
-.screen-section img{display:block;width:100%;height:auto;}
+footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12px;}
 
 /* ===== RESPONSIVE ===== */
-@media(max-width:760px){
-  .hero-inner{flex-direction:column;gap:36px;text-align:center;}
-  .hero-right{order:-1;}
-  .hero-prof{flex-direction:column;align-items:center;}
-  .hero-prof-text{border-left:none;border-top:3px solid #FB8C1E;padding-left:0;padding-top:12px;text-align:center;}
-  .hero-photo{width:180px;height:180px;}
-  .hero .nums{justify-content:center;gap:20px;}
-  .hero h1{font-size:26px;}
-  .hero .num-val{font-size:22px;}
-  .coupon-label{display:none;}
-  .coupon-code{font-size:22px;padding:12px 18px;letter-spacing:4px;}
+@media(max-width:768px){
+  .hero-inner{flex-direction:column;gap:40px;}
+  .hero-text{flex:none;width:100%;order:1;}
+  .hero-image{flex:none;width:100%;order:2;}
+  .hero-photo{max-width:240px;margin:0 auto;}
+  .hero-btn{display:block;text-align:center;}
+  .trust-inner{grid-template-columns:repeat(2,1fr);}
+  .trust-item{border-right:none;border-bottom:1px solid #f0ede8;}
+  .trust-item:nth-child(odd){border-right:1px solid #f0ede8;}
+  .trust-item:nth-last-child(-n+2){border-bottom:none;}
   .forwho-grid{grid-template-columns:1fr;}
-  .feature-grid{grid-template-columns:1fr 1fr;}
   .step-list{flex-direction:column;gap:24px;}
-  .step-list::before{display:none;}
-  .compare-table th,.compare-table td{font-size:12px;padding:10px 10px;}
-  .prof-in{flex-direction:column;text-align:center;}
-  .message-block{flex-direction:column;text-align:center;}
-  .message-photo{order:-1;}
+  .step-connector{display:none;}
+  .prof-inner{flex-direction:column;align-items:center;text-align:center;}
+  .message-block{flex-direction:column;text-align:center;gap:16px;}
+  .cta-steps{flex-direction:column;gap:8px;}
+  .cta-arrow{transform:rotate(90deg);}
+  .related-grid{grid-template-columns:1fr;}
+  .nav-cta{display:none;}
 }
-@media(max-width:420px){
-  .feature-grid{grid-template-columns:1fr;}
+@media(max-width:560px){
+  .coupon-tag{display:none;}
+  .coupon-code{font-size:22px;padding:10px 16px;letter-spacing:4px;}
+  .cta-section h2{font-size:1.3em;}
+  .cta-btn{padding:18px 32px;font-size:17px;}
 }
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
-<div class="topbar">⚡ 期間限定：割引コード <span>CJ9852</span> でセラースプライトが <span>30%OFF</span></div>
+<!-- ANNOUNCE BAR -->
+<div class="announce-bar">⚡ 割引コード <strong>CJ9852</strong> で全プラン30%OFF ── セラースプライト公式代理店限定</div>
 
-<!-- PARTNER BAR -->
-<div class="partner-bar">
-  <div class="partner-bar-inner">
-    <span class="partner-bar-label">公式パートナー</span>
-    <img class="partner-logo"
-      src="https://www.sellersprite.com/assets/img/home/seller-sprite-logo.svg"
-      onerror="this.style.display='none'"
-      alt="SellerSprite" width="160" height="32" loading="lazy">
+<!-- NAV BAR -->
+<div class="nav-bar">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <span class="nav-badge">セラースプライト公式代理店</span>
+      <img class="nav-logo"
+        src="https://www.sellersprite.com/assets/img/home/seller-sprite-logo.svg"
+        onerror="this.style.display='none'"
+        alt="SellerSprite" width="140" height="28" loading="lazy">
+    </div>
+    <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="nav-cta">30%OFFで始める →</a>
   </div>
 </div>
 
 <!-- HERO -->
 <div class="hero">
   <div class="hero-inner">
-    <!-- LEFT -->
-    <div class="hero-left">
-      <div class="badge">世界170万人が導入 × Amazon物販の必須ツール</div>
-      <h1>商品リサーチの時間を<br><em>10分の1</em>に。<br>データで勝つAmazon物販へ。</h1>
-      <p class="sub">セラースプライトは、売れる商品・キーワード・競合情報を一画面で分析できるAmazonリサーチツールです。</p>
+    <div class="hero-text">
+      <p class="hero-sub">世界170万人が使うAmazonリサーチツール</p>
+      <h1>商品リサーチの時間を<br><em>10分の1</em>に。</h1>
+      <p class="hero-lead">データで勝つAmazon物販を、今日から始めましょう。</p>
 
-      <div class="nums">
-        <div class="num-item"><div class="num-val">170万+</div><div class="num-label">導入出品者数</div></div>
-        <div class="num-item"><div class="num-val">15万+</div><div class="num-label">日間訪問者数</div></div>
-        <div class="num-item"><div class="num-val">10+</div><div class="num-label">専門ツール数</div></div>
-        <div class="num-item"><div class="num-val">30%OFF</div><div class="num-label">割引コードあり</div></div>
+      <div class="coupon-wrap">
+        <p class="coupon-label-sm">今すぐコードをコピーして登録時に入力：</p>
+        <div class="coupon-block">
+          <span class="coupon-tag">30%OFF CODE</span>
+          <span class="coupon-code">CJ9852</span>
+          <button class="copy-btn" id="heroBtn" onclick="copyCode('heroBtn')">コピー</button>
+        </div>
+        <p class="coupon-note">コードをコピーして、公式サイト登録画面で入力するだけ。30%OFFが即適用されます</p>
       </div>
 
-      <p style="font-size:13px;color:#888;margin-bottom:10px;">今すぐコードをコピーして登録時に入力：</p>
-      <div class="coupon-block">
-        <span class="coupon-label">30%OFF CODE</span>
-        <span class="coupon-code">CJ9852</span>
-        <button class="copy-btn" id="heroBtn" onclick="copyCode('heroBtn')">コピー</button>
-      </div>
-      <p class="hero-note">コードをコピーして、公式サイト登録画面で入力するだけ。30%OFFが即適用されます</p>
-      <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" style="display:inline-block;background:#FB8C1E;color:#fff;font-size:17px;font-weight:bold;padding:18px 40px;border-radius:6px;letter-spacing:0.4px;transition:opacity 0.2s;box-shadow:0 4px 18px rgba(251,140,30,0.35);text-decoration:none;">セラースプライトを今すぐ始める →</a>
-      <p style="font-size:12px;color:#aaa;margin-top:10px;">公式サイトへ遷移します</p>
+      <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="hero-btn">セラースプライトを30%OFFで始める →</a>
+      <p class="hero-assure">無料プランあり・日本語対応・いつでも解約OK</p>
     </div>
-    <!-- RIGHT -->
-    <div class="hero-right">
-      <div class="hero-prof">
-        <img class="hero-photo" src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一 セラースプライト公式代理店 Amazon年商3億円" width="200" height="200" loading="lazy">
-        <p class="hero-prof-text">週1時間のリサーチのみで年商3億円達成。セラースプライト公式代理店。鬼束壮一</p>
-      </div>
+
+    <div class="hero-image">
+      <img class="hero-photo"
+        src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg"
+        alt="鬼束壮一 セラースプライト公式代理店 Amazon年商3億円"
+        width="320" height="320" loading="eager">
+      <p class="hero-photo-caption"><strong>鬼束壮一</strong>｜年商3億円<br>セラースプライト公式代理店</p>
     </div>
   </div>
 </div>
 
-<div style="margin:32px 0;text-align:center;">
-<img src="https://images.unsplash.com/photo-1588196749597-9ff075ee6b5b?w=800&q=80" alt="Amazon商品リサーチに取り組む日本人セラーのイメージ" loading="lazy" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
+<!-- TRUST BADGES -->
+<div class="trust-bar">
+  <div class="trust-inner">
+    <div class="trust-item">
+      <div class="trust-val">170万+</div>
+      <div class="trust-label">導入セラー数</div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-val">15万+</div>
+      <div class="trust-label">日間訪問者数</div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-val">10+</div>
+      <div class="trust-label">専門ツール数</div>
+    </div>
+    <div class="trust-item">
+      <div class="trust-val">30%OFF</div>
+      <div class="trust-label">割引コードあり</div>
+    </div>
+  </div>
 </div>
 
 <!-- FOR WHO -->
-<div class="section forwho">
+<div class="section bg-white">
   <div class="section-inner">
     <h2 class="section-title">こんな人に、<em>特に使ってほしい</em></h2>
     <p class="section-desc">Amazon物販をやっている・始めたい方へ。あなたに当てはまるものはありますか？</p>
     <div class="forwho-grid">
       <div class="forwho-card">
-        <div class="forwho-card-title">⏱ リサーチに時間がかかりすぎている人</div>
+        <div class="forwho-icon">⏱</div>
+        <div class="forwho-card-title">リサーチに時間がかかりすぎている人</div>
         <div class="forwho-card-body">今1〜2時間かかっているなら、セラースプライトを使えば15〜20分になります。月30時間以上の時短になる計算です。</div>
       </div>
       <div class="forwho-card">
-        <div class="forwho-card-title">📦 なんとなく感覚で仕入れている人</div>
+        <div class="forwho-icon">📦</div>
+        <div class="forwho-card-title">なんとなく感覚で仕入れている人</div>
         <div class="forwho-card-body">データで判断できるようになると、利益率が変わります。「売れそう」から「売れる確率が高い」へ。</div>
       </div>
       <div class="forwho-card">
-        <div class="forwho-card-title">💼 副業でAmazon物販を始めたい人</div>
+        <div class="forwho-icon">💼</div>
+        <div class="forwho-card-title">副業でAmazon物販を始めたい人</div>
         <div class="forwho-card-body">ツールがあれば、本業の合間でも動けます。週1〜2時間のリサーチで仕入れ判断ができる環境を作れます。</div>
       </div>
     </div>
@@ -340,154 +387,156 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
 </div>
 
 <!-- FEATURES -->
-<div class="section features">
+<div class="section bg-gray">
   <div class="section-inner">
     <h2 class="section-title">セラースプライトで<em>できること</em></h2>
     <p class="section-desc">商品選定から広告最適化まで、Amazon物販に必要な分析がすべて揃っています。</p>
-    <div class="feature-grid">
-
-      <div class="feature-card">
-        <div class="feature-icon">🔍</div>
-        <div class="feature-name">商品リサーチ</div>
-        <div class="feature-desc">月間売上推定・BSRトレンド・競合数を一画面で確認。「売れるか売れないか」の判断が秒速に。</div>
+    <div class="feature-list">
+      <div class="feature-item">
+        <div class="feature-icon-wrap">🔍</div>
+        <div>
+          <div class="feature-name">商品リサーチ</div>
+          <div class="feature-desc">月間売上推定・BSRトレンド・競合数を一画面で確認。「売れるか売れないか」の判断が秒速に。</div>
+        </div>
       </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🔑</div>
-        <div class="feature-name">キーワードリサーチ</div>
-        <div class="feature-desc">月間検索数・CPC単価・転換率を横断分析。顧客がどのワードで商品を探しているかが丸見え。</div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">🔑</div>
+        <div>
+          <div class="feature-name">キーワードリサーチ</div>
+          <div class="feature-desc">月間検索数・CPC単価・転換率を横断分析。顧客がどのワードで商品を探しているかが丸見え。</div>
+        </div>
       </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🔄</div>
-        <div class="feature-name">逆引きASINリサーチ</div>
-        <div class="feature-desc">競合ASINからランクインキーワードを全件抽出。ライバルの流入源を丸ごとパクれる。</div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">🔄</div>
+        <div>
+          <div class="feature-name">逆引きASINリサーチ</div>
+          <div class="feature-desc">競合ASINからランクインキーワードを全件抽出。ライバルの流入源を丸ごとパクれる。</div>
+        </div>
       </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">📊</div>
-        <div class="feature-name">市場リサーチ</div>
-        <div class="feature-desc">カテゴリ全体の市場規模・成長トレンド・参入難易度を一括分析。ニッチ市場の発掘に最適。</div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">📊</div>
+        <div>
+          <div class="feature-name">市場リサーチ</div>
+          <div class="feature-desc">カテゴリ全体の市場規模・成長トレンド・参入難易度を一括分析。ニッチ市場の発掘に最適。</div>
+        </div>
       </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">⭐</div>
-        <div class="feature-name">レビュー分析</div>
-        <div class="feature-desc">競合商品のレビューをAI解析。「良い点」「不満点」「改善要望」を自動で抽出。差別化のヒントに。</div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">⭐</div>
+        <div>
+          <div class="feature-name">レビュー分析</div>
+          <div class="feature-desc">競合商品のレビューをAI解析。「良い点」「不満点」「改善要望」を自動で抽出。差別化のヒントに。</div>
+        </div>
       </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🏆</div>
-        <div class="feature-name">ABAデータ活用</div>
-        <div class="feature-desc">Amazon公式のブランド分析データを活用。検索クエリごとの購買率・クリック率が確認可能。</div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">🏆</div>
+        <div>
+          <div class="feature-name">ABAデータ活用</div>
+          <div class="feature-desc">Amazon公式のブランド分析データを活用。検索クエリごとの購買率・クリック率が確認可能。</div>
+        </div>
       </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🛒</div>
-        <div class="feature-name">ライバルセラー調査</div>
-        <div class="feature-desc">競合ストアの全出品商品を売れている順に並べて表示。ヒット商品の共通点を一瞬で把握。</div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">🛒</div>
+        <div>
+          <div class="feature-name">ライバルセラー調査</div>
+          <div class="feature-desc">競合ストアの全出品商品を売れている順に並べて表示。ヒット商品の共通点を一瞬で把握。</div>
+        </div>
       </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🔔</div>
-        <div class="feature-name">商品モニタリング</div>
-        <div class="feature-desc">価格・ランキング・相乗り出品をリアルタイム監視。異常があればスマホへ即通知。</div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">🔔</div>
+        <div>
+          <div class="feature-name">商品モニタリング</div>
+          <div class="feature-desc">価格・ランキング・相乗り出品をリアルタイム監視。異常があればスマホへ即通知。</div>
+        </div>
       </div>
-
-      <div class="feature-card">
-        <div class="feature-icon">🧩</div>
-        <div class="feature-name">ブラウザ拡張機能</div>
-        <div class="feature-desc">Amazon検索結果ページに直接データを表示。商品を開かずに売上推定・競合数を確認。Keepa代替にも。</div>
+      <div class="feature-item">
+        <div class="feature-icon-wrap">🧩</div>
+        <div>
+          <div class="feature-name">ブラウザ拡張機能</div>
+          <div class="feature-desc">Amazon検索結果ページに直接データを表示。商品を開かずに売上推定・競合数を確認。Keepa代替にも。</div>
+        </div>
       </div>
-
     </div>
   </div>
 </div>
 
-
-<div class="divider"></div>
-
-<div style="margin:32px 0;text-align:center;">
-<img src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d?w=800&q=80" alt="Amazon物販の梱包・出荷作業のイメージ" loading="lazy" style="max-width:100%;height:auto;border-radius:12px;box-shadow:0 2px 12px rgba(0,0,0,0.08);">
-</div>
-
 <!-- COMPARE -->
-<div class="section compare">
+<div class="section bg-white">
   <div class="section-inner">
     <h2 class="section-title">他ツールとの<em>比較</em></h2>
     <p class="section-desc">Amazon物販で使われる主要ツールと「リサーチ総合力」を比較しました。</p>
-    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -4px;">
-    <table class="compare-table">
-      <thead>
-        <tr>
-          <th style="text-align:left;">比較項目</th>
-          <th class="highlight">セラースプライト<br><span style="font-size:11px;font-weight:normal;">総合リサーチ</span></th>
-          <th>Keepa<br><span style="font-size:11px;font-weight:normal;">価格追跡</span></th>
-          <th>プライスター<br><span style="font-size:11px;font-weight:normal;">価格管理</span></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>日本語UI</td>
-          <td class="highlight"><span class="check">✔ 完全対応</span></td>
-          <td><span class="cross">✘ 英語のみ</span></td>
-          <td><span class="check">✔ 対応</span></td>
-        </tr>
-        <tr>
-          <td>月額費用（目安）</td>
-          <td class="highlight">¥13,998〜（コードで30%OFF）</td>
-          <td>€19〜</td>
-          <td>¥4,980〜</td>
-        </tr>
-        <tr>
-          <td>商品リサーチ</td>
-          <td class="highlight"><span class="check">✔ 売上推定・BSR分析</span></td>
-          <td><span class="check">✔ 価格履歴のみ</span></td>
-          <td><span class="cross">✘</span></td>
-        </tr>
-        <tr>
-          <td>キーワードリサーチ</td>
-          <td class="highlight"><span class="check">✔ 月間検索数・転換率</span></td>
-          <td><span class="cross">✘</span></td>
-          <td><span class="cross">✘</span></td>
-        </tr>
-        <tr>
-          <td>競合分析</td>
-          <td class="highlight"><span class="check">✔ ライバル全商品調査</span></td>
-          <td>△ 価格比較のみ</td>
-          <td>△ 相乗り監視のみ</td>
-        </tr>
-        <tr>
-          <td>逆引きASIN</td>
-          <td class="highlight"><span class="check">✔</span></td>
-          <td><span class="cross">✘</span></td>
-          <td><span class="cross">✘</span></td>
-        </tr>
-        <tr>
-          <td>市場全体分析</td>
-          <td class="highlight"><span class="check">✔ 市場規模・参入難易度</span></td>
-          <td><span class="cross">✘</span></td>
-          <td><span class="cross">✘</span></td>
-        </tr>
-        <tr>
-          <td>日本市場特化度</td>
-          <td class="highlight"><span class="check">★★★ 最高</span></td>
-          <td>★★ 中（全世界向け）</td>
-          <td>★★★ 高（日本特化）</td>
-        </tr>
-      </tbody>
-    </table>
-    <p class="compare-note">※ KeepaとプライスターはAmazon物販の「運用」を支援するツールです。セラースプライトは「何を売るか」を決めるリサーチ段階から圧倒的な強みを発揮します。料金は2026年時点の参考値です。</p>
+    <div class="compare-scroll">
+      <table class="compare-table">
+        <thead>
+          <tr>
+            <th style="text-align:left;">比較項目</th>
+            <th class="hl">セラースプライト<br><span style="font-size:11px;font-weight:normal;opacity:0.85;">総合リサーチ</span></th>
+            <th>Keepa<br><span style="font-size:11px;font-weight:normal;opacity:0.7;">価格追跡</span></th>
+            <th>プライスター<br><span style="font-size:11px;font-weight:normal;opacity:0.7;">価格管理</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>日本語UI</td>
+            <td class="hl"><span class="ck">✔ 完全対応</span></td>
+            <td><span class="cx">✘ 英語のみ</span></td>
+            <td><span class="ck">✔ 対応</span></td>
+          </tr>
+          <tr>
+            <td>月額費用（目安）</td>
+            <td class="hl">¥13,998〜（コードで30%OFF）</td>
+            <td>€19〜</td>
+            <td>¥4,980〜</td>
+          </tr>
+          <tr>
+            <td>商品リサーチ</td>
+            <td class="hl"><span class="ck">✔ 売上推定・BSR分析</span></td>
+            <td><span class="ck">✔ 価格履歴のみ</span></td>
+            <td><span class="cx">✘</span></td>
+          </tr>
+          <tr>
+            <td>キーワードリサーチ</td>
+            <td class="hl"><span class="ck">✔ 月間検索数・転換率</span></td>
+            <td><span class="cx">✘</span></td>
+            <td><span class="cx">✘</span></td>
+          </tr>
+          <tr>
+            <td>競合分析</td>
+            <td class="hl"><span class="ck">✔ ライバル全商品調査</span></td>
+            <td>△ 価格比較のみ</td>
+            <td>△ 相乗り監視のみ</td>
+          </tr>
+          <tr>
+            <td>逆引きASIN</td>
+            <td class="hl"><span class="ck">✔</span></td>
+            <td><span class="cx">✘</span></td>
+            <td><span class="cx">✘</span></td>
+          </tr>
+          <tr>
+            <td>市場全体分析</td>
+            <td class="hl"><span class="ck">✔ 市場規模・参入難易度</span></td>
+            <td><span class="cx">✘</span></td>
+            <td><span class="cx">✘</span></td>
+          </tr>
+          <tr>
+            <td>日本市場特化度</td>
+            <td class="hl"><span class="ck">★★★ 最高</span></td>
+            <td>★★ 中（全世界向け）</td>
+            <td>★★★ 高（日本特化）</td>
+          </tr>
+        </tbody>
+      </table>
     </div>
+    <p class="compare-note">※ KeepaとプライスターはAmazon物販の「運用」を支援するツールです。セラースプライトは「何を売るか」を決めるリサーチ段階から圧倒的な強みを発揮します。料金は2026年時点の参考値です。</p>
   </div>
 </div>
 
 <!-- STEPS -->
-<div class="section steps">
+<div class="section bg-gray">
   <div class="section-inner">
     <h2 class="section-title"><em>3ステップ</em>で始める使い方</h2>
     <p class="section-desc">登録から最初のリサーチ完了まで、最短15分で動けます。</p>
     <div class="step-list">
+      <div class="step-connector"></div>
       <div class="step-item">
         <div class="step-n">1</div>
         <div class="step-title">割引コードをコピーして登録</div>
@@ -507,94 +556,105 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
   </div>
 </div>
 
-<div class="divider"></div>
-
 <!-- FAQ -->
-<div class="section faq">
+<div class="section bg-white">
   <div class="section-inner">
     <h2 class="section-title">よくある<em>質問</em></h2>
     <p class="section-desc">購入前の疑問をまとめました。</p>
     <div class="faq-list">
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">セラースプライトは無料で使えますか？</div>
         <div class="faq-a">一部の機能は無料で試すことができます。ただし、商品リサーチ・キーワードリサーチなどの主要機能はプランへの登録が必要です。割引コード「CJ9852」を使えば全プラン30%OFFで始められます。</div>
       </div>
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">日本語に対応していますか？</div>
         <div class="faq-a">はい、完全日本語対応しています。UIも日本語で、日本Amazonのデータを精度高く分析できます。Helium10などの英語ツールと比較して、日本市場に特化したデータが充実しているのが特徴です。</div>
       </div>
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">割引コード「CJ9852」はどこで入力しますか？</div>
         <div class="faq-a">公式サイトでプランを選択し、支払い情報入力画面に進むとクーポンコード入力欄が表示されます。そこに「CJ9852」を入力すると30%OFFが適用されます。登録後に追加することはできないため、登録時に必ず入力してください。</div>
       </div>
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">Amazon物販を始めたばかりでも使えますか？</div>
         <div class="faq-a">使えます。むしろ初心者こそ感覚ではなくデータで判断することが大事です。最初はブラウザ拡張機能からスタートして、Amazonの商品ページを見ながら売上推定・競合数を確認するだけでも大きな武器になります。</div>
       </div>
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">欧米輸入・FBAにも使えますか？</div>
         <div class="faq-a">はい。セラースプライトは日本Amazon・米国Amazon・欧州Amazonなど複数マーケットプレイスに対応しています。欧米輸入で仕入れ先を探す際のリサーチにも活用できます。</div>
       </div>
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">月途中で解約できますか？</div>
         <div class="faq-a">月額プランはいつでも解約可能です。解約すると次の更新日以降の請求は発生しません。まず1ヶ月試してみて、自分のビジネスに合うか確かめてから継続判断するのがおすすめです。</div>
       </div>
-
       <div class="faq-item">
         <div class="faq-q" onclick="toggleFaq(this)">他の割引コードと比べてCJ9852はどれくらいお得ですか？</div>
         <div class="faq-a">CJ9852は鬼束壮一が正規代理店として提供する割引コードで、全プラン一律30%OFFが適用されます。セラースプライト公式サイトで直接購入するより確実に安く始められる、現時点で最もお得な方法です。</div>
       </div>
-
     </div>
   </div>
 </div>
 
 <!-- MESSAGE -->
-<div class="message-wrap">
+<div class="message-section">
   <div class="message-block">
+    <img class="message-photo" src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一 セラースプライト公式代理店 Amazon年商3億円" width="72" height="72" loading="lazy">
     <p class="message-text">正直に言います。セラースプライトを使えば必ず稼げる、とは言いません。ただ、私が使い始めてから商品リサーチの時間が10分の1になったのは事実です。何もなければそれで良い。気になるなら、まず割引コードで始めてみてください。<strong>― 鬼束壮一</strong></p>
-    <img class="message-photo" src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一 セラースプライト公式代理店 Amazon年商3億円" width="60" height="60" loading="lazy">
   </div>
 </div>
 
-<!-- CTA -->
-<div class="cta">
+<!-- CTA SECTION -->
+<div class="cta-section">
   <h2>割引コードをコピーして<br>セラースプライトを始める。</h2>
-  <p class="sub">データで動ける人と、感覚で動く人。結果は時間が証明します。</p>
+  <p class="cta-sub">データで動ける人と、感覚で動く人。結果は時間が証明します。</p>
 
-  <div style="margin-bottom:12px;">
-    <div class="cta-coupon">
-      <span class="cl">30%OFF</span>
-      <span class="cc">CJ9852</span>
-      <button class="cb" id="ctaBtn" onclick="copyCode('ctaBtn')">① コピー</button>
+  <div class="cta-steps">
+    <div class="cta-step">
+      <div class="cta-step-n">1</div>
+      <div class="cta-step-text">下のコードをコピー</div>
+    </div>
+    <div class="cta-arrow">→</div>
+    <div class="cta-step">
+      <div class="cta-step-n">2</div>
+      <div class="cta-step-text">公式サイトで登録</div>
+    </div>
+    <div class="cta-arrow">→</div>
+    <div class="cta-step">
+      <div class="cta-step-n">3</div>
+      <div class="cta-step-text">支払い画面でコード入力</div>
     </div>
   </div>
-  <p style="font-size:13px;color:rgba(255,255,255,0.7);margin-bottom:28px;">↑ まずコードをコピー、次に公式サイトで登録時に入力</p>
 
-  <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="cta-btn">② セラースプライト公式サイトへ →</a>
+  <div style="margin-bottom:28px;">
+    <div class="cta-coupon">
+      <span class="cl">30%OFF CODE</span>
+      <span class="cc">CJ9852</span>
+      <button class="cb" id="ctaBtn" onclick="copyCode('ctaBtn')">コピー</button>
+    </div>
+  </div>
+
+  <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="cta-btn">セラースプライト公式サイトへ →</a>
   <p class="cta-btn-note">支払い画面の「クーポンコード」欄に「CJ9852」を入力して30%OFFを適用</p>
 </div>
 
 <!-- PROF -->
-<div class="prof">
-  <div class="prof-in">
-    <img class="prof-img" src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一 セラースプライト公式代理店 Amazon年商3億円" width="88" height="88" loading="lazy">
-    <div class="prof-text">
+<div class="prof-section">
+  <div class="prof-inner">
+    <img class="prof-photo"
+      src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg"
+      alt="鬼束壮一 セラースプライト公式代理店 Amazon年商3億円"
+      width="140" height="140" loading="lazy">
+    <div>
       <div class="prof-name">鬼束壮一（おにつか そういち）</div>
-      <p>Amazon物販総代理ビジネス・欧米輸入。一般社団法人　日本物販アカデミー代表。年商3億円。タイに住みながら、世界中を旅しつつビジネスを運営。セラースプライト公式代理店。</p>
+      <div class="prof-title">一般社団法人 日本物販アカデミー代表 ｜ セラースプライト公式代理店</div>
+      <p class="prof-body">Amazon物販総代理ビジネス・欧米輸入。一般社団法人　日本物販アカデミー代表。年商3億円。タイに住みながら、世界中を旅しつつビジネスを運営。セラースプライト公式代理店。</p>
     </div>
   </div>
 </div>
 
-<div class="related-links">
+<!-- RELATED LINKS -->
+<div class="related-section">
   <div class="related-inner">
-    <h2 class="related-title">関連ページ</h2>
+    <div class="related-title">関連ページ</div>
     <div class="related-grid">
       <a href="./ryoukin.html" class="related-card"><span class="related-card-title">セラースプライトの料金プラン</span><span class="related-card-desc">各プランの月額料金と機能を解説</span></a>
       <a href="./hyouban.html" class="related-card"><span class="related-card-title">セラースプライトの評判・レビュー</span><span class="related-card-desc">実際に使ってわかったメリット・デメリット</span></a>
@@ -609,17 +669,7 @@ footer{background:#111;color:#444;text-align:center;padding:20px;font-size:12px;
     </div>
   </div>
 </div>
-<style>
-.related-links{background:#f8f6f3;padding:56px 24px;}
-.related-inner{max-width:720px;margin:0 auto;}
-.related-title{font-size:18px;font-weight:bold;text-align:center;margin-bottom:28px;color:#1a1a1a;}
-.related-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;}
-.related-card{display:flex;flex-direction:column;gap:4px;background:#fff;border-radius:8px;padding:16px 18px;text-decoration:none;border:1px solid #ece9e4;transition:box-shadow 0.15s;}
-.related-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08);}
-.related-card-title{font-size:14px;font-weight:bold;color:#1a1a1a;}
-.related-card-desc{font-size:12px;color:#888;line-height:1.6;}
-@media(max-width:560px){.related-grid{grid-template-columns:1fr;}}
-</style>
+
 <footer>© 2026 鬼束壮一 | 本ページはアフィリエイトリンクを含みます</footer>
 
 <script>
