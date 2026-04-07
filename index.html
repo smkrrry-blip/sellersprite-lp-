@@ -290,6 +290,20 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
 .sticky-cta-btn{background:#FB8C1E;color:#fff;border-radius:8px;padding:12px 28px;font-size:15px;font-weight:700;text-decoration:none;white-space:nowrap;}
 .sticky-cta-btn:hover{background:#e67d00;}
 @media(max-width:768px){.sticky-inner{flex-direction:column;height:auto;padding:12px 16px;gap:10px;}.sticky-cta-btn{width:100%;text-align:center;display:block;}body{padding-bottom:120px;}}
+.exit-modal{background:#fff;border-radius:16px;padding:40px;max-width:480px;width:90%;position:relative;text-align:center;}
+.exit-close{position:absolute;top:16px;right:20px;background:none;border:none;font-size:24px;color:#999;cursor:pointer;line-height:1;}
+.exit-close:hover{color:#333;}
+.exit-label{color:#FB8C1E;font-size:12px;font-weight:700;letter-spacing:1px;margin-bottom:12px;}
+.exit-heading{font-size:22px;font-weight:700;margin-bottom:16px;line-height:1.4;}
+.exit-body{font-size:14px;color:#555;line-height:1.8;margin-bottom:24px;}
+.exit-code-box{display:flex;align-items:center;justify-content:center;gap:12px;background:#f9f9f9;border:1px solid #eee;border-radius:10px;padding:16px;margin-bottom:20px;}
+.exit-code-label{font-size:11px;color:#aaa;letter-spacing:1px;white-space:nowrap;}
+.exit-code-text{font-size:24px;font-weight:700;color:#FB8C1E;letter-spacing:4px;}
+.exit-copy-btn{background:#FB8C1E;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;}
+.exit-copy-btn:hover{background:#e67d00;}
+.exit-cta-btn{display:block;background:#FB8C1E;color:#fff;border-radius:8px;padding:14px;font-size:16px;font-weight:700;text-decoration:none;margin-bottom:12px;}
+.exit-cta-btn:hover{background:#e67d00;}
+.exit-footer{font-size:12px;color:#aaa;margin:0;}
 </style>
 </head>
 <body>
@@ -716,6 +730,49 @@ function toggleFaq(btn){
   var isOpen=item.classList.contains('open');
   item.classList.toggle('open',!isOpen);
   btn.setAttribute('aria-expanded',!isOpen);
+}
+</script>
+<div id="exit-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;">
+  <div class="exit-modal">
+    <button class="exit-close" onclick="closeExitPopup()">×</button>
+    <p class="exit-label">ちょっと待ってください</p>
+    <h2 class="exit-heading">登録前に、これだけ持っていってください。</h2>
+    <p class="exit-body">割引コード「CJ9852」を使えば、今日から30%安く始められます。<br>公式サイトには載っていない、読者限定のコードです。</p>
+    <div class="exit-code-box">
+      <span class="exit-code-label">30%OFF CODE</span>
+      <span class="exit-code-text">CJ9852</span>
+      <button class="exit-copy-btn" onclick="exitCopy(this)">コピーする</button>
+    </div>
+    <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" class="exit-cta-btn">このまま30%OFFで登録する →</a>
+    <p class="exit-footer">無料プランあり・いつでも解約OK</p>
+  </div>
+</div>
+<script>
+(function(){
+  if(window.innerWidth < 768) return;
+  if(sessionStorage.getItem('exitShown')) return;
+  var ready = false;
+  setTimeout(function(){ ready = true; }, 3000);
+  document.addEventListener('mouseleave', function(e){
+    if(!ready) return;
+    if(e.clientY > 30) return;
+    if(sessionStorage.getItem('exitShown')) return;
+    var overlay = document.getElementById('exit-overlay');
+    overlay.style.display = 'flex';
+    sessionStorage.setItem('exitShown','1');
+  });
+  document.getElementById('exit-overlay').addEventListener('click', function(e){
+    if(e.target === this) closeExitPopup();
+  });
+})();
+function closeExitPopup(){
+  document.getElementById('exit-overlay').style.display='none';
+}
+function exitCopy(btn){
+  navigator.clipboard.writeText('CJ9852').then(function(){
+    btn.textContent='✓ コピー済み';
+    setTimeout(function(){ btn.textContent='コピーする'; },2000);
+  });
 }
 </script>
 <div id="sticky-cta" style="position:fixed;bottom:0;left:0;width:100%;background:#1a1a2e;z-index:9999;box-shadow:0 -2px 12px rgba(0,0,0,0.2);">
