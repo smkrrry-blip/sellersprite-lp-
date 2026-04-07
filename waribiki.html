@@ -544,13 +544,14 @@ function toggleFaq(btn){
   if(sessionStorage.getItem('exitShown')) return;
   var ready = false;
   setTimeout(function(){ ready = true; }, 3000);
-  document.addEventListener('mouseleave', function(e){
+  document.addEventListener('mousemove', function(e){
     if(!ready) return;
-    if(e.clientY > 30) return;
     if(sessionStorage.getItem('exitShown')) return;
-    var overlay = document.getElementById('exit-overlay');
-    overlay.style.display = 'flex';
-    sessionStorage.setItem('exitShown','1');
+    if(e.clientY < 10) {
+      var overlay = document.getElementById('exit-overlay');
+      overlay.style.display = 'flex';
+      sessionStorage.setItem('exitShown','1');
+    }
   });
   document.getElementById('exit-overlay').addEventListener('click', function(e){
     if(e.target === this) closeExitPopup();
