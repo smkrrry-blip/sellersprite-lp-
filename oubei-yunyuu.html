@@ -205,7 +205,19 @@ img{max-width:100%;height:auto;display:block;}
 .related-card-title{font-size:0.95em;font-weight:bold;color:#333;}
 .related-card-desc{font-size:0.82em;color:#666;line-height:1.6;}
 footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12px;}
+/* CREDENTIAL BAR */
+.credential-bar{background:#1a1a2e;padding:30px 24px;color:#fff;}
+.credential-bar-inner{max-width:1100px;margin:0 auto;display:flex;align-items:stretch;}
+.credential-item{flex:1;text-align:center;padding:0 24px;border-right:1px solid rgba(255,255,255,0.2);}
+.credential-item:last-child{border-right:none;}
+.credential-num{font-size:clamp(24px,3vw,36px);font-weight:700;line-height:1.2;display:block;}
+.credential-label{font-size:14px;opacity:0.8;display:block;margin-top:4px;}
+
 @media(max-width:768px){
+  .credential-bar-inner{flex-direction:column;gap:0;}
+  .credential-item{border-right:none;border-bottom:1px solid rgba(255,255,255,0.15);padding:16px 0;}
+  .credential-item:last-child{border-bottom:none;}
+
   .hero-inner{flex-direction:column;gap:1.5rem;}
   .hero-col-img,.hero-col-text{flex:none;width:100%;}
   .card-grid{grid-template-columns:1fr;}
@@ -253,6 +265,22 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
     </div>
     <div class="hero-col-img">
       <img src="images/ss-product-research.png" alt="セラースプライトの商品リサーチ（国旗選択）画面" loading="eager">
+    </div>
+  </div>
+</div>
+<div class="credential-bar">
+  <div class="credential-bar-inner">
+    <div class="credential-item">
+      <span class="credential-num">3億円</span>
+      <span class="credential-label">年商</span>
+    </div>
+    <div class="credential-item" aria-label="物販歴10年">
+      <span class="credential-num">10年</span>
+      <span class="credential-label">物販歴</span>
+    </div>
+    <div class="credential-item">
+      <span class="credential-num">公式代理店</span>
+      <span class="credential-label">セラースプライト</span>
     </div>
   </div>
 </div>
