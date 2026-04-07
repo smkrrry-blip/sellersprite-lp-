@@ -44,58 +44,26 @@
       "mainEntity": [
         {
           "@type": "Question",
-          "name": "セラースプライトは無料で使えますか？",
+          "name": "セラースプライトとは何ですか？",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "一部の機能は無料で試すことができます。ただし、商品リサーチ・キーワードリサーチなどの主要機能はプランへの登録が必要です。割引コード「CJ9852」を使えば全プラン30%OFFで始められます。"
+            "text": "Amazonせどりのリサーチツールです。商品・キーワード・競合・市場分析が一つで完結します。私も毎日使っています。"
           }
         },
         {
           "@type": "Question",
-          "name": "日本語に対応していますか？",
+          "name": "初心者でも使えますか？",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "はい、完全日本語対応しています。UIも日本語で、日本Amazonのデータを精度高く分析できます。Helium10などの英語ツールと比較して、日本市場に特化したデータが充実しているのが特徴です。"
+            "text": "使えます。日本語に完全対応していて、無料プランから始められます。まず触ってみてください。"
           }
         },
         {
           "@type": "Question",
-          "name": "割引コード「CJ9852」はどこで入力しますか？",
+          "name": "割引コード「CJ9852」で何が安くなりますか？",
           "acceptedAnswer": {
             "@type": "Answer",
-            "text": "公式サイトでプランを選択し、支払い情報入力画面に進むとクーポンコード入力欄が表示されます。そこに「CJ9852」を入力すると30%OFFが適用されます。登録後に追加することはできないため、登録時に必ず入力してください。"
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "Amazon物販を始めたばかりでも使えますか？",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "使えます。むしろ初心者こそ感覚ではなくデータで判断することが大事です。最初はブラウザ拡張機能からスタートして、Amazonの商品ページを見ながら売上推定・競合数を確認するだけでも大きな武器になります。"
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "欧米輸入・FBAにも使えますか？",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "はい。セラースプライトは日本Amazon・米国Amazon・欧州Amazonなど複数マーケットプレイスに対応しています。欧米輸入で仕入れ先を探す際のリサーチにも活用できます。"
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "月途中で解約できますか？",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "月額プランはいつでも解約可能です。解約すると次の更新日以降の請求は発生しません。まず1ヶ月試してみて、自分のビジネスに合うか確かめてから継続判断するのがおすすめです。"
-          }
-        },
-        {
-          "@type": "Question",
-          "name": "他の割引コードと比べてCJ9852はどれくらいお得ですか？",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "CJ9852は鬼束壮一が正規代理店として提供する割引コードで、全プラン一律30%OFFが適用されます。セラースプライト公式サイトで直接購入するより確実に安く始められる、現時点で最もお得な方法です。"
+            "text": "全プランが30%OFFになります。スタンダードなら月額約¥9,799で使えます。"
           }
         }
       ]
@@ -203,14 +171,18 @@ img{max-width:100%;height:auto;display:block;}
 .step-title{font-size:15px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;}
 .step-body{font-size:13px;color:#666;line-height:1.75;}
 
-/* ===== FAQ ===== */
-.faq-list{display:flex;flex-direction:column;gap:10px;}
-.faq-item{background:#fff;border-radius:12px;border:1px solid #efefef;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.04);}
-.faq-q{padding:18px 22px;font-size:15px;font-weight:bold;cursor:pointer;display:flex;justify-content:space-between;align-items:center;color:#1a1a1a;line-height:1.5;}
-.faq-q::after{content:'＋';font-size:20px;color:#FB8C1E;flex-shrink:0;transition:transform 0.2s;margin-left:12px;}
-.faq-item.open .faq-q::after{transform:rotate(45deg);}
-.faq-a{padding:0 22px;max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease;font-size:14px;color:#555;line-height:1.85;}
-.faq-item.open .faq-a{max-height:300px;padding:0 22px 18px;}
+/* FAQ SECTION */
+.faq-section{background:#fff;padding:64px 24px;}
+.faq-inner{max-width:760px;margin:0 auto;}
+.faq-section h2{font-size:1.6em;font-weight:bold;text-align:center;margin-bottom:32px;color:#1a1a1a;}
+.faq-list{display:flex;flex-direction:column;gap:12px;}
+.faq-item{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;}
+.faq-q{width:100%;background:none;border:none;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left;font-size:16px;font-weight:700;color:#1a1a1a;line-height:1.5;}
+.faq-icon{font-size:22px;font-weight:400;color:#FB8C1E;flex-shrink:0;margin-left:12px;transition:transform 0.2s;}
+.faq-a{max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease;}
+.faq-a-inner{padding:0 24px 20px;font-size:15px;line-height:1.8;color:#555;}
+.faq-item.open .faq-a{max-height:400px;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
 
 /* ===== HERO MINI QUOTE (修正1) ===== */
 .hero-mini-quote{padding:20px 24px 0;}
@@ -604,38 +576,30 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
 </div>
 
 <!-- FAQ -->
-<div class="section bg-white">
-  <div class="section-inner">
-    <h2 class="section-title">よくある<em>質問</em></h2>
-    <p class="section-desc">購入前の疑問をまとめました。</p>
+<div class="faq-section">
+  <div class="faq-inner">
+    <h2>よくある質問</h2>
     <div class="faq-list">
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">セラースプライトは無料で使えますか？</div>
-        <div class="faq-a">一部の機能は無料で試すことができます。ただし、商品リサーチ・キーワードリサーチなどの主要機能はプランへの登録が必要です。割引コード「CJ9852」を使えば全プラン30%OFFで始められます。</div>
+      <div class="faq-item open">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="true">
+          <span>セラースプライトとは何ですか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">Amazonせどりのリサーチツールです。商品・キーワード・競合・市場分析が一つで完結します。私も毎日使っています。</p></div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">日本語に対応していますか？</div>
-        <div class="faq-a">はい、完全日本語対応しています。UIも日本語で、日本Amazonのデータを精度高く分析できます。Helium10などの英語ツールと比較して、日本市場に特化したデータが充実しているのが特徴です。</div>
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          <span>初心者でも使えますか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">使えます。日本語に完全対応していて、無料プランから始められます。まず触ってみてください。</p></div>
       </div>
       <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">割引コード「CJ9852」はどこで入力しますか？</div>
-        <div class="faq-a">公式サイトでプランを選択し、支払い情報入力画面に進むとクーポンコード入力欄が表示されます。そこに「CJ9852」を入力すると30%OFFが適用されます。登録後に追加することはできないため、登録時に必ず入力してください。</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">Amazon物販を始めたばかりでも使えますか？</div>
-        <div class="faq-a">使えます。むしろ初心者こそ感覚ではなくデータで判断することが大事です。最初はブラウザ拡張機能からスタートして、Amazonの商品ページを見ながら売上推定・競合数を確認するだけでも大きな武器になります。</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">欧米輸入・FBAにも使えますか？</div>
-        <div class="faq-a">はい。セラースプライトは日本Amazon・米国Amazon・欧州Amazonなど複数マーケットプレイスに対応しています。欧米輸入で仕入れ先を探す際のリサーチにも活用できます。</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">月途中で解約できますか？</div>
-        <div class="faq-a">月額プランはいつでも解約可能です。解約すると次の更新日以降の請求は発生しません。まず1ヶ月試してみて、自分のビジネスに合うか確かめてから継続判断するのがおすすめです。</div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q" onclick="toggleFaq(this)">他の割引コードと比べてCJ9852はどれくらいお得ですか？</div>
-        <div class="faq-a">CJ9852は鬼束壮一が正規代理店として提供する割引コードで、全プラン一律30%OFFが適用されます。セラースプライト公式サイトで直接購入するより確実に安く始められる、現時点で最もお得な方法です。</div>
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          <span>割引コード「CJ9852」で何が安くなりますか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">全プランが30%OFFになります。スタンダードなら月額約¥9,799で使えます。</p></div>
       </div>
     </div>
   </div>
@@ -738,11 +702,11 @@ function copyCode(btnId){
   });
 }
 
-function toggleFaq(el){
-  var item=el.parentElement;
+function toggleFaq(btn){
+  var item=btn.closest('.faq-item');
   var isOpen=item.classList.contains('open');
-  document.querySelectorAll('.faq-item.open').forEach(function(i){i.classList.remove('open');});
-  if(!isOpen) item.classList.add('open');
+  item.classList.toggle('open',!isOpen);
+  btn.setAttribute('aria-expanded',!isOpen);
 }
 </script>
 </body>

@@ -234,7 +234,52 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
   .coupon-code{font-size:22px;padding:10px 16px;letter-spacing:4px;}
   .cta-section h2{font-size:1.25em;}
   .cta-btn{padding:18px 28px;font-size:16px;}
-}</style>
+}
+/* FAQ SECTION */
+.faq-section{background:#fff;padding:64px 24px;}
+.faq-inner{max-width:760px;margin:0 auto;}
+.faq-section h2{font-size:1.6em;font-weight:bold;text-align:center;margin-bottom:32px;color:#1a1a1a;}
+.faq-list{display:flex;flex-direction:column;gap:12px;}
+.faq-item{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;}
+.faq-q{width:100%;background:none;border:none;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left;font-size:16px;font-weight:700;color:#1a1a1a;line-height:1.5;}
+.faq-icon{font-size:22px;font-weight:400;color:#FB8C1E;flex-shrink:0;margin-left:12px;transition:transform 0.2s;}
+.faq-a{max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease;}
+.faq-a-inner{padding:0 24px 20px;font-size:15px;line-height:1.8;color:#555;}
+.faq-item.open .faq-a{max-height:400px;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
+</style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "副業にツールは必要ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "必要です。副業は時間が限られています。勘ではなくデータで判断しないと、時間も資金も無駄になります。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "月にどれくらい時間がかかりますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "慣れれば週1〜2時間のリサーチで十分です。ツールがあれば絞り込みが早くなります。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "初期費用はどれくらいかかりますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ツール代はCJ9852適用で約¥9,799/月からです。仕入れ資金を含めて数万円から始められます。"
+      }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <div class="announce-bar">⚡ 割引コード <strong>CJ9852</strong> で全プラン30%OFF ── セラースプライト公式代理店限定</div>
@@ -351,6 +396,34 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
     </div>
   </div>
 </div>
+<div class="faq-section">
+  <div class="faq-inner">
+    <h2>よくある質問</h2>
+    <div class="faq-list">
+      <div class="faq-item open">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="true">
+          <span>副業にツールは必要ですか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">必要です。副業は時間が限られています。勘ではなくデータで判断しないと、時間も資金も無駄になります。</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          <span>月にどれくらい時間がかかりますか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">慣れれば週1〜2時間のリサーチで十分です。ツールがあれば絞り込みが早くなります。</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          <span>初期費用はどれくらいかかりますか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">ツール代はCJ9852適用で約¥9,799/月からです。仕入れ資金を含めて数万円から始められます。</p></div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="quote-section">
   <div class="quote-inner">
     <div class="quote-flex">
@@ -407,6 +480,12 @@ function copyCode(id){
     b.classList.add('ok');
     setTimeout(function(){b.textContent='コピー';b.classList.remove('ok');},2500);
   }).catch(function(){});
+}
+function toggleFaq(btn){
+  var item=btn.closest('.faq-item');
+  var isOpen=item.classList.contains('open');
+  item.classList.toggle('open',!isOpen);
+  btn.setAttribute('aria-expanded',!isOpen);
 }
 </script>
 </body>

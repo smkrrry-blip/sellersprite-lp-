@@ -282,7 +282,51 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
   .cta-section h2{font-size:1.25em;}
   .cta-btn{padding:18px 28px;font-size:16px;}
 }
+/* FAQ SECTION */
+.faq-section{background:#fff;padding:64px 24px;}
+.faq-inner{max-width:760px;margin:0 auto;}
+.faq-section h2{font-size:1.6em;font-weight:bold;text-align:center;margin-bottom:32px;color:#1a1a1a;}
+.faq-list{display:flex;flex-direction:column;gap:12px;}
+.faq-item{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;}
+.faq-q{width:100%;background:none;border:none;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left;font-size:16px;font-weight:700;color:#1a1a1a;line-height:1.5;}
+.faq-icon{font-size:22px;font-weight:400;color:#FB8C1E;flex-shrink:0;margin-left:12px;transition:transform 0.2s;}
+.faq-a{max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease;}
+.faq-a-inner{padding:0 24px 20px;font-size:15px;line-height:1.8;color:#555;}
+.faq-item.open .faq-a{max-height:400px;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
 </style>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "クーポンコードは本当に使えますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "使えます。「CJ9852」を登録・決済画面で入力するだけで、即座に30%OFFが適用されます。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "有効期限はありますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "ありません。私が公式代理店として常時提供しているコードです。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "他のクーポンと併用できますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "できません。1回の決済で使えるのは1コードのみです。ただ、CJ9852が現時点で最大の割引です。"
+      }
+    }
+  ]
+}
+</script>
 </head>
 <body>
 <div class="announce-bar">⚡ 割引コード <strong>CJ9852</strong> で全プラン30%OFF ── セラースプライト公式代理店限定</div>
@@ -357,6 +401,34 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
     </div>
   </div>
 </div>
+<div class="faq-section">
+  <div class="faq-inner">
+    <h2>よくある質問</h2>
+    <div class="faq-list">
+      <div class="faq-item open">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="true">
+          <span>クーポンコードは本当に使えますか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">使えます。「CJ9852」を登録・決済画面で入力するだけで、即座に30%OFFが適用されます。</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          <span>有効期限はありますか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">ありません。私が公式代理店として常時提供しているコードです。</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          <span>他のクーポンと併用できますか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">できません。1回の決済で使えるのは1コードのみです。ただ、CJ9852が現時点で最大の割引です。</p></div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="quote-section">
   <div class="quote-inner">
     <div class="quote-flex">
@@ -413,6 +485,12 @@ function copyCode(id){
     b.classList.add('ok');
     setTimeout(function(){b.textContent='コピー';b.classList.remove('ok');},2500);
   }).catch(function(){});
+}
+function toggleFaq(btn){
+  var item=btn.closest('.faq-item');
+  var isOpen=item.classList.contains('open');
+  item.classList.toggle('open',!isOpen);
+  btn.setAttribute('aria-expanded',!isOpen);
 }
 </script>
 
