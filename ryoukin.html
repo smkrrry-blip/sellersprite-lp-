@@ -30,6 +30,46 @@
   "url": "https://smkrrry-blip.github.io/sellersprite-lp-/ryoukin.html"
 }
 </script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "セラースプライトは無料で使えますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "はい。無料会員プランがあり、一部機能を制限付きで使えます。まず無料で試して、必要に応じて有料プランに切り替えるのがおすすめです。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "割引コード「CJ9852」はいつまで使えますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "公式代理店コードなので、期間限定ではありません。登録時にコードを入力すれば、いつでも30%OFFが適用されます。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "月払いと年払い、どちらがお得ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "年払いの方が月あたりの単価は安くなります。ただし、まずは月払いで1ヶ月試してから年払いに切り替えるのが安全です。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "途中でプラン変更やキャンセルはできますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "はい。いつでもプラン変更・キャンセルが可能です。年払いの場合も途中解約できます。"
+      }
+    }
+  ]
+}
+</script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Meiryo",sans-serif;font-size:16px;line-height:1.7;color:#333;background:#fff;}
@@ -207,6 +247,19 @@ img{max-width:100%;height:auto;display:block;}
 .price-table tr:nth-child(even) td{background:#fafafa;}
 .price-note{font-size:12px;color:#aaa;margin-top:10px;}
 
+/* FAQ SECTION */
+.faq-section{background:#fff;padding:64px 24px;}
+.faq-inner{max-width:760px;margin:0 auto;}
+.faq-section h2{font-size:1.6em;font-weight:bold;text-align:center;margin-bottom:32px;color:#1a1a1a;}
+.faq-list{display:flex;flex-direction:column;gap:12px;}
+.faq-item{background:#fff;border-radius:12px;box-shadow:0 2px 10px rgba(0,0,0,0.07);overflow:hidden;}
+.faq-q{width:100%;background:none;border:none;padding:20px 24px;display:flex;justify-content:space-between;align-items:center;cursor:pointer;text-align:left;font-size:16px;font-weight:700;color:#1a1a1a;line-height:1.5;}
+.faq-icon{font-size:22px;font-weight:400;color:#FB8C1E;flex-shrink:0;margin-left:12px;transition:transform 0.2s;}
+.faq-a{max-height:0;overflow:hidden;transition:max-height 0.3s ease,padding 0.3s ease;}
+.faq-a-inner{padding:0 24px 20px;font-size:15px;line-height:1.8;color:#555;}
+.faq-item.open .faq-a{max-height:400px;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
+
 /* QUOTE SECTION */
 .quote-section{background:#fff;padding:60px 24px;}
 .quote-inner{max-width:680px;margin:0 auto;position:relative;}
@@ -366,6 +419,41 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
     </div>
   </div>
 </div>
+<div class="faq-section">
+  <div class="faq-inner">
+    <h2>よくある質問</h2>
+    <div class="faq-list">
+      <div class="faq-item open">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="true">
+          <span>セラースプライトは無料で使えますか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">はい。無料会員プランがあり、一部機能を制限付きで使えます。まず無料で試して、必要に応じて有料プランに切り替えるのがおすすめです。</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          <span>割引コード「CJ9852」はいつまで使えますか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">公式代理店コードなので、期間限定ではありません。登録時にコードを入力すれば、いつでも30%OFFが適用されます。</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          <span>月払いと年払い、どちらがお得ですか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">年払いの方が月あたりの単価は安くなります。ただし、まずは月払いで1ヶ月試してから年払いに切り替えるのが安全です。</p></div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">
+          <span>途中でプラン変更やキャンセルはできますか？</span>
+          <span class="faq-icon">＋</span>
+        </button>
+        <div class="faq-a"><p class="faq-a-inner">はい。いつでもプラン変更・キャンセルが可能です。年払いの場合も途中解約できます。</p></div>
+      </div>
+    </div>
+  </div>
+</div>
 <div class="quote-section">
   <div class="quote-inner">
     <div class="quote-flex">
@@ -422,6 +510,12 @@ function copyCode(id){
     b.classList.add('ok');
     setTimeout(function(){b.textContent='コピー';b.classList.remove('ok');},2500);
   }).catch(function(){});
+}
+function toggleFaq(btn){
+  var item=btn.closest('.faq-item');
+  var isOpen=item.classList.contains('open');
+  item.classList.toggle('open',!isOpen);
+  btn.setAttribute('aria-expanded',!isOpen);
 }
 </script>
 
