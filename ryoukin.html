@@ -335,6 +335,17 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
   .cta-section h2{font-size:1.25em;}
   .cta-btn{padding:18px 28px;font-size:16px;}
 }
+.calc-section{padding:60px 20px;max-width:860px;margin:0 auto;}
+.calc-section h2{font-size:clamp(20px,2.5vw,28px);margin-bottom:24px;text-align:center;}
+.table-wrap{overflow-x:auto;}
+.calc-table{width:100%;border-collapse:collapse;font-size:15px;}
+.calc-table th,.calc-table td{padding:14px 16px;border:1px solid #e0e0e0;text-align:center;}
+.calc-table thead th{background:#f5f5f5;font-weight:700;}
+.calc-table .col-discount{background:#fff3e0;color:#FB8C1E;font-weight:700;}
+.calc-table thead .col-discount{background:#FB8C1E;color:#fff;}
+.calc-table .col-save{color:#2e7d32;font-weight:700;}
+.price-orig{text-decoration:line-through;color:#999;}
+.calc-note{font-size:12px;color:#888;margin-top:12px;text-align:right;}
 </style>
 </head>
 <body>
@@ -402,6 +413,52 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
       割引コード「CJ9852」を入力すると、<strong>どのプランでも30%OFF</strong>になります。<br>
       スタンダード月額¥13,998が<strong>約¥9,799/月</strong>で始められる計算です。年間で約¥50,388の節約。
     </div>
+  </div>
+</div>
+<section class="calc-section">
+  <h2>CJ9852を使うと、実際いくら安くなる？</h2>
+  <div class="table-wrap">
+    <table class="calc-table">
+      <thead>
+        <tr>
+          <th>プラン</th>
+          <th>通常価格</th>
+          <th class="col-discount">30%OFF後</th>
+          <th class="col-save">年間節約額</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>スタンダード（月払い）</td>
+          <td><span class="price-orig">¥13,998/月</span></td>
+          <td class="col-discount">¥9,799/月</td>
+          <td class="col-save">約¥50,400/年</td>
+        </tr>
+        <tr>
+          <td>スタンダード（年払い）</td>
+          <td><span class="price-orig">¥139,998/年</span></td>
+          <td class="col-discount">¥97,999/年</td>
+          <td class="col-save">約¥42,000/年</td>
+        </tr>
+        <tr>
+          <td>アドバンス（年払い）</td>
+          <td><span class="price-orig">¥269,831/年</span></td>
+          <td class="col-discount">¥188,882/年</td>
+          <td class="col-save">約¥80,900/年</td>
+        </tr>
+        <tr>
+          <td>VIP（年払い）</td>
+          <td><span class="price-orig">¥339,998/年</span></td>
+          <td class="col-discount">¥237,999/年</td>
+          <td class="col-save">約¥102,000/年</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <p class="calc-note">※表示価格は2026年3月時点。30%OFF後の価格は小数点以下切り捨て。</p>
+</section>
+<div class="section bg-white">
+  <div class="section-inner">
     <hr class="divider">
     <h2>料金に見合う価値はあるか</h2>
     <p>結論から言うと、月商10万円を超えていれば月額費用は十分回収できます。</p>
