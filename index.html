@@ -125,13 +125,14 @@ img{max-width:100%;height:auto;display:block;}
 
 /* ===== HERO ===== */
 .hero{background:linear-gradient(150deg,#fff8f2 0%,#fffcf9 50%,#fff 100%);padding:72px 24px 56px;border-bottom:1px solid #f0ede8;}
-.hero-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:60px;}
-.hero-text{flex:0 0 60%;min-width:0;}
-.hero-image{flex:0 0 40%;display:flex;flex-direction:column;align-items:center;gap:14px;}
-.hero-sub{font-size:13px;color:#999;font-weight:600;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;}
-.hero h1{font-size:clamp(28px,4vw,44px);font-weight:800;line-height:1.3;color:#1a1a1a;margin-bottom:16px;letter-spacing:-0.5px;}
+.hero-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;gap:40px;}
+.hero-col-img{flex:0 0 calc(45% - 20px);min-width:0;align-self:flex-start;}
+.hero-col-img img{width:100%;max-height:600px;min-height:400px;object-fit:contain;border-radius:12px;box-shadow:0 8px 30px rgba(0,0,0,0.12);display:block;}
+.hero-col-text{flex:0 0 calc(55% - 20px);min-width:0;}
+.hero-sub{font-size:12px;color:#999;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin-bottom:14px;display:inline-block;background:#fff5eb;color:#FB8C1E;padding:4px 14px;border-radius:4px;}
+.hero h1{font-size:clamp(28px,3.5vw,38px);font-weight:800;line-height:1.3;color:#1a1a1a;margin:16px 0;letter-spacing:-0.5px;word-break:keep-all;}
 .hero h1 em{color:#FB8C1E;font-style:normal;}
-.hero-lead{font-size:16px;color:#555;margin-bottom:28px;line-height:1.75;}
+.hero-lead{font-size:16px;color:#555;margin-bottom:24px;line-height:1.75;}
 .coupon-wrap{margin-bottom:8px;}
 .coupon-label-sm{font-size:12px;color:#888;margin-bottom:8px;}
 .coupon-block{display:inline-flex;align-items:stretch;border:2px solid #FB8C1E;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(251,140,30,0.18);}
@@ -140,13 +141,10 @@ img{max-width:100%;height:auto;display:block;}
 .copy-btn{background:#FB8C1E;color:#fff;border:none;font-size:14px;font-weight:bold;padding:0 22px;cursor:pointer;transition:background 0.15s;white-space:nowrap;}
 .copy-btn:hover{background:#e07010;}
 .copy-btn.ok{background:#27ae60;}
-.coupon-note{font-size:11px;color:#bbb;margin-bottom:24px;margin-top:6px;}
-.hero-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:18px;font-weight:bold;padding:18px 40px;border-radius:8px;letter-spacing:0.3px;transition:opacity 0.2s,transform 0.2s;box-shadow:0 6px 24px rgba(251,140,30,0.35);}
-.hero-btn:hover{opacity:0.9;transform:translateY(-1px);color:#fff;}
+.coupon-note{font-size:11px;color:#bbb;margin-top:6px;margin-bottom:24px;}
+.hero-cta-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:17px;font-weight:bold;padding:18px 40px;border-radius:8px;letter-spacing:0.3px;transition:opacity 0.2s,transform 0.2s;box-shadow:0 6px 24px rgba(251,140,30,0.35);}
+.hero-cta-btn:hover{opacity:0.9;transform:translateY(-1px);color:#fff;}
 .hero-assure{font-size:12px;color:#aaa;margin-top:10px;}
-.hero-photo{width:100%;max-width:320px;aspect-ratio:1/1;border-radius:16px;object-fit:cover;object-position:top;box-shadow:0 8px 40px rgba(0,0,0,0.12);}
-.hero-photo-caption{font-size:13px;color:#666;text-align:center;line-height:1.6;}
-.hero-photo-caption strong{color:#1a1a1a;font-weight:700;}
 
 /* ===== TRUST BADGES ===== */
 .trust-bar{background:#fff;border-bottom:1px solid #f0ede8;padding:32px 24px;}
@@ -274,11 +272,10 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
 
 /* ===== RESPONSIVE ===== */
 @media(max-width:768px){
-  .hero-inner{flex-direction:column;gap:40px;}
-  .hero-text{flex:none;width:100%;order:1;}
-  .hero-image{flex:none;width:100%;order:2;}
-  .hero-photo{max-width:240px;margin:0 auto;}
-  .hero-btn{display:block;text-align:center;}
+  .hero-inner{flex-direction:column;gap:1.5rem;}
+  .hero-col-img,.hero-col-text{flex:none;width:100%;align-self:auto;}
+  .hero-col-img img{min-height:0;max-height:none;object-fit:unset;}
+  .hero-cta-btn{display:block;text-align:center;}
   .trust-inner{grid-template-columns:repeat(2,1fr);}
   .trust-item{border-right:none;border-bottom:1px solid #f0ede8;}
   .trust-item:nth-child(odd){border-right:1px solid #f0ede8;}
@@ -324,8 +321,7 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
 <!-- HERO -->
 <div class="hero">
   <div class="hero-inner">
-    <div class="hero-text">
-      <img src="images/ss-features.png" alt="セラースプライトの機能一覧画面" loading="eager" style="max-width:600px;width:100%;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,0.10);margin:0 auto 1.5rem auto;display:block;">
+    <div class="hero-col-text">
       <p class="hero-sub">世界170万人が使うAmazonリサーチツール</p>
       <h1>商品リサーチの時間を<br><em>10分の1</em>に。</h1>
       <p class="hero-lead">データで勝つAmazon物販を、今日から始めましょう。</p>
@@ -340,7 +336,7 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
         <p class="coupon-note">コードをコピーして、公式サイト登録画面で入力するだけ。30%OFFが即適用されます</p>
       </div>
 
-      <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="hero-btn">セラースプライトを30%OFFで始める →</a>
+      <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="hero-cta-btn">セラースプライトを30%OFFで始める →</a>
       <p class="hero-assure">無料プランあり・日本語対応・いつでも解約OK</p>
       <p style="font-size:0.85em;color:#888;margin-top:12px;line-height:1.6;">
         ✅ 公式代理店だから割引コードは常時有効（期間限定ではありません）<br>
@@ -348,13 +344,8 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
         ✅ 使い方で困ったら、このサイトの解説ページですべてカバーしています
       </p>
     </div>
-
-    <div class="hero-image">
-      <img class="hero-photo"
-        src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg"
-        alt="鬼束壮一 セラースプライト公式代理店 Amazon年商3億円"
-        width="320" height="320" loading="eager">
-      <p class="hero-photo-caption"><strong>鬼束壮一</strong>｜年商3億円<br>セラースプライト公式代理店</p>
+    <div class="hero-col-img">
+      <img src="images/ss-features.png" alt="セラースプライトの機能一覧画面" loading="eager">
     </div>
   </div>
 </div>
