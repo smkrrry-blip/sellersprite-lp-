@@ -317,6 +317,13 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
 .exit-cta-btn{display:block;background:#FB8C1E;color:#fff;border-radius:8px;padding:14px;font-size:16px;font-weight:700;text-decoration:none;margin-bottom:12px;}
 .exit-cta-btn:hover{background:#e67d00;}
 .exit-footer{font-size:12px;color:#aaa;margin:0;}
+.blog-link-section{padding:40px 20px;background:#f9f9f9;}
+.blog-link-inner{max-width:860px;margin:0 auto;}
+.blog-link-label{font-size:12px;color:#aaa;letter-spacing:1px;margin-bottom:12px;}
+.blog-link-card{display:flex;align-items:center;justify-content:space-between;background:#fff;border:1px solid #e0e0e0;border-radius:10px;padding:20px 24px;text-decoration:none;color:#333;transition:box-shadow 0.2s;}
+.blog-link-card:hover{box-shadow:0 4px 16px rgba(0,0,0,0.08);}
+.blog-link-title{font-size:15px;font-weight:700;line-height:1.5;}
+.blog-link-arrow{color:#FB8C1E;font-size:20px;margin-left:16px;flex-shrink:0;}
 </style>
 <script type="application/ld+json">
 {
@@ -359,7 +366,7 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
       <span class="nav-badge">セラースプライト公式代理店</span>
       <img class="nav-logo" src="https://www.sellersprite.com/assets/img/home/seller-sprite-logo.svg" onerror="this.style.display='none'" alt="SellerSprite" width="140" height="28" loading="lazy">
     </div>
-    <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="nav-cta">30%OFFで始める →</a>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" rel="noopener" class="nav-cta">30%OFFで始める →</a>
   </div>
 </div>
 <div class="hero">
@@ -372,10 +379,10 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
       <div class="coupon-block">
         <span class="coupon-tag">30%OFF CODE</span>
         <span class="coupon-code">CJ9852</span>
-        <button class="copy-btn" id="heroBtn" onclick="copyCode('heroBtn')">コピー</button>
+        <button class="copy-btn" id="heroBtn" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});copyCode('heroBtn')">コピー</button>
       </div>
       <p class="coupon-note">コードをコピーして、公式サイト登録画面で入力するだけ。30%OFFが即適用されます</p>
-      <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="hero-cta-btn">セラースプライトを30%OFFで始める →</a>
+      <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" rel="noopener" class="hero-cta-btn">セラースプライトを30%OFFで始める →</a>
       <p class="hero-assure">無料プランあり・日本語対応・いつでも解約OK</p>
     </div>
     <div class="hero-col-img">
@@ -475,10 +482,10 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
     <div class="cta-coupon">
       <span class="cl">30%OFF CODE</span>
       <span class="cc">CJ9852</span>
-      <button class="cb" id="ctaBtn" onclick="copyCode('ctaBtn')">コピー</button>
+      <button class="cb" id="ctaBtn" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});copyCode('ctaBtn')">コピー</button>
     </div>
   </div>
-  <div><a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener" class="cta-btn">セラースプライトを30%OFFで始める →</a></div>
+  <div><a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" rel="noopener" class="cta-btn">セラースプライトを30%OFFで始める →</a></div>
   <p class="cta-btn-note">無料プランあり・日本語対応・いつでも解約OK</p>
 </div>
 <div class="prof-section">
@@ -504,6 +511,15 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
     </div>
   </div>
 </div>
+<section class="blog-link-section">
+  <div class="blog-link-inner">
+    <p class="blog-link-label">あわせて読む</p>
+    <a href="https://amazing-japan.jp/sellersprite-guide/" target="_blank" class="blog-link-card">
+      <span class="blog-link-title">セラースプライト完全ガイド｜年商3億円の欧米輸入セラーが全部教えます</span>
+      <span class="blog-link-arrow">→</span>
+    </a>
+  </div>
+</section>
 <footer>© 2026 鬼束壮一 | セラースプライト公式代理店</footer>
 <script>
 function copyCode(id){
@@ -531,9 +547,9 @@ function toggleFaq(btn){
     <div class="exit-code-box">
       <span class="exit-code-label">30%OFF CODE</span>
       <span class="exit-code-text">CJ9852</span>
-      <button class="exit-copy-btn" onclick="exitCopy(this)">コピーする</button>
+      <button class="exit-copy-btn" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});exitCopy(this)">コピーする</button>
     </div>
-    <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" class="exit-cta-btn">このまま30%OFFで登録する →</a>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" class="exit-cta-btn">このまま30%OFFで登録する →</a>
     <p class="exit-footer">無料プランあり・いつでも解約OK</p>
   </div>
 </div>
@@ -571,9 +587,9 @@ function exitCopy(btn){
     <div class="sticky-code">
       <span class="sticky-label">30%OFF CODE</span>
       <span class="sticky-code-text">CJ9852</span>
-      <button class="sticky-copy-btn" onclick="stickyCopy(this)">コピー</button>
+      <button class="sticky-copy-btn" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});stickyCopy(this)">コピー</button>
     </div>
-    <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" class="sticky-cta-btn">今すぐ30%OFFで登録する →</a>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" class="sticky-cta-btn">今すぐ30%OFFで登録する →</a>
   </div>
 </div>
 <script>
