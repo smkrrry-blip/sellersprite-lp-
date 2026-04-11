@@ -3,7 +3,22 @@
 """
 
 # ─────────────────────────────────────────────
-# Shopee Open Platform 認証情報
+# Shopee セラーセンター ブラウザログイン情報
+# ─────────────────────────────────────────────
+SHOPEE_EMAIL    = ""              # セラーセンターのログインメール
+SHOPEE_PASSWORD = ""              # セラーセンターのパスワード
+SHOPEE_SELLER_URL = "https://seller.shopee.co.th"
+
+BROWSER_SETTINGS = {
+    "headless": False,            # 通常のChrome表示（True にするとヘッドレス）
+    "slow_mo": 500,               # 操作間の基本遅延（ms）
+    "daily_limit": 20,            # 1日の最大出品数
+    "min_wait": 1.0,              # クリック間の最小待機（秒）
+    "max_wait": 3.0,              # クリック間の最大待機（秒）
+}
+
+# ─────────────────────────────────────────────
+# Shopee Open Platform 認証情報（API使用時のみ — 通常は不要）
 # https://open.shopee.com でアプリ登録後に取得
 # ─────────────────────────────────────────────
 SHOPEE_PARTNER_ID   = ""          # 例: 1234567
