@@ -378,9 +378,26 @@ class ShopeeBrowser:
             logger.info(f"  URL: {self._page.url}")
             _human_wait(2, 3)
 
-            # 出品ページ上のモーダル（プロモーション等）を閉じる
+            # 出品ページ上のモーダルが出るまで少し待ってから閉じる
+            _human_wait(2, 3)
             self._dismiss_listing_modals()
-            _human_wait(1, 2)
+            _human_wait(0.5, 1.0)
+            # JavaScriptで全モーダル系オーバーレイを強制削除
+            self._page.evaluate("""
+                () => {
+                    // Shopee Standard Product ツアー
+                    document.getElementById('sspSearchTour')?.remove();
+                    // その他のモーダルオーバーレイ
+                    document.querySelectorAll('[class*="modal"], [class*="overlay"], [class*="dialog"], [class*="tour"]')
+                        .forEach(el => {
+                            const style = window.getComputedStyle(el);
+                            if (style.position === 'fixed' || style.position === 'absolute') {
+                                el.remove();
+                            }
+                        });
+                }
+            """)
+            _human_wait(0.5, 1.0)
 
             if self._detect_captcha():
                 logger.error("❌ 出品ページでCAPTCHA検出")
@@ -398,7 +415,12 @@ class ShopeeBrowser:
             # ════════════════════════════════════════
             # STEP 1: 商品名 + 画像
             # ════════════════════════════════════════
-            title = str(product.get("title_th") or product.get("title_en") or "3D Print Item")[:120]
+            title_raw = str(product.get("title_th") or product.get("title_en") or "3D Print Item")
+            # Shopeeは最低25文字必要 — 短い場合はサフィックスを追加
+            if len(title_raw) < 25:
+                suffix = " - สินค้า 3D Printed คุณภาพสูง พิมพ์ตามสั่ง"
+                title_raw = title_raw + suffix
+            title = title_raw[:120]
 
             # 商品名入力
             title_sel = (
@@ -432,87 +454,86 @@ class ShopeeBrowser:
 
             _human_wait(1, 2)
 
-            # 「Next Step」ボタンをクリック
+            # ポップアップを再度閉じてからNext Step
+            self._dismiss_listing_modals()
+            _human_wait(0.5, 1.0)
+
+            # 「Next Step」ボタンをクリック（ポップアップ被りはforce=Trueで回避）
             next_sel = 'button:has-text("Next Step"), button:has-text("ถัดไป")'
             try:
                 self._page.wait_for_selector(next_sel, timeout=8000)
                 _human_wait(0.5, 1.0)
-                self._page.locator(next_sel).first.click()
+                # ポップアップをJS削除してからクリック
+                self._page.evaluate("document.getElementById('sspSearchTour')?.remove()")
+                self._page.locator(next_sel).first.click(force=True)
                 self._page.wait_for_load_state("domcontentloaded", timeout=15000)
                 logger.info("  Next Step クリック完了")
-                _human_wait(2, 3)
+                _human_wait(3, 4)
             except Exception as e:
                 logger.warning(f"Next Step ボタンが見つかりません（続行）: {e}")
                 self._screenshot(f"error_{mw_id}_nextstep")
 
             # ════════════════════════════════════════
-            # STEP 2: カテゴリ・説明・価格・在庫
+            # STEP 2: タブ形式のフォームを順番に入力
+            # タブ: Basic Info / Specification / Description / Sales Information / Shipping
             # ════════════════════════════════════════
 
-            # カテゴリ選択
-            self._select_category(product.get("category", ""))
-            _human_wait(1, 1.5)
-
-            # 商品説明入力
-            description = str(
-                product.get("description_th") or "สินค้า 3D Printed คุณภาพสูง"
-            )[:3000]
-            try:
-                desc_sel = (
-                    '.ql-editor, '
-                    'div[contenteditable="true"], '
-                    'textarea[placeholder*="Description"], '
-                    'textarea[placeholder*="รายละเอียด"]'
-                )
-                self._page.wait_for_selector(desc_sel, timeout=10000)
-                desc_el = self._page.locator(desc_sel).first
-                desc_el.click()
-                _human_wait(0.3, 0.6)
-                desc_el.fill(description)
-                logger.info("  説明入力完了")
-            except Exception as e:
-                logger.warning(f"説明入力エラー（続行）: {e}")
-
-            _human_wait(1, 1.5)
-            _random_scroll(self._page)
-
-            # 価格入力（入力欄をlabelで探す）
             price = float(product.get("price_thb") or LISTING_SETTINGS["min_price_thb"])
+            description = str(product.get("description_th") or "สินค้า 3D Printed คุณภาพสูง")[:3000]
+            stock = LISTING_SETTINGS["default_stock"]
+
+            # ── Description タブ ──────────────────────
             try:
-                price_sel = (
-                    'input[placeholder*="Price"], '
-                    'input[placeholder*="ราคา"], '
-                    'label:has-text("Price") ~ div input, '
-                    'label:has-text("Price") + div input'
-                )
-                self._page.wait_for_selector(price_sel, timeout=10000)
-                price_input = self._page.locator(price_sel).first
-                price_input.triple_click()
-                _human_wait(0.2, 0.4)
-                price_input.fill(str(int(price)))
-                logger.info(f"  価格入力完了: {int(price)} THB")
+                desc_tab = self._page.get_by_text("Description", exact=True).first
+                if desc_tab.count():
+                    desc_tab.click()
+                    _human_wait(1.5, 2.5)
+                    desc_el = self._page.locator('div[contenteditable="true"], .ql-editor').first
+                    if desc_el.count() and desc_el.is_visible():
+                        desc_el.click()
+                        _human_wait(0.3, 0.5)
+                        desc_el.fill(description)
+                        logger.info("  説明入力完了")
             except Exception as e:
-                logger.warning(f"価格入力エラー（続行）: {e}")
+                logger.warning(f"説明タブエラー（続行）: {e}")
 
             _human_wait(0.8, 1.2)
 
-            # 在庫数入力
-            stock = LISTING_SETTINGS["default_stock"]
+            # ── Sales Information タブ（価格・在庫）────
             try:
-                stock_sel = (
-                    'input[placeholder*="Stock"], '
-                    'input[placeholder*="สต็อก"], '
-                    'label:has-text("Stock") ~ div input, '
-                    'label:has-text("Stock") + div input'
-                )
-                stock_el = self._page.locator(stock_sel).first
-                if stock_el.count():
-                    stock_el.triple_click()
-                    _human_wait(0.2, 0.4)
-                    stock_el.fill(str(stock))
-                    logger.info(f"  在庫入力完了: {stock}")
+                sales_tab = self._page.get_by_text("Sales Information", exact=True).first
+                if sales_tab.count():
+                    sales_tab.click()
+                    _human_wait(1.5, 2.5)
+
+                    # 価格入力（placeholder="Please input" または数値入力欄）
+                    visible_inputs = self._page.locator("input:visible").all()
+                    logger.info(f"  Sales情報タブのinput数: {len(visible_inputs)}")
+                    price_filled = False
+                    stock_filled = False
+                    for inp in visible_inputs:
+                        ph = inp.get_attribute("placeholder") or ""
+                        if not price_filled and ("Please input" in ph or ph in ["0", ""]):
+                            inp.click()
+                            self._page.keyboard.press("Control+a")
+                            self._page.keyboard.press("Meta+a")
+                            _human_wait(0.1, 0.2)
+                            inp.fill(str(int(price)))
+                            logger.info(f"  価格入力完了: {int(price)} THB")
+                            price_filled = True
+                        elif not stock_filled and ph == "-":
+                            inp.click()
+                            self._page.keyboard.press("Control+a")
+                            self._page.keyboard.press("Meta+a")
+                            _human_wait(0.1, 0.2)
+                            inp.fill(str(stock))
+                            logger.info(f"  在庫入力完了: {stock}")
+                            stock_filled = True
+                        if price_filled and stock_filled:
+                            break
+
             except Exception as e:
-                logger.warning(f"在庫入力エラー（続行）: {e}")
+                logger.warning(f"Sales Informationタブエラー（続行）: {e}")
 
             _human_wait(0.8, 1.2)
             _random_scroll(self._page)
@@ -533,8 +554,28 @@ class ShopeeBrowser:
 
     def _dismiss_listing_modals(self):
         """出品フォームに表示されるプロモーション・案内モーダルを閉じる"""
+        # Shopee Standard Product ツアーポップアップ (#sspSearchTour)
+        try:
+            tour = self._page.locator("#sspSearchTour")
+            if tour.count() and tour.is_visible():
+                # ×ボタンまたはGot itボタンを探す
+                for sel in ['[aria-label="Close"]', 'button:has-text("Got it")',
+                            'button:has-text("Skip")', 'button:has-text("Close")']:
+                    btn = tour.locator(sel).first
+                    if btn.count():
+                        btn.click(force=True)
+                        logger.info("  sspSearchTour を閉じました")
+                        _human_wait(0.5, 1.0)
+                        break
+                else:
+                    # JavaScriptで強制非表示
+                    self._page.evaluate("document.getElementById('sspSearchTour')?.remove()")
+                    logger.info("  sspSearchTour をJS削除しました")
+                    _human_wait(0.3, 0.5)
+        except Exception:
+            pass
+
         close_patterns = [
-            # 「Got it」「OK」「閉じる」系
             'button:has-text("Got it")',
             'button:has-text("Got It")',
             'button:has-text("OK")',
@@ -542,12 +583,7 @@ class ShopeeBrowser:
             'button:has-text("Skip")',
             'button:has-text("Maybe Later")',
             'button:has-text("No, thanks")',
-            # ×ボタン
-            '[class*="modal"] [class*="close"]',
-            '[class*="dialog"] [class*="close"]',
             '[aria-label="Close"]',
-            'svg[class*="close"]',
-            # Shopee固有
             '[class*="modal-close"]',
             '[class*="popup-close"]',
         ]
@@ -555,15 +591,16 @@ class ShopeeBrowser:
             try:
                 btn = self._page.locator(sel).first
                 if btn.count() and btn.is_visible():
-                    btn.click()
+                    btn.click(force=True)
                     logger.info(f"  モーダルを閉じました: {sel}")
-                    _human_wait(0.5, 1.0)
+                    _human_wait(0.3, 0.7)
             except Exception:
                 pass
+
         # ESCでも試みる
         try:
             self._page.keyboard.press("Escape")
-            _human_wait(0.5, 1.0)
+            _human_wait(0.3, 0.7)
         except Exception:
             pass
 
@@ -610,12 +647,12 @@ class ShopeeBrowser:
     def _click_publish(self, mw_id: str) -> Optional[str]:
         """Save & Publish をクリックして出品完了を確認"""
         publish_selectors = [
+            'button:has-text("Save and Publish")',
             'button:has-text("Save & Publish")',
             'button:has-text("Publish")',
             'button:has-text("บันทึกและเผยแพร่")',
             'button:has-text("เผยแพร่")',
             '[class*="publish"] button',
-            '[class*="submit"] button[type="submit"]',
         ]
         for sel in publish_selectors:
             try:
@@ -653,8 +690,9 @@ class ShopeeBrowser:
                     except PlaywrightTimeout:
                         pass
 
-                    # URLが変わったら成功とみなす
-                    if "add" not in current_url:
+                    # URLが商品詳細/リストページに変わったら成功
+                    # ※ /portal/product/new のままは失敗とみなす
+                    if "product/new" not in current_url and "login" not in current_url:
                         return current_url
 
             except Exception as e:
