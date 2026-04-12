@@ -637,11 +637,16 @@ if __name__ == "__main__":
     browser.start()
     try:
         ok = browser.login()
-        print("ログイン成功:", ok)
         if ok:
-            print("✅ Cookieを保存しました。ブラウザを5秒後に閉じます。")
+            print("✅ ログイン成功！Cookie保存済み。")
+            print("   セラーセンターに移動中...")
+            browser._page.goto("https://seller.shopee.co.th/portal/product/list/all", timeout=30000)
+            browser._page.wait_for_load_state("networkidle", timeout=15000)
+            print("   ブラウザを30秒後に閉じます（確認してください）")
+            _human_wait(30, 31)
         else:
-            print("❌ ログイン失敗。エラー画像を確認: ~/sellersprite-lp-/3d-shopee-bot/errors/")
-        _human_wait(5, 6)  # 結果確認のため少し待つ
+            print("❌ ログイン失敗。エラー画像を確認:")
+            print(f"   open {ERRORS_DIR}")
+            _human_wait(10, 11)
     finally:
         browser.stop()
