@@ -269,29 +269,17 @@ class ShopeeBrowser:
             except Exception:
                 pass
 
-        # ── その他のポップアップ・閉じるボタン ──────────────
-        close_selectors = [
-            'button[aria-label="Close"]',
-            'button[aria-label="close"]',
-            '[class*="modal"] button[class*="close"]',
-            '[id="modal"] button[class*="close"]',
-            '.shopee-popup__close-btn',
-            '[class*="popup"] [class*="close"]',
-            'button:has-text("Accept")',
-            'button:has-text("ยอมรับ")',
-            'button:has-text("OK")',
-        ]
-        for sel in close_selectors:
-            try:
-                btn = self._page.locator(sel).first
-                if btn.count() and btn.is_visible():
-                    btn.click()
-                    logger.info(f"ポップアップを閉じました: {sel}")
-                    _human_wait(0.5, 1.0)
-            except Exception:
-                pass
+        # 言語モーダルが完全に消えるまで待つ
+        try:
+            self._page.wait_for_selector(
+                'button:has-text("English"), button:has-text("ไทย")',
+                state="hidden",
+                timeout=5000,
+            )
+        except Exception:
+            pass
 
-        # ESCキーでも試みる
+        # ESCキーで残りのモーダルを閉じる（ソーシャルログインボタンには触れない）
         try:
             self._page.keyboard.press("Escape")
             _human_wait(0.5, 1.0)
