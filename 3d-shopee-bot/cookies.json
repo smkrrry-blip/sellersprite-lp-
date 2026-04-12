@@ -1,0 +1,445 @@
+{
+  "cookies": [
+    {
+      "name": "REC_T_ID",
+      "value": "80521c33-9e75-11f0-8e12-66efb8b6dfb0",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1793848794,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_F",
+      "value": "bTaFh1mQSP2L0mqkgfIglw3LonuMfGcL",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1793848794,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "language",
+      "value": "en",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1793848798,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SC_DFP",
+      "value": "opLrTIamqYnulzeYxfEUXcpkPJHutvZr",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1793848831,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SC_SSO",
+      "value": "-",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SC_SSO_U",
+      "value": "-",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_SC_OFFLINE_TOKEN",
+      "value": "",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_SC_SA_TK",
+      "value": "",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_SC_SA_UD",
+      "value": "",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga",
+      "value": "GA1.1.567489331.1759288795",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1810437958,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_gcl_au",
+      "value": "1.1.1940074308.1775877952",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1783653952,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_CLIENTID",
+      "value": "YlRhRmgxbVFTUDJMcvasrrhbxjniqzfe",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1810438240,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_EC",
+      "value": "RFJvSzFQQ3lNd3pLR2JOWvPKfNc7u+KCv/KVwSw5D4r9Z7cI1yJhJqb7lYplhPxy0zeZ73dJO3R37sArLqHXWspuXs1MyVf8EJDNh0VhOVws52W8j8ZKYHw3rzgFt8AZafWs+gey58++a3p/bvwAFHT4sX0xCe0Tmh442x7kCA2K7sQVRhzxywWUSNDXSKI2mL918nzQvGjfuy04H0RKC7M2CSwlkvvdCncGiQTzLviIvvcDSWX2wvurTLh6kvO+.AGSsKkCydYEqLBC6qcbySRxC2M/fh524mD28uLUMhYzn",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1810438240,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_ST",
+      "value": "dG5mRUpHTlVrM1ZYTmNUN8APIpdp5DaFv4kjEDYuzXBs55pwi8P95f68/59I21aTKHFiqif+gPERa2+vlIANERd1M23EJxeSWajME/UDKsL1n2sEQYbJI/P7zrQQlZegK3AtSVBAfdQ9PIbR4HQIuYqlv9h7+3+JR/tnR4pjV5iWEQofdMxY7Io2uGFTIrTQFj2s0DyPX7NvqCy2b3sIkGHMdjbX1rnxP+uiUCJhLE5n05PEC/1ebRvisfTRSG+f.ALpCOsP+qlct40ZRJ7kstf4sF2848IIhuzUTUGOixqZs",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1810438240,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_U",
+      "value": "806551276",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1810438240,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_SC_MAIN_SHOP_SA_UD",
+      "value": "0",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1776483128,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_SC_SESSION",
+      "value": "gmVdlofEcA8q4RUR3XH7g2D10zOq6DH3OaXn8m3/+Buazs9OqxL0iuSkFPp/FQ0uvkP56EDwu3evbwae7Z8iSbfxrBvLlwvOdhxSweefBWH7YS8UQC+yRh0319bSlnG9q3LdsCSQZLYG+p95ub/M92/A1PQhKegri1ncA4WYKLhl72Hg+vxsm8r8lBoQkKl782vYhkpmrv6vJIVcpcwz65lBmUbYX5lUMSrmusIadcSc+B8NrolLb3GHosNIWuo0UyIee0FcM7RNr43BnuqC5lQ==_1_806551276",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1776483128,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_STK",
+      "value": "bUJtHrEREQ70Z9fygClGa4NCESWfmasKjuqxM7bGDwVzJeCYHlQ+rbDNQeMFe4mT7EM8UAVCGm6sJ8q0hfZcV5dwKyRzIxMUpsxlkpIfsToSG3+wDm59VkhZT+qweP12mtfgjItBME0WmU52VvwhVr5M3tALkBmfA1gKO38I+fc+UZQq2OV/kIwhoOMkW7NT/FRFgtDZQUGbMQ5BkTgLF+nTFnrCJvP8woUylZeMG4izB+ZrE62SYKWXJMgRxkO6svqXn/V/dAiguMyFCKnwJ4oIYWKb09yx/bnZFym3K0qKLvvWdwpvkRwgeMpa0wh6j3X6LoFdBMLAPw5fg8oj/EZVYZHGYetP1RJs2sxBrLG9lG4aMFfBggE9CqVLUDOtojsw41wn8+qZKHFX7K4jy93ZLK/rFJuAIzuSy0TkwTSdp/xccoCv/fdR6a4w5+1qgTLGjUfta9dNjtEmiaqp7+tx2rX8K90wWx7QlDb6qtIHebAEICU9Bvgwlup8dr8M",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1776483128,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_CDS_CHAT",
+      "value": "138ce430-6bc0-4141-8c98-4c478713c882",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "CTOKEN",
+      "value": "q6fVNTZMEfGQrR5TtJgIuQ%3D%3D",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1776588634,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_fbp",
+      "value": "fb.2.1775877953825.909414278399998596",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1783759823,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_R_T_ID",
+      "value": "2JWBVHZ86oGsYXn/JB3AdGmad9pLQzSaLUzJHxNeKz/x6NQmvxR569FzZssjG2CVPivkM8C7Ckjg2VPv5f1JAP5vZLXm9Z8rBeKre+GLyH3NsurwYzTV2LQBUh0XOIncUEnwVZyVlbViDTMZesm0TietwPnc2+BIAQAdDalqBT0=",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1810544032,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_R_T_IV",
+      "value": "RVZKbmFqQ2NITHJqWkZmNg==",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1810544032,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_SI",
+      "value": "lHDUaQAAAABlaHRzSk5CSMmzFAAAAAAAVXJSYUFOcU0=",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1776070432,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_T_ID",
+      "value": "2JWBVHZ86oGsYXn/JB3AdGmad9pLQzSaLUzJHxNeKz/x6NQmvxR569FzZssjG2CVPivkM8C7Ckjg2VPv5f1JAP5vZLXm9Z8rBeKre+GLyH3NsurwYzTV2LQBUh0XOIncUEnwVZyVlbViDTMZesm0TietwPnc2+BIAQAdDalqBT0=",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1810544032,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_T_IV",
+      "value": "RVZKbmFqQ2NITHJqWkZmNg==",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1810544032,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "csrftoken",
+      "value": "WQSr0qyrDqkmPKTdoQnyAgftSz5NrQVi",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_ga_LB1RXY1EGG",
+      "value": "GS2.1.s1775983824$o6$g1$t1775984055$j60$l1$h629059666",
+      "domain": ".shopee.co.th",
+      "path": "/",
+      "expires": 1810544055,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_QPWSDCXHZQA",
+      "value": "c27fed07-3a67-4056-da84-cfbe1034a0f1",
+      "domain": "seller.shopee.co.th",
+      "path": "/",
+      "expires": 1790824832,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ca_gen_id",
+      "value": "4818595078",
+      "domain": "seller.shopee.co.th",
+      "path": "/",
+      "expires": 1807578412,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_CDS",
+      "value": "1063d1f8-217e-464a-b177-5e40fa2530cb",
+      "domain": "seller.shopee.co.th",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_SEC_SI",
+      "value": "v1-cDhjSG9wczFQOEJMaFl1OB09snutQbZNezvK5lnCySL2BW4kDfUHqGEfSA94w09RpGFxwWuO37O+gErLjnLrei/+q9J0CcR/5NpL+mP4epo=",
+      "domain": "seller.shopee.co.th",
+      "path": "/",
+      "expires": 1776051457,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "REC7iLP4Q",
+      "value": "bf0df647-5a04-433a-b476-1fdbd43ddbcd",
+      "domain": "seller.shopee.co.th",
+      "path": "/",
+      "expires": 1807519837,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_sapid",
+      "value": "737bc13f72e51d5776260d3db9d8f1702bb18ee4dfc947674db5dae6",
+      "domain": "seller.shopee.co.th",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ds",
+      "value": "9c9af6a1f465e1fed89644a1022fd79a",
+      "domain": "seller.shopee.co.th",
+      "path": "/",
+      "expires": 1807519838,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "shopee_webUnique_ccd",
+      "value": "xfGCIVgO0yNANtQ5ohgzdQ%3D%3D%7Ci0CEeiqSkA8oivisXkfY%2BCHNSPQHMQI7UBlOrwR6Jkd57tZNisml2GYDyUmug8jQfUr0jgIAqEg%3D%7CG7pB1E3ZA6oL2OiD%7C08%7C3",
+      "domain": "seller.shopee.co.th",
+      "path": "/",
+      "expires": 1807519838,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_SI",
+      "value": "bAnCaQAAAABsTktmSXVFSvLqlRUAAAAANThVZlBuS2g=",
+      "domain": "seller.shopee.co.th",
+      "path": "/",
+      "expires": 1776070417,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_QPWSDCXHZQA",
+      "value": "d7708a4d-fb89-473a-e981-cb7030d38af0",
+      "domain": "accounts.shopee.co.th",
+      "path": "/",
+      "expires": 1807413952,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "REC7iLP4Q",
+      "value": "1086f268-7bb4-4730-a123-70a93495b229",
+      "domain": "accounts.shopee.co.th",
+      "path": "/",
+      "expires": 1807519823,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "SPC_SEC_SI",
+      "value": "v1-NkdpWmt4bmJBM05jbTR1M071sLprsCVd5KQU0hRlEUVEg2jBPmXICMeJ/8OiKwE/pyawAZ5M7NXjflfvo3DH35UpzKUJtDIwlAmTE+Wz0hw=",
+      "domain": "accounts.shopee.co.th",
+      "path": "/",
+      "expires": 1776070523,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "_sapid",
+      "value": "8522dcfd5fbf0095220ac45900ae3d98123096211125921c35080779",
+      "domain": "accounts.shopee.co.th",
+      "path": "/",
+      "expires": -1,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "ds",
+      "value": "bdb3f03e9a628deca8d7a9012db43ae3",
+      "domain": "accounts.shopee.co.th",
+      "path": "/",
+      "expires": 1807519823,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "shopee_webUnique_ccd",
+      "value": "uZp4zsMwrr4%2Fh1FItxUPGw%3D%3D%7CE8M7LFCtJruCCUJy88Xu1kEA6shT11M6qHnTVyp3LKwe14vlyO1AOFpoYvkgpqwcpcaJXLv5Puw%3D%7CycDw%2BEqNUlk3fwdx%7C08%7C3",
+      "domain": "accounts.shopee.co.th",
+      "path": "/",
+      "expires": 1807519823,
+      "httpOnly": false,
+      "secure": false,
+      "sameSite": "Lax"
+    },
+    {
+      "name": "channel_access_token",
+      "value": "01350aaf1925600a330c1261d96db57da4a80e7751f32de1c658938356a94bba76",
+      "domain": "chatbot.seller.shopee.co.th",
+      "path": "/",
+      "expires": 1776070235,
+      "httpOnly": false,
+      "secure": true,
+      "sameSite": "Lax"
+    }
+  ],
+  "origins": []
+}

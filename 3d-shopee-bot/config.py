@@ -5,8 +5,8 @@
 # ─────────────────────────────────────────────
 # Shopee セラーセンター ブラウザログイン情報
 # ─────────────────────────────────────────────
-SHOPEE_EMAIL    = ""              # セラーセンターのログインメール
-SHOPEE_PASSWORD = ""              # セラーセンターのパスワード
+SHOPEE_EMAIL    = "smkrrry@gmail.com"   # セラーセンターのログインメール
+SHOPEE_PASSWORD = "Oriental1109/"      # セラーセンターのパスワード
 SHOPEE_SELLER_URL = "https://seller.shopee.co.th"
 
 BROWSER_SETTINGS = {

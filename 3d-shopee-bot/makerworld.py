@@ -197,51 +197,78 @@ class MakerWorldScraper:
         logger.info(f"Playwright: {search_url}")
 
         with sync_playwright() as p:
-            browser = p.chromium.launch(headless=True)
+            browser = p.chromium.launch(
+                headless=True,
+                args=["--disable-blink-features=AutomationControlled"],
+            )
             context = browser.new_context(
                 user_agent=HEADERS["User-Agent"],
-                extra_http_headers={k: v for k, v in HEADERS.items() if k != "User-Agent"},
+                locale="en-US",
+                extra_http_headers={
+                    "Accept-Language": "en-US,en;q=0.9",
+                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+                },
             )
-            # APIレスポンスをインターセプト（/api/ を含むもの全て）
+
+            # /bff/ と /api/ 両方のAPIレスポンスをインターセプト
             api_responses = []
 
             def handle_response(response):
-                if "/api/" in response.url and response.status == 200:
-                    try:
-                        body = response.json()
-                        # モデルリストを含むレスポンスを優先保存
-                        items = (
-                            body.get("hits") or body.get("models") or
-                            body.get("designs") or body.get("data", {}).get("list") or
-                            body.get("list") or []
-                        )
-                        if items:
-                            api_responses.insert(0, {"url": response.url, "body": body, "items": items})
-                        else:
-                            api_responses.append({"url": response.url, "body": body, "items": []})
-                    except Exception:
-                        pass
+                if response.status != 200:
+                    return
+                if not any(p in response.url for p in ["/bff/", "/api/"]):
+                    return
+                try:
+                    body = response.json()
+                    items = (
+                        body.get("hits") or
+                        body.get("models") or
+                        body.get("designs") or
+                        (body.get("data") or {}).get("list") or
+                        body.get("list") or
+                        []
+                    )
+                    if items:
+                        api_responses.insert(0, {"url": response.url, "body": body, "items": items})
+                        logger.info(f"API intercepted: {len(items)}件 from {response.url}")
+                    else:
+                        api_responses.append({"url": response.url, "body": body, "items": []})
+                except Exception:
+                    pass
 
             page_obj = context.new_page()
+            page_obj.add_init_script(
+                "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
+            )
             page_obj.on("response", handle_response)
-            page_obj.goto(search_url, wait_until="networkidle", timeout=45000)
-            # コンテンツロードを待機（遅延レンダリング対策）
+
+            # domcontentloaded で待機（networkidle はCloudflareで無限待機になる）
             try:
-                page_obj.wait_for_selector("[class*='model'], [class*='card'], article", timeout=10000)
+                page_obj.goto(search_url, wait_until="domcontentloaded", timeout=60000)
+            except Exception as e:
+                logger.warning(f"goto timeout（続行）: {e}")
+
+            # Cloudflare通過 + コンテンツ描画を待つ
+            time.sleep(5)
+            try:
+                page_obj.wait_for_selector(
+                    "a[href*='/en/models/'], [class*='model'], [class*='card']",
+                    timeout=15000,
+                )
             except Exception:
                 pass
-            time.sleep(2)
+            time.sleep(3)
 
             # インターセプトしたAPIレスポンスから商品取得
             for resp in api_responses:
                 if resp["items"]:
                     models = [self._normalize_model(m) for m in resp["items"]]
-                    logger.info(f"API intercepted: {len(models)}件 from {resp['url']}")
+                    logger.info(f"✅ API経由: {len(models)}件")
                     break
 
             # APIレスポンスが取れなかった場合DOMから取得
             if not models:
-                logger.info("Falling back to DOM parsing...")
+                logger.info("DOM解析にフォールバック...")
                 models = self._parse_dom(page_obj)
 
             browser.close()

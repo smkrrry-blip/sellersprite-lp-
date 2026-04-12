@@ -361,13 +361,26 @@ class ShopeeBrowser:
         mw_id = product.get("mw_model_id", "unknown")
 
         try:
-            # 新規出品ページへ移動
+            # セラーセンターに移動してから「Add New Product」をクリック
             logger.info(f"📦 出品開始: {product.get('title_th', '')[:40]}")
+
+            # まずダッシュボードに移動
+            self._page.goto(SHOPEE_SELLER_URL, timeout=30000)
+            self._page.wait_for_load_state("domcontentloaded", timeout=15000)
+            _human_wait(2, 3)
+
+            # 出品ページへ直接移動
             self._page.goto(
-                f"{SHOPEE_SELLER_URL}/portal/product/add",
+                f"{SHOPEE_SELLER_URL}/portal/product/new",
                 timeout=30000,
             )
-            _human_wait(2, 4)
+            self._page.wait_for_load_state("domcontentloaded", timeout=15000)
+            logger.info(f"  URL: {self._page.url}")
+            _human_wait(2, 3)
+
+            # 出品ページ上のモーダル（プロモーション等）を閉じる
+            self._dismiss_listing_modals()
+            _human_wait(1, 2)
 
             if self._detect_captcha():
                 logger.error("❌ 出品ページでCAPTCHA検出")
@@ -382,117 +395,126 @@ class ShopeeBrowser:
                 self._page.goto(f"{SHOPEE_SELLER_URL}/portal/product/add", timeout=30000)
                 _human_wait(2, 4)
 
-            _random_scroll(self._page)
-
-            # ── 商品名入力 ──────────────────────────────
+            # ════════════════════════════════════════
+            # STEP 1: 商品名 + 画像
+            # ════════════════════════════════════════
             title = str(product.get("title_th") or product.get("title_en") or "3D Print Item")[:120]
+
+            # 商品名入力
+            title_sel = (
+                'input[placeholder*="Brand Name"], '
+                'input[placeholder*="Key Features"], '
+                'input[placeholder*="Product Name"], '
+                'input[placeholder*="ชื่อสินค้า"], '
+                'label:has-text("Product Name") ~ div input, '
+                'label:has-text("Product Name") + div input'
+            )
             try:
-                self._page.wait_for_selector(
-                    'input[placeholder*="ชื่อ"], input[placeholder*="Product Name"], '
-                    '[class*="product-name"] input',
-                    timeout=10000,
-                )
+                self._page.wait_for_selector(title_sel, timeout=15000)
                 _human_wait(0.5, 1.0)
-                _human_type(
-                    self._page,
-                    'input[placeholder*="ชื่อ"], input[placeholder*="Product Name"], '
-                    '[class*="product-name"] input',
-                    title,
-                )
+                title_input = self._page.locator(title_sel).first
+                title_input.click()
+                _human_wait(0.3, 0.5)
+                title_input.fill(title)
+                logger.info(f"  商品名入力完了: {title[:30]}")
             except PlaywrightTimeout:
-                logger.error("商品名入力欄が見つかりません")
+                inputs = self._page.locator("input:visible").all()
+                logger.error(f"商品名入力欄が見つかりません（visible input数: {len(inputs)}）")
                 self._screenshot(f"error_{mw_id}_title")
                 return None
 
-            _human_wait(1, 2)
+            _human_wait(1, 1.5)
 
-            # ── 画像アップロード ─────────────────────────
+            # 画像アップロード
             if not self._upload_images(local_image_paths):
                 self._screenshot(f"error_{mw_id}_images")
                 return None
 
             _human_wait(1, 2)
-            _random_scroll(self._page)
 
-            # ── カテゴリ選択 ─────────────────────────────
+            # 「Next Step」ボタンをクリック
+            next_sel = 'button:has-text("Next Step"), button:has-text("ถัดไป")'
+            try:
+                self._page.wait_for_selector(next_sel, timeout=8000)
+                _human_wait(0.5, 1.0)
+                self._page.locator(next_sel).first.click()
+                self._page.wait_for_load_state("domcontentloaded", timeout=15000)
+                logger.info("  Next Step クリック完了")
+                _human_wait(2, 3)
+            except Exception as e:
+                logger.warning(f"Next Step ボタンが見つかりません（続行）: {e}")
+                self._screenshot(f"error_{mw_id}_nextstep")
+
+            # ════════════════════════════════════════
+            # STEP 2: カテゴリ・説明・価格・在庫
+            # ════════════════════════════════════════
+
+            # カテゴリ選択
             self._select_category(product.get("category", ""))
-            _human_wait(1, 2)
+            _human_wait(1, 1.5)
 
-            # ── 商品説明入力 ─────────────────────────────
+            # 商品説明入力
             description = str(
                 product.get("description_th") or "สินค้า 3D Printed คุณภาพสูง"
             )[:3000]
             try:
                 desc_sel = (
-                    'textarea[placeholder*="รายละเอียด"], '
+                    '.ql-editor, '
+                    'div[contenteditable="true"], '
                     'textarea[placeholder*="Description"], '
-                    '[class*="description"] textarea, '
-                    '.ql-editor'
+                    'textarea[placeholder*="รายละเอียด"]'
                 )
+                self._page.wait_for_selector(desc_sel, timeout=10000)
                 desc_el = self._page.locator(desc_sel).first
                 desc_el.click()
-                _human_wait(0.3, 0.7)
+                _human_wait(0.3, 0.6)
                 desc_el.fill(description)
+                logger.info("  説明入力完了")
             except Exception as e:
                 logger.warning(f"説明入力エラー（続行）: {e}")
 
-            _human_wait(1, 2)
+            _human_wait(1, 1.5)
             _random_scroll(self._page)
 
-            # ── 価格入力 ─────────────────────────────────
+            # 価格入力（入力欄をlabelで探す）
             price = float(product.get("price_thb") or LISTING_SETTINGS["min_price_thb"])
             try:
                 price_sel = (
-                    'input[placeholder*="ราคา"], input[placeholder*="Price"], '
-                    '[class*="price"] input[type="text"], [class*="price"] input[type="number"]'
+                    'input[placeholder*="Price"], '
+                    'input[placeholder*="ราคา"], '
+                    'label:has-text("Price") ~ div input, '
+                    'label:has-text("Price") + div input'
                 )
-                self._page.wait_for_selector(price_sel, timeout=8000)
-                _human_wait(0.3, 0.7)
+                self._page.wait_for_selector(price_sel, timeout=10000)
                 price_input = self._page.locator(price_sel).first
-                price_input.click()
                 price_input.triple_click()
-                _human_wait(0.2, 0.5)
+                _human_wait(0.2, 0.4)
                 price_input.fill(str(int(price)))
+                logger.info(f"  価格入力完了: {int(price)} THB")
             except Exception as e:
                 logger.warning(f"価格入力エラー（続行）: {e}")
 
-            _human_wait(0.8, 1.5)
+            _human_wait(0.8, 1.2)
 
-            # ── 在庫数入力 ────────────────────────────────
+            # 在庫数入力
             stock = LISTING_SETTINGS["default_stock"]
             try:
                 stock_sel = (
-                    'input[placeholder*="สต็อก"], input[placeholder*="Stock"], '
-                    '[class*="stock"] input'
+                    'input[placeholder*="Stock"], '
+                    'input[placeholder*="สต็อก"], '
+                    'label:has-text("Stock") ~ div input, '
+                    'label:has-text("Stock") + div input'
                 )
-                stock_input = self._page.locator(stock_sel).first
-                if stock_input.count():
-                    stock_input.click()
-                    stock_input.triple_click()
+                stock_el = self._page.locator(stock_sel).first
+                if stock_el.count():
+                    stock_el.triple_click()
                     _human_wait(0.2, 0.4)
-                    stock_input.fill(str(stock))
+                    stock_el.fill(str(stock))
+                    logger.info(f"  在庫入力完了: {stock}")
             except Exception as e:
                 logger.warning(f"在庫入力エラー（続行）: {e}")
 
-            _human_wait(0.8, 1.5)
-
-            # ── 発送日数入力（7日）──────────────────────
-            days_to_ship = LISTING_SETTINGS.get("default_days_to_ship", 7)
-            try:
-                ship_sel = (
-                    'input[placeholder*="วันจัดส่ง"], input[placeholder*="Days to Ship"], '
-                    '[class*="days-to-ship"] input'
-                )
-                ship_input = self._page.locator(ship_sel).first
-                if ship_input.count():
-                    ship_input.click()
-                    ship_input.triple_click()
-                    _human_wait(0.2, 0.4)
-                    ship_input.fill(str(days_to_ship))
-            except Exception as e:
-                logger.warning(f"発送日数入力エラー（続行）: {e}")
-
-            _human_wait(1, 2)
+            _human_wait(0.8, 1.2)
             _random_scroll(self._page)
 
             # ── Save & Publish ────────────────────────────
@@ -508,6 +530,42 @@ class ShopeeBrowser:
             logger.error(f"❌ 出品エラー ({mw_id}): {e}")
             self._screenshot(f"error_{mw_id}_unexpected")
             return None
+
+    def _dismiss_listing_modals(self):
+        """出品フォームに表示されるプロモーション・案内モーダルを閉じる"""
+        close_patterns = [
+            # 「Got it」「OK」「閉じる」系
+            'button:has-text("Got it")',
+            'button:has-text("Got It")',
+            'button:has-text("OK")',
+            'button:has-text("Close")',
+            'button:has-text("Skip")',
+            'button:has-text("Maybe Later")',
+            'button:has-text("No, thanks")',
+            # ×ボタン
+            '[class*="modal"] [class*="close"]',
+            '[class*="dialog"] [class*="close"]',
+            '[aria-label="Close"]',
+            'svg[class*="close"]',
+            # Shopee固有
+            '[class*="modal-close"]',
+            '[class*="popup-close"]',
+        ]
+        for sel in close_patterns:
+            try:
+                btn = self._page.locator(sel).first
+                if btn.count() and btn.is_visible():
+                    btn.click()
+                    logger.info(f"  モーダルを閉じました: {sel}")
+                    _human_wait(0.5, 1.0)
+            except Exception:
+                pass
+        # ESCでも試みる
+        try:
+            self._page.keyboard.press("Escape")
+            _human_wait(0.5, 1.0)
+        except Exception:
+            pass
 
     def _select_category(self, mw_category: str):
         """カテゴリを選択（クリックベース）"""

@@ -6,6 +6,28 @@ import json
 import logging
 import traceback
 from datetime import datetime
+
+
+def _parse_image_urls(raw) -> list[str]:
+    """
+    image_urls フィールドを確実にリスト化する
+    DBが二重エンコードする場合があるため、json.loads を最大2回実施
+    """
+    if isinstance(raw, list):
+        return raw
+    if not raw:
+        return []
+    try:
+        result = json.loads(raw)
+        if isinstance(result, list):
+            return result
+        if isinstance(result, str):
+            result2 = json.loads(result)
+            if isinstance(result2, list):
+                return result2
+    except Exception:
+        pass
+    return []
 from db import init_db, upsert_product, update_status, get_products_by_status, get_stats, log_run
 from makerworld import MakerWorldScraper
 from translator import Translator, PriceCalculator
@@ -102,7 +124,7 @@ def run_full_pipeline(dry_run: bool = False):
 
     for product in to_download:
         try:
-            image_urls = json.loads(product.get("image_urls") or "[]")
+            image_urls = _parse_image_urls(product.get("image_urls"))
             if not image_urls:
                 logger.warning(f"  ⚠️ 画像URLなし: {product['mw_model_id']}")
                 update_status(product["mw_model_id"], "error", error_msg="no image urls")
@@ -146,7 +168,7 @@ def run_full_pipeline(dry_run: bool = False):
                         from image_downloader import get_cached_images
                         local_paths = get_cached_images(product["mw_model_id"])
                         if not local_paths:
-                            image_urls = json.loads(product.get("image_urls") or "[]")
+                            image_urls = _parse_image_urls(product.get("image_urls"))
                             local_paths = download_product_images(product["mw_model_id"], image_urls)
 
                         if not local_paths:
@@ -222,7 +244,7 @@ def run_step(step: str):
     elif step == "download":
         products = get_products_by_status("translated", limit=20)
         for p in products:
-            image_urls = json.loads(p.get("image_urls") or "[]")
+            image_urls = _parse_image_urls(p.get("image_urls"))
             paths = download_product_images(p["mw_model_id"], image_urls)
             if paths:
                 update_status(p["mw_model_id"], "images_ready")
@@ -238,7 +260,7 @@ def run_step(step: str):
                         break
                     local_paths = get_cached_images(p["mw_model_id"])
                     if not local_paths:
-                        image_urls = json.loads(p.get("image_urls") or "[]")
+                        image_urls = _parse_image_urls(p.get("image_urls"))
                         local_paths = download_product_images(p["mw_model_id"], image_urls)
                     if local_paths:
                         url = browser.list_product(p, local_paths)
