@@ -181,10 +181,24 @@ class ShopeeBrowser:
         logger.info("🔑 ログイン開始...")
         try:
             self._page.goto(f"{SHOPEE_SELLER_URL}/account/login", timeout=30000)
-            _human_wait(2, 4)
+
+            # ページ完全読み込みを待つ
+            self._page.wait_for_load_state("networkidle", timeout=15000)
+            _human_wait(2, 3)
+
+            # 言語選択モーダルが出るのを待ってから閉じる
+            try:
+                self._page.wait_for_selector(
+                    'button:has-text("English"), button:has-text("ไทย")',
+                    timeout=8000,
+                )
+                logger.info("言語選択モーダル検出")
+            except Exception:
+                logger.info("言語選択モーダルなし（スキップ）")
 
             # モーダル・ポップアップを閉じる
             self._dismiss_modals()
+            _human_wait(1, 2)
 
             # CAPTCHA検出
             if self._detect_captcha():
@@ -623,6 +637,15 @@ class ShopeeBrowser:
 
 if __name__ == "__main__":
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
-    with ShopeeBrowser() as browser:
+    browser = ShopeeBrowser()
+    browser.start()
+    try:
         ok = browser.login()
         print("ログイン成功:", ok)
+        if ok:
+            print("✅ Cookieを保存しました。ブラウザを5秒後に閉じます。")
+        else:
+            print("❌ ログイン失敗。エラー画像を確認: ~/sellersprite-lp-/3d-shopee-bot/errors/")
+        _human_wait(5, 6)  # 結果確認のため少し待つ
+    finally:
+        browser.stop()
