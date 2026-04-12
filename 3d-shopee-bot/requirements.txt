@@ -3,6 +3,7 @@ requests>=2.31.0
 deep-translator>=1.11.4   # Google Translate無料版（翻訳API不要の場合）
 Pillow>=10.0.0            # 画像処理・リサイズ
 playwright>=1.42.0        # ブラウザ自動化（Shopeeセラーセンター操作）
+browser-cookie3>=0.19.1   # ChromeのCookieをエクスポート（export_cookies.py用）
 
 # オプション（高品質翻訳を使う場合）
 anthropic>=0.23.0         # Claude API翻訳
