@@ -236,20 +236,33 @@ class ShopeeBrowser:
     def _dismiss_modals(self):
         """
         ログイン前に表示されるモーダル・ポップアップを閉じる
-        （Cookie同意、通知許可、プロモーションバナー等）
+        （言語選択、Cookie同意、通知許可、プロモーションバナー等）
         """
+        # ── 言語選択モーダル（最優先） ──────────────────────
+        # 「เลือกภาษา」ポップアップの「English」または「ไทย」を選択
+        lang_selectors = [
+            'button:has-text("English")',
+            'button:has-text("ไทย")',
+        ]
+        for sel in lang_selectors:
+            try:
+                btn = self._page.locator(sel).first
+                if btn.count() and btn.is_visible():
+                    btn.click()
+                    logger.info(f"言語選択モーダルを閉じました: {sel}")
+                    _human_wait(1.0, 2.0)
+                    break
+            except Exception:
+                pass
+
+        # ── その他のポップアップ・閉じるボタン ──────────────
         close_selectors = [
-            # 一般的な閉じるボタン
             'button[aria-label="Close"]',
             'button[aria-label="close"]',
             '[class*="modal"] button[class*="close"]',
-            '[class*="modal"] button[class*="Close"]',
-            '[id="modal"] button',
-            # Shopee固有のポップアップ
+            '[id="modal"] button[class*="close"]',
             '.shopee-popup__close-btn',
             '[class*="popup"] [class*="close"]',
-            '[class*="overlay"] [class*="close"]',
-            # Cookie同意
             'button:has-text("Accept")',
             'button:has-text("ยอมรับ")',
             'button:has-text("OK")',
@@ -264,18 +277,10 @@ class ShopeeBrowser:
             except Exception:
                 pass
 
-        # モーダルのオーバーレイ自体をESCキーで閉じる試み
+        # ESCキーでも試みる
         try:
             self._page.keyboard.press("Escape")
             _human_wait(0.5, 1.0)
-        except Exception:
-            pass
-
-        # オーバーレイが消えるまで最大3秒待つ
-        try:
-            self._page.wait_for_selector(
-                '[id="modal"]:not(:has(*))', timeout=3000
-            )
         except Exception:
             pass
 
