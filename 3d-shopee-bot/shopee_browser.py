@@ -183,20 +183,24 @@ class ShopeeBrowser:
             self._page.goto(f"{SHOPEE_SELLER_URL}/account/login", timeout=30000)
             _human_wait(2, 4)
 
+            # モーダル・ポップアップを閉じる
+            self._dismiss_modals()
+
             # CAPTCHA検出
             if self._detect_captcha():
                 logger.error("❌ ログインページにCAPTCHAが表示されています")
                 _notify_captcha()
                 return False
 
-            # メールアドレス入力
-            self._page.wait_for_selector('input[type="text"], input[name="loginKey"]', timeout=10000)
-            _human_wait(0.5, 1.5)
-            _human_type(self._page, 'input[type="text"], input[name="loginKey"]', SHOPEE_EMAIL)
+            # メールアドレス入力（fill() で直接入力 — モーダルのクリックブロック回避）
+            input_sel = 'input[name="loginKey"], input[type="text"]'
+            self._page.wait_for_selector(input_sel, timeout=10000)
+            _human_wait(0.5, 1.0)
+            self._page.locator(input_sel).first.fill(SHOPEE_EMAIL)
             _human_wait(0.5, 1.0)
 
             # パスワード入力
-            _human_type(self._page, 'input[type="password"]', SHOPEE_PASSWORD)
+            self._page.locator('input[type="password"]').first.fill(SHOPEE_PASSWORD)
             _human_wait(0.8, 1.5)
 
             # ログインボタンクリック
@@ -228,6 +232,52 @@ class ShopeeBrowser:
             logger.error(f"❌ ログインエラー: {e}")
             self._screenshot("login_error")
             return False
+
+    def _dismiss_modals(self):
+        """
+        ログイン前に表示されるモーダル・ポップアップを閉じる
+        （Cookie同意、通知許可、プロモーションバナー等）
+        """
+        close_selectors = [
+            # 一般的な閉じるボタン
+            'button[aria-label="Close"]',
+            'button[aria-label="close"]',
+            '[class*="modal"] button[class*="close"]',
+            '[class*="modal"] button[class*="Close"]',
+            '[id="modal"] button',
+            # Shopee固有のポップアップ
+            '.shopee-popup__close-btn',
+            '[class*="popup"] [class*="close"]',
+            '[class*="overlay"] [class*="close"]',
+            # Cookie同意
+            'button:has-text("Accept")',
+            'button:has-text("ยอมรับ")',
+            'button:has-text("OK")',
+        ]
+        for sel in close_selectors:
+            try:
+                btn = self._page.locator(sel).first
+                if btn.count() and btn.is_visible():
+                    btn.click()
+                    logger.info(f"ポップアップを閉じました: {sel}")
+                    _human_wait(0.5, 1.0)
+            except Exception:
+                pass
+
+        # モーダルのオーバーレイ自体をESCキーで閉じる試み
+        try:
+            self._page.keyboard.press("Escape")
+            _human_wait(0.5, 1.0)
+        except Exception:
+            pass
+
+        # オーバーレイが消えるまで最大3秒待つ
+        try:
+            self._page.wait_for_selector(
+                '[id="modal"]:not(:has(*))', timeout=3000
+            )
+        except Exception:
+            pass
 
     def _detect_captcha(self) -> bool:
         """CAPTCHAの存在を検出"""
