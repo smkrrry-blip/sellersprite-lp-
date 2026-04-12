@@ -217,10 +217,18 @@ class ShopeeBrowser:
             self._page.locator('input[type="password"]').first.fill(SHOPEE_PASSWORD)
             _human_wait(0.8, 1.5)
 
-            # ログインボタンクリック
-            login_btn = self._page.locator('button[type="submit"]').first
-            login_btn.click()
-            _human_wait(3, 6)
+            # ログインボタンクリック（複数セレクターで確実に）
+            login_btn_sel = (
+                'button:has-text("LOG IN"), '
+                'button:has-text("Log In"), '
+                'button:has-text("เข้าสู่ระบบ"), '
+                'button[type="submit"]'
+            )
+            self._page.wait_for_selector(login_btn_sel, timeout=8000)
+            _human_wait(0.5, 1.0)
+            self._page.locator(login_btn_sel).first.click()
+            logger.info("LOG IN ボタンをクリックしました")
+            _human_wait(4, 7)
 
             # CAPTCHA検出（ログイン後）
             if self._detect_captcha():
