@@ -5,7 +5,12 @@
 ### STEP1：現状確認
 curl -sL https://smkrrry-blip.github.io/sellersprite-lp-/ でHTMLを取得して以下を確認：
 - title・metaディスクリプション・OGP・canonical・JSON-LDの有無
-- コピーボタンの数（2個が正解）
+- コピーボタンの数（計4個が正解：主要2 = hero/cta、補助2 = exit-intent/sticky）
+  - hero: FV内、初回CV最強導線
+  - cta: 中段CTAブロック、スクロール途中CV補強
+  - exit-intent: PC幅>768pxで上端離脱検知時のモーダル、離脱対策
+  - sticky: 画面下部固定バー、全画面でCV機会維持
+  - 全ボタンに `gtag('event','code_copy',{event_label:'CJ9852'})` 設定済（GA4で個別計測可能）
 - 比較表ヘッダーが4列か
 - CTAボタンがファーストビューにあるか
 - 画像のloading=lazy・altテキストの状態
