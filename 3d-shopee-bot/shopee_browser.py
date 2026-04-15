@@ -364,39 +364,40 @@ class ShopeeBrowser:
             # セラーセンターに移動してから「Add New Product」をクリック
             logger.info(f"📦 出品開始: {product.get('title_th', '')[:40]}")
 
-            # まずダッシュボードに移動
-            self._page.goto(SHOPEE_SELLER_URL, timeout=30000)
-            self._page.wait_for_load_state("domcontentloaded", timeout=15000)
-            _human_wait(2, 3)
+            # 商品リストページに移動してドラフト状態をクリアしてから新規出品へ
+            # wait_until="domcontentloaded" で高速化（全リソース読み込み待ち不要）
+            try:
+                self._page.goto(
+                    f"{SHOPEE_SELLER_URL}/portal/product/list/all",
+                    timeout=45000,
+                    wait_until="domcontentloaded",
+                )
+                _human_wait(1, 2)
+            except Exception as e:
+                logger.warning(f"  product/list/all ナビゲーション失敗（続行）: {e}")
 
             # 出品ページへ直接移動
             self._page.goto(
                 f"{SHOPEE_SELLER_URL}/portal/product/new",
-                timeout=30000,
+                timeout=60000,
+                wait_until="domcontentloaded",
             )
-            self._page.wait_for_load_state("domcontentloaded", timeout=15000)
-            logger.info(f"  URL: {self._page.url}")
             _human_wait(2, 3)
 
-            # 出品ページ上のモーダルが出るまで少し待ってから閉じる
-            _human_wait(2, 3)
-            self._dismiss_listing_modals()
-            _human_wait(0.5, 1.0)
-            # JavaScriptで全モーダル系オーバーレイを強制削除
-            self._page.evaluate("""
-                () => {
-                    // Shopee Standard Product ツアー
-                    document.getElementById('sspSearchTour')?.remove();
-                    // その他のモーダルオーバーレイ
-                    document.querySelectorAll('[class*="modal"], [class*="overlay"], [class*="dialog"], [class*="tour"]')
-                        .forEach(el => {
-                            const style = window.getComputedStyle(el);
-                            if (style.position === 'fixed' || style.position === 'absolute') {
-                                el.remove();
-                            }
-                        });
-                }
-            """)
+            # ページをリロードしてドラフト復元をクリア
+            # (デバッグで確認: reload後は常にクリーンなフォームが読み込まれる)
+            self._page.reload(wait_until="domcontentloaded", timeout=60000)
+            # React アプリのレンダリングを待つ（networkidle で JS実行完了を確認）
+            try:
+                self._page.wait_for_load_state("networkidle", timeout=20000)
+            except Exception:
+                pass  # networkidle がタイムアウトしても続行
+            _human_wait(3, 5)
+
+            logger.info(f"  URL: {self._page.url}")
+
+            # sspSearchTour のみ削除（他のオーバーレイは削除しない）
+            self._page.evaluate("document.getElementById('sspSearchTour')?.remove()")
             _human_wait(0.5, 1.0)
 
             if self._detect_captcha():
@@ -432,7 +433,7 @@ class ShopeeBrowser:
                 'label:has-text("Product Name") + div input'
             )
             try:
-                self._page.wait_for_selector(title_sel, timeout=15000)
+                self._page.wait_for_selector(title_sel, timeout=30000)
                 _human_wait(0.5, 1.0)
                 title_input = self._page.locator(title_sel).first
                 title_input.click()
@@ -454,11 +455,8 @@ class ShopeeBrowser:
 
             _human_wait(1, 2)
 
-            # ポップアップを再度閉じてからNext Step
-            self._dismiss_listing_modals()
-            _human_wait(0.5, 1.0)
-
             # 「Next Step」ボタンをクリック（ポップアップ被りはforce=Trueで回避）
+            # (_dismiss_listing_modals は呼ばない — Variation 誤活性化の原因になりうるため)
             next_sel = 'button:has-text("Next Step"), button:has-text("ถัดไป")'
             try:
                 self._page.wait_for_selector(next_sel, timeout=8000)
@@ -481,6 +479,139 @@ class ShopeeBrowser:
             price = float(product.get("price_thb") or LISTING_SETTINGS["min_price_thb"])
             description = str(product.get("description_th") or "สินค้า 3D Printed คุณภาพสูง")[:3000]
             stock = LISTING_SETTINGS["default_stock"]
+            weight_kg = max(0.1, (product.get("estimated_grams") or 100) / 1000)
+
+            # ── Basic Info タブ（ブランド入力）────────
+            # タブ名: "Basic information"（Shopee実際のラベル、小文字i）
+            try:
+                basic_tab = None
+                for tab_name in ["Basic information", "Basic Information", "Basic Info"]:
+                    t = self._page.get_by_text(tab_name, exact=True).first
+                    if t.count():
+                        basic_tab = t
+                        logger.info(f"  Basic Info タブ発見: '{tab_name}'")
+                        break
+                if basic_tab:
+                    basic_tab.click()
+                    _human_wait(1.5, 2.5)
+                    # 診断スクリーンショット
+                    self._screenshot(f"debug_{mw_id}_basicinfo")
+
+                    # Brand フィールドは EDS Select ドロップダウン（"Please select" が placeholder）
+                    # ※ Playwright CSS locator は EDS コンポーネントを見つけられない（Shadow DOM 疑い）
+                    # ※ input[placeholder*="Brand"] は商品名フィールドに一致するため使用禁止
+                    # → JS evaluate で querySelectorAll('[class*="eds-selector"]') を使う（診断で確認済み）
+                    brand_filled = False
+                    try:
+                        # まずページを少し下にスクロール（Specification セクションを表示）
+                        self._page.mouse.wheel(0, 400)
+                        _human_wait(0.5, 0.8)
+
+                        # JS evaluate でクリック
+                        # ── "* Brand" ラベルを起点に EDS selector を探す ──
+                        # （以前の single-selector フィルタは全 46 件をミスするため廃止）
+                        brand_click = self._page.evaluate("""
+                            () => {
+                                // ① ラベルテキストで親コンテナを特定 → その中の eds-selector をクリック
+                                const labels = [...document.querySelectorAll(
+                                    'label, .eds-form-item__label, [class*="form-item__label"]'
+                                )];
+                                const brandLabel = labels.find(
+                                    l => l.textContent.trim().replace('*','').trim() === 'Brand'
+                                );
+                                if (brandLabel) {
+                                    let container = brandLabel.parentElement;
+                                    for (let i = 0; i < 6; i++) {
+                                        if (!container) break;
+                                        const sel = container.querySelector('[class*="eds-selector"]');
+                                        if (sel) {
+                                            sel.scrollIntoView({block: 'center'});
+                                            sel.click();
+                                            return {found: true, method: 'label_parent',
+                                                    cls: sel.className.substring(0, 60)};
+                                        }
+                                        container = container.parentElement;
+                                    }
+                                }
+                                // ② EDS selector の祖先に "Brand" テキストを持つものを探す
+                                const allEds = [...document.querySelectorAll('[class*="eds-selector"]')];
+                                for (const el of allEds) {
+                                    let p = el.parentElement;
+                                    for (let i = 0; i < 4; i++) {
+                                        if (!p) break;
+                                        const t = (p.textContent || '');
+                                        if (t.includes('Brand') && !t.includes('Variation')
+                                                && !t.includes('Shipping')) {
+                                            el.scrollIntoView({block: 'center'});
+                                            el.click();
+                                            return {found: true, method: 'ancestor_text',
+                                                    cls: el.className.substring(0, 60)};
+                                        }
+                                        p = p.parentElement;
+                                    }
+                                }
+                                // ③ フォールバック: single-selector（clearable なし）
+                                const candidates = allEds.filter(el => {
+                                    const cls = el.className || '';
+                                    return cls.includes('single-selector') && !cls.includes('clearable');
+                                });
+                                if (candidates.length > 0) {
+                                    candidates[0].scrollIntoView({block: 'center'});
+                                    candidates[0].click();
+                                    return {found: true, method: 'single_selector',
+                                            cls: candidates[0].className.substring(0, 60)};
+                                }
+                                return {found: false, totalEds: allEds.length,
+                                        labelFound: !!brandLabel};
+                            }
+                        """)
+                        logger.info(f"  Brand JS click: {brand_click}")
+
+                        if brand_click.get("found"):
+                            _human_wait(0.8, 1.2)
+                            # "No Brand" オプションを選択
+                            for opt_sel in [
+                                'li:has-text("No Brand")',
+                                '[role="option"]:has-text("No Brand")',
+                                '[class*="option"]:has-text("No Brand")',
+                                '[class*="popover"] li:first-child',
+                                '[class*="dropdown"] li:first-child',
+                            ]:
+                                try:
+                                    opt = self._page.locator(opt_sel).first
+                                    if opt.count() and opt.is_visible():
+                                        opt.click()
+                                        logger.info(f"  ブランド選択: No Brand (via {opt_sel})")
+                                        brand_filled = True
+                                        _human_wait(0.5, 1.0)
+                                        break
+                                except Exception:
+                                    pass
+
+                            if not brand_filled:
+                                # Dropdown に search input がある場合 "No Brand" と入力
+                                search_inp = self._page.locator(
+                                    '[class*="popover"] input, [class*="dropdown"] input'
+                                ).first
+                                if search_inp.count() and search_inp.is_visible():
+                                    search_inp.fill("No Brand")
+                                    _human_wait(0.5, 1.0)
+                                    opt = self._page.get_by_text("No Brand", exact=True).first
+                                    if opt.count() and opt.is_visible():
+                                        opt.click()
+                                        brand_filled = True
+                                        logger.info("  ブランド選択: No Brand (via search input)")
+                    except Exception as e:
+                        logger.warning(f"  ブランド入力エラー（続行）: {e}")
+
+                    if not brand_filled:
+                        logger.warning("  ⚠️ ブランドを設定できませんでした")
+                else:
+                    logger.warning("  ⚠️ Basic Info タブが見つかりません")
+            except Exception as e:
+                logger.warning(f"  Basic Infoタブエラー（続行）: {e}")
+
+            _human_wait(0.8, 1.2)
 
             # ── Description タブ ──────────────────────
             try:
@@ -504,36 +635,187 @@ class ShopeeBrowser:
                 sales_tab = self._page.get_by_text("Sales Information", exact=True).first
                 if sales_tab.count():
                     sales_tab.click()
-                    _human_wait(1.5, 2.5)
+                    _human_wait(2, 3)
 
-                    # 価格入力（placeholder="Please input" または数値入力欄）
-                    visible_inputs = self._page.locator("input:visible").all()
-                    logger.info(f"  Sales情報タブのinput数: {len(visible_inputs)}")
                     price_filled = False
                     stock_filled = False
-                    for inp in visible_inputs:
-                        ph = inp.get_attribute("placeholder") or ""
-                        if not price_filled and ("Please input" in ph or ph in ["0", ""]):
-                            inp.click()
-                            self._page.keyboard.press("Control+a")
-                            self._page.keyboard.press("Meta+a")
+
+                    # ── 診断スクリーンショット（Sales Info直後）──────────
+                    self._screenshot(f"debug_{mw_id}_salesinfo_before")
+
+                    # 状態確認（textContent で hidden 要素も含めてチェック）
+                    var_state = self._page.evaluate("""
+                        () => {
+                            const tc = document.body.textContent;
+                            const switches = [...document.querySelectorAll('input[type="checkbox"]')];
+                            const checkedCount = switches.filter(s => s.checked).length;
+                            return {
+                                hasVarList: tc.includes('Variation List'),
+                                hasVar1: tc.includes('Variation 1'),
+                                hasEnableVar: tc.includes('Enable Variations'),
+                                checkedSwitches: checkedCount,
+                                visibleInputs: [...document.querySelectorAll('input.eds-input__input')]
+                                    .filter(i => i.offsetParent !== null).length
+                            };
+                        }
+                    """)
+                    logger.info(f"  [診断] Variation状態={var_state}")
+
+                    # ── カテゴリ必須バリエーション対応 ──────────────────────────
+                    # カテゴリ "Docks & Stands" 等はサーバー側でバリエーション必須。
+                    # "Enable Variations" ボタンが表示されていればクリックして _fill_variation_pricing() で設定。
+                    enable_var_btn = self._page.locator('button:has-text("Enable Variations")').first
+
+                    if enable_var_btn.count() and enable_var_btn.is_visible():
+                        logger.info("  'Enable Variations' ボタン検出 → バリエーション設定開始")
+                        enable_var_btn.click()
+                        _human_wait(2, 3)
+                        self._screenshot(f"debug_{mw_id}_variation_enabled")
+                        price_filled, stock_filled = self._fill_variation_pricing(price, stock)
+                        logger.info(f"  バリエーション設定完了: price={price_filled}, stock={stock_filled}")
+                    else:
+                        # バリエーション不要 → 通常の価格・在庫入力
+                        logger.info("  バリエーションなし → 通常価格入力")
+
+                        # 価格入力: L1 text が '฿' の input を特定
+                        try:
+                            price_marked = self._page.evaluate("""
+                                () => {
+                                    document.querySelectorAll('[data-bot-price]').forEach(e => e.removeAttribute('data-bot-price'));
+                                    const inputs = [...document.querySelectorAll('input.eds-input__input')]
+                                        .filter(i => i.offsetParent !== null);
+                                    for (const inp of inputs) {
+                                        const L1 = inp.parentElement?.parentElement;
+                                        if (L1 && L1.textContent.trim() === '\u0e3f') {
+                                            inp.setAttribute('data-bot-price', 'true');
+                                            inp.scrollIntoView({block: 'center'});
+                                            return true;
+                                        }
+                                    }
+                                    return false;
+                                }
+                            """)
+                            if price_marked:
+                                price_inp = self._page.locator('[data-bot-price="true"]').first
+                                price_inp.click()
+                                _human_wait(0.2, 0.3)
+                                price_inp.fill(str(int(price)))
+                                _human_wait(0.5, 1.0)
+                                self._page.evaluate("""
+                                    () => {
+                                        const el = document.activeElement;
+                                        if (el) {
+                                            el.dispatchEvent(new Event('change', {bubbles: true}));
+                                            el.dispatchEvent(new Event('blur', {bubbles: true}));
+                                            el.blur();
+                                        }
+                                    }
+                                """)
+                                _human_wait(0.3, 0.5)
+                                got_val = price_inp.input_value()
+                                logger.info(f"  価格入力完了: {int(price)} THB (確認={got_val})")
+                                price_filled = True
+                            else:
+                                logger.warning("  ⚠️ 価格inputが特定できません")
+                        except Exception as e:
+                            logger.warning(f"  価格入力エラー: {e}")
+
+                        # 在庫入力 (placeholder="-")
+                        _human_wait(0.5, 1.0)
+                        try:
+                            stock_inp = self._page.locator('input[placeholder="-"]').first
+                            stock_inp.wait_for(state="visible", timeout=5000)
+                            stock_inp.click()
                             _human_wait(0.1, 0.2)
-                            inp.fill(str(int(price)))
-                            logger.info(f"  価格入力完了: {int(price)} THB")
-                            price_filled = True
-                        elif not stock_filled and ph == "-":
-                            inp.click()
-                            self._page.keyboard.press("Control+a")
-                            self._page.keyboard.press("Meta+a")
-                            _human_wait(0.1, 0.2)
-                            inp.fill(str(stock))
+                            stock_inp.fill(str(stock))
+                            self._page.evaluate("""
+                                () => {
+                                    const el = document.activeElement;
+                                    if (el) {
+                                        el.dispatchEvent(new Event('change', {bubbles: true}));
+                                        el.dispatchEvent(new Event('blur',   {bubbles: true}));
+                                        el.blur();
+                                    }
+                                }
+                            """)
+                            _human_wait(0.3, 0.5)
                             logger.info(f"  在庫入力完了: {stock}")
                             stock_filled = True
-                        if price_filled and stock_filled:
-                            break
+                        except Exception as e:
+                            logger.warning(f"  在庫入力エラー: {e}")
 
             except Exception as e:
                 logger.warning(f"Sales Informationタブエラー（続行）: {e}")
+
+            _human_wait(0.8, 1.2)
+
+            # ── Shipping タブ（重量・配送設定）──────────
+            # デバッグで確認済み:
+            # - 重量input: class="eds-input__input" inside ".price-input" with parent text="kg"
+            # - Apply & Enable Channel ボタン: DOMには常にあるが非表示(hidden)のため force=True 必要
+            try:
+                shipping_tab = self._page.get_by_text("Shipping", exact=True).first
+                if shipping_tab.count():
+                    shipping_tab.click()
+                    _human_wait(2, 3)
+
+                    # 重量入力: .price-input コンテナの中で parent text="kg" のもの
+                    weight_filled = False
+                    try:
+                        weight_inp = self._page.locator('.price-input').filter(
+                            has_text="kg"
+                        ).locator('input.eds-input__input').first
+                        weight_inp.wait_for(state="visible", timeout=5000)
+                        weight_inp.scroll_into_view_if_needed()
+                        weight_inp.click()
+                        _human_wait(0.2, 0.3)
+                        weight_inp.fill(f"{weight_kg:.2f}")
+                        self._page.keyboard.press("Tab")
+                        logger.info(f"  重量入力完了: {weight_kg:.2f} kg")
+                        weight_filled = True
+                    except Exception as e:
+                        logger.warning(f"  重量入力エラー: {e}")
+
+                    # 配送オプションを有効化
+                    _human_wait(1, 1.5)
+                    enable_shipping_done = False
+
+                    # Enable ボタンをクリックしてダイアログを開く
+                    enable_btn = self._page.locator('button:has-text("Enable")').first
+                    if enable_btn.count() and enable_btn.is_visible():
+                        enable_btn.click()
+                        logger.info("  配送: Enable クリック → ダイアログ待ち")
+                        _human_wait(3, 4)  # ダイアログが完全に開くのを待つ
+
+                    # Apply & Enable Channel を JavaScript で直接クリック
+                    # (Playwrightのvisibility checkをバイパス)
+                    try:
+                        clicked = self._page.evaluate("""
+                            () => {
+                                const btns = [...document.querySelectorAll('button')];
+                                for (const btn of btns) {
+                                    if (btn.textContent.trim().includes('Apply & Enable Channel')) {
+                                        btn.click();
+                                        return true;
+                                    }
+                                }
+                                return false;
+                            }
+                        """)
+                        if clicked:
+                            logger.info("  配送: Apply & Enable Channel クリック(JS)")
+                            _human_wait(2, 3)
+                            enable_shipping_done = True
+                        else:
+                            logger.warning("  Apply & Enable Channel ボタンが見つかりません")
+                    except Exception as e:
+                        logger.warning(f"  Apply & Enable Channel JSエラー: {e}")
+
+                    if not enable_shipping_done:
+                        logger.warning("  ⚠️ 配送オプションを有効化できませんでした")
+
+            except Exception as e:
+                logger.warning(f"Shippingタブエラー（続行）: {e}")
 
             _human_wait(0.8, 1.2)
             _random_scroll(self._page)
@@ -551,6 +833,280 @@ class ShopeeBrowser:
             logger.error(f"❌ 出品エラー ({mw_id}): {e}")
             self._screenshot(f"error_{mw_id}_unexpected")
             return None
+
+    def _deactivate_variations(self):
+        """
+        Sales Information タブで Variations が誤って有効化されている場合に無効化する。
+        Variation1 入力欄が空でエラー状態の場合、×ボタンまたはJSで行を削除する。
+        """
+        try:
+            # Variation削除ボタン (×) を探してクリック
+            # Shopeeのバリエーション行には削除ボタンがある
+            del_selectors = [
+                '[class*="variation"] [class*="delete"]',
+                '[class*="variation"] [class*="remove"]',
+                '[class*="variation-item"] button',
+                '[class*="var-item"] [class*="close"]',
+                '[class*="variation-name"] + button',
+            ]
+            deleted = False
+            for sel in del_selectors:
+                try:
+                    btns = self._page.locator(sel).all()
+                    if btns:
+                        for btn in btns:
+                            if btn.is_visible():
+                                btn.click(force=True)
+                                _human_wait(0.5, 1.0)
+                                deleted = True
+                                logger.info(f"  Variation削除: {sel}")
+                except Exception:
+                    pass
+
+            if not deleted:
+                # JavaScriptでVariation行のinputをクリア
+                # Variationが「active」かどうかを確認
+                # Variation1 の input value が空でなければ、それをクリアする
+                cleared = self._page.evaluate("""
+                    () => {
+                        // Variation1 入力欄を見つける
+                        // placeholder が "Variation 1" or class が variation-name 的なものを探す
+                        const possibleVarInputs = [...document.querySelectorAll('input')]
+                            .filter(inp => {
+                                if (inp.offsetParent === null) return false;
+                                const ph = inp.placeholder || '';
+                                const parentText = inp.parentElement?.textContent || '';
+                                return ph.toLowerCase().includes('variation') ||
+                                       parentText.includes('Variation 1') ||
+                                       parentText.includes('Variation1');
+                            });
+                        if (possibleVarInputs.length > 0) {
+                            possibleVarInputs.forEach(inp => {
+                                const setter = Object.getOwnPropertyDescriptor(
+                                    HTMLInputElement.prototype, 'value'
+                                ).set;
+                                setter.call(inp, '');
+                                inp.dispatchEvent(new Event('input', {bubbles: true}));
+                                inp.dispatchEvent(new Event('change', {bubbles: true}));
+                            });
+                            return true;
+                        }
+                        return false;
+                    }
+                """)
+                if cleared:
+                    logger.info("  Variation入力をJSでクリア")
+        except Exception as e:
+            logger.warning(f"  Variation無効化エラー（続行）: {e}")
+
+    def _fill_variation_pricing(self, price: float, stock: int) -> tuple[bool, bool]:
+        """
+        Enable Variations クリック直後の状態から:
+        1. Variation 1 名を入力（placeholder="e.g. Color, etc"）
+        2. Option を追加（placeholder="e.g. Red, etc"、Enter で確定）
+        3. テーブル行の価格（placeholder="Price"）・在庫（placeholder="Stock"）を入力
+        Returns (price_filled, stock_filled)
+        診断確認済みプレースホルダー（2026-04 Shopee seller.shopee.co.th）:
+          idx4 "e.g. Color, etc" = Variation 1 type name
+          idx5 "e.g. Red, etc"   = Option value
+          idx7 "Price" grandparent='฿' = row price
+          idx8 "Stock"           = row stock
+        """
+        price_filled = False
+        stock_filled = False
+
+        try:
+            _human_wait(1.0, 1.5)
+
+            # ── "Got it" ツールチップを閉じる ───────────────────────
+            # Enable Variations 直後に "Select a standard variation name..." ツールチップが出る
+            # このツールチップの Got it ボタンが Tab フォーカスを横取りするため先に閉じる
+            try:
+                self._page.evaluate("""
+                    () => {
+                        [...document.querySelectorAll('button')].forEach(btn => {
+                            if (btn.textContent.trim() === 'Got it') btn.click();
+                        });
+                    }
+                """)
+                _human_wait(0.5, 0.8)
+            except Exception:
+                pass
+
+            # ── 診断: 可視 input 一覧（最大 12 件） ──────────────
+            inputs_info = self._page.evaluate("""
+                () => {
+                    const inputs = [...document.querySelectorAll('input')]
+                        .filter(i => i.offsetParent !== null && !i.readOnly && !i.disabled);
+                    return inputs.slice(0, 12).map((inp, idx) => ({
+                        idx, ph: inp.placeholder, val: inp.value.substring(0, 20),
+                        gp: (inp.parentElement?.parentElement?.textContent || '').trim().substring(0, 20)
+                    }));
+                }
+            """)
+            logger.info(f"  [Var診断] inputs: {inputs_info}")
+
+            # ── Step 1+2: Variation 1 名 → Options 一括入力 ─────
+            # Tab 後は Options input にフォーカスが移るので keyboard.type() で直接入力する
+            # （placeholder が変わっても focus は移動しないのでセレクタ不要）
+            var_name_filled = False
+            option_filled = False
+            try:
+                vn_inp = self._page.locator('input[placeholder="e.g. Color, etc"]').first
+                if vn_inp.count() and vn_inp.is_visible():
+                    vn_inp.scroll_into_view_if_needed()
+                    vn_inp.click()
+                    _human_wait(0.2, 0.3)
+                    vn_inp.fill("ขนาด")
+                    # Tab でフォーカスを Options input (idx 5) へ移す
+                    self._page.keyboard.press("Tab")
+                    var_name_filled = True
+                    logger.info("  Variation名入力: ขนาด → Tab → Options へ")
+                    # ── Step 2 (インライン): Tab 直後に keyboard.type で Options に入力 ──
+                    _human_wait(0.2, 0.3)
+                    self._page.keyboard.type("มาตรฐาน")
+                    _human_wait(0.2, 0.3)
+                    self._page.keyboard.press("Enter")
+                    option_filled = True
+                    logger.info("  Option入力: มาตรฐาน (keyboard.type after Tab)")
+                    _human_wait(1.0, 1.5)
+            except Exception as e:
+                logger.warning(f"  Variation名/Option入力エラー: {e}")
+
+            # ── フォールバック: JS native setter ──────────────────
+            if not var_name_filled:
+                logger.warning("  ⚠️ Variation名入力欄なし — JS fallback")
+                fill_js = self._page.evaluate("""
+                    () => {
+                        const setter = Object.getOwnPropertyDescriptor(
+                            HTMLInputElement.prototype, 'value').set;
+                        const inputs = [...document.querySelectorAll('input.eds-input__input')]
+                            .filter(i => i.offsetParent !== null && !i.readOnly);
+                        const nameInp = inputs.find(i => i.placeholder.includes('Color'));
+                        const optInp  = inputs.find(i => i.placeholder.includes('Red'));
+                        const res = {nameFound: false, optFound: false};
+                        if (nameInp) {
+                            nameInp.click();
+                            setter.call(nameInp, '\u0e02\u0e19\u0e32\u0e14');
+                            nameInp.dispatchEvent(new Event('input',  {bubbles: true}));
+                            nameInp.dispatchEvent(new Event('change', {bubbles: true}));
+                            res.nameFound = true;
+                        }
+                        if (optInp) {
+                            optInp.click();
+                            setter.call(optInp, '\u0e21\u0e32\u0e15\u0e23\u0e10\u0e32\u0e19');
+                            optInp.dispatchEvent(new Event('input',  {bubbles: true}));
+                            optInp.dispatchEvent(new Event('change', {bubbles: true}));
+                            optInp.dispatchEvent(new KeyboardEvent('keydown',
+                                {key: 'Enter', keyCode: 13, bubbles: true}));
+                            res.optFound = true;
+                        }
+                        return res;
+                    }
+                """)
+                logger.info(f"  Variation JS fallback: {fill_js}")
+                if fill_js.get("nameFound"):
+                    var_name_filled = True
+                if fill_js.get("optFound"):
+                    option_filled = True
+            elif not option_filled:
+                # Variation 名は入ったが Options が未確定 → セレクタで再試行
+                logger.warning("  ⚠️ Option 未入力 — セレクタで再試行")
+                try:
+                    opt2 = self._page.locator('input[placeholder="e.g. Red, etc"]').first
+                    if opt2.count() and opt2.is_visible():
+                        opt2.click()
+                        _human_wait(0.2, 0.3)
+                        opt2.fill("มาตรฐาน")
+                        self._page.keyboard.press("Enter")
+                        option_filled = True
+                        logger.info("  Option再入力: มาตรฐาน")
+                        _human_wait(1.0, 1.5)
+                except Exception as e2:
+                    logger.warning(f"  Option再入力エラー: {e2}")
+
+            _human_wait(1.5, 2.0)
+
+            # 状態診断: Options が入ったか確認
+            opt_state = self._page.evaluate("""
+                () => {
+                    const tc = document.body.textContent;
+                    const inputs = [...document.querySelectorAll('input')]
+                        .filter(i => i.offsetParent !== null && !i.readOnly);
+                    return {
+                        hasMat: tc.includes('\u0e21\u0e32\u0e15\u0e23\u0e10\u0e32\u0e19'),
+                        hasSize: tc.includes('\u0e02\u0e19\u0e32\u0e14'),
+                        visibleInputs: inputs.length,
+                        priceInputFound: inputs.some(i => i.placeholder === 'Price'),
+                        stockInputFound: inputs.some(i => i.placeholder === 'Stock'),
+                    };
+                }
+            """)
+            logger.info(f"  [Option後診断] {opt_state}")
+
+            # ── Step 3: 価格入力（placeholder="Price"、grandparent='฿'） ──
+            try:
+                price_inp = self._page.locator('input[placeholder="Price"]').first
+                if price_inp.count() and price_inp.is_visible():
+                    price_inp.scroll_into_view_if_needed()
+                    price_inp.click()
+                    _human_wait(0.2, 0.3)
+                    price_inp.fill(str(int(price)))
+                    self._page.keyboard.press("Tab")
+                    logger.info(f"  Variation価格入力: {int(price)} THB")
+                    price_filled = True
+                else:
+                    logger.warning("  placeholder='Price' が見つからない — L1_baht fallback")
+                    price_marked = self._page.evaluate("""
+                        () => {
+                            document.querySelectorAll('[data-bot-price]').forEach(
+                                e => e.removeAttribute('data-bot-price'));
+                            const inputs = [...document.querySelectorAll('input.eds-input__input')]
+                                .filter(i => i.offsetParent !== null && !i.readOnly);
+                            for (const inp of inputs) {
+                                const gp = inp.parentElement?.parentElement;
+                                if (gp && gp.textContent.trim() === '\u0e3f') {
+                                    inp.setAttribute('data-bot-price', 'true');
+                                    inp.scrollIntoView({block: 'center'});
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }
+                    """)
+                    if price_marked:
+                        pi = self._page.locator('[data-bot-price="true"]').first
+                        pi.click()
+                        _human_wait(0.2, 0.3)
+                        pi.fill(str(int(price)))
+                        self._page.keyboard.press("Tab")
+                        logger.info(f"  Variation価格(L1_baht): {int(price)} THB")
+                        price_filled = True
+            except Exception as e:
+                logger.warning(f"  Variation価格入力エラー: {e}")
+
+            # ── Step 4: 在庫入力（placeholder="Stock"） ────────────
+            _human_wait(0.3, 0.5)
+            try:
+                stock_inp = self._page.locator('input[placeholder="Stock"]').first
+                if not (stock_inp.count() and stock_inp.is_visible()):
+                    stock_inp = self._page.locator('input[placeholder="-"]').first
+                stock_inp.wait_for(state="visible", timeout=5000)
+                stock_inp.scroll_into_view_if_needed()
+                stock_inp.click()
+                _human_wait(0.1, 0.2)
+                stock_inp.fill(str(stock))
+                self._page.keyboard.press("Tab")
+                _human_wait(0.3, 0.5)
+                logger.info(f"  Variation在庫入力: {stock}")
+                stock_filled = True
+            except Exception as e:
+                logger.warning(f"  Variation在庫入力エラー: {e}")
+
+        except Exception as e:
+            logger.error(f"  Variation入力エラー: {e}")
+
+        return price_filled, stock_filled
 
     def _dismiss_listing_modals(self):
         """出品フォームに表示されるプロモーション・案内モーダルを閉じる"""
@@ -576,8 +1132,7 @@ class ShopeeBrowser:
             pass
 
         close_patterns = [
-            'button:has-text("Got it")',
-            'button:has-text("Got It")',
+            # "Got it" / "Got It" は意図せず Variations 機能を有効化するため除外
             'button:has-text("OK")',
             'button:has-text("Close")',
             'button:has-text("Skip")',
@@ -649,58 +1204,77 @@ class ShopeeBrowser:
         publish_selectors = [
             'button:has-text("Save and Publish")',
             'button:has-text("Save & Publish")',
-            'button:has-text("Publish")',
             'button:has-text("บันทึกและเผยแพร่")',
             'button:has-text("เผยแพร่")',
+            'button:has-text("Publish")',
             '[class*="publish"] button',
         ]
+        clicked = False
         for sel in publish_selectors:
             try:
                 btn = self._page.locator(sel).first
-                if btn.count():
+                if btn.count() and btn.is_visible():
+                    logger.info(f"  出品ボタン発見: {sel}")
                     _human_wait(1, 2)
                     btn.click()
-                    _human_wait(3, 6)
-
-                    # CAPTCHA検出
-                    if self._detect_captcha():
-                        logger.error("❌ 出品時にCAPTCHA検出")
-                        _notify_captcha()
-                        self._screenshot(f"captcha_{mw_id}")
-                        return None
-
-                    # 成功確認（URLが商品詳細ページに変わるか、成功メッセージ）
-                    current_url = self._page.url
-                    success_indicators = [
-                        "product/edit",
-                        "product/list",
-                        "/portal/product/",
-                    ]
-                    for indicator in success_indicators:
-                        if indicator in current_url:
-                            return current_url
-
-                    # 成功メッセージのテキスト確認
-                    try:
-                        self._page.wait_for_selector(
-                            ':has-text("สำเร็จ"), :has-text("success"), :has-text("published")',
-                            timeout=5000,
-                        )
-                        return self._page.url
-                    except PlaywrightTimeout:
-                        pass
-
-                    # URLが商品詳細/リストページに変わったら成功
-                    # ※ /portal/product/new のままは失敗とみなす
-                    if "product/new" not in current_url and "login" not in current_url:
-                        return current_url
-
+                    clicked = True
+                    logger.info("  Save and Publish クリック完了 — 結果待ち...")
+                    break
             except Exception as e:
                 logger.warning(f"発行ボタン '{sel}' でエラー: {e}")
                 continue
 
-        logger.error("❌ 出品ボタンが見つかりません")
-        self._screenshot(f"error_{mw_id}_publish")
+        if not clicked:
+            logger.error("❌ 出品ボタンが見つかりません")
+            self._screenshot(f"error_{mw_id}_no_publish_btn")
+            return None
+
+        # クリック後 5〜8秒待ってからスクリーンショットを撮る（バリデーションエラー確認）
+        _human_wait(5, 8)
+        self._screenshot(f"publish_result_{mw_id}")
+
+        # CAPTCHA検出
+        if self._detect_captcha():
+            logger.error("❌ 出品時にCAPTCHA検出")
+            _notify_captcha()
+            self._screenshot(f"captcha_{mw_id}")
+            return None
+
+        current_url = self._page.url
+        logger.info(f"  出品後URL: {current_url}")
+
+        # 成功判定: URLが /product/edit/ や /product/list/ に変わったら成功
+        # ※ /portal/product/new のまま → バリデーションエラーで失敗
+        # ※ /portal/product/ だけではダメ (/new を除外する)
+        if "product/edit" in current_url:
+            logger.info("  ✅ 出品成功（product/edit に遷移）")
+            return current_url
+
+        if "product/list" in current_url:
+            logger.info("  ✅ 出品成功（product/list に遷移）")
+            return current_url
+
+        # まだ /portal/product/new にいる場合はエラー
+        if "product/new" in current_url:
+            logger.error("❌ 出品失敗: URLが product/new のまま（バリデーションエラーの可能性）")
+            # ページテキストからエラーメッセージを取得
+            try:
+                error_text = self._page.locator(
+                    '[class*="error"], [class*="warning"], [class*="alert"], '
+                    '.error-msg, .form-error, [style*="color: red"]'
+                ).all_text_contents()
+                if error_text:
+                    logger.error(f"  バリデーションエラー: {error_text[:5]}")
+            except Exception:
+                pass
+            return None
+
+        # その他のURLの場合（リダイレクト等）
+        if "login" not in current_url:
+            logger.info(f"  ✅ 出品成功（URL変更: {current_url[:60]}）")
+            return current_url
+
+        logger.error(f"❌ 出品失敗: ログインページにリダイレクト")
         return None
 
     # ─── スクリーンショット ────────────────────────────────
