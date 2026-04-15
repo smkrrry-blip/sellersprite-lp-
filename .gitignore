@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*.so
+
+# SQLite (商品DBはローカル運用、共有しない)
+*.db
+*.db-journal
+*.db-shm
+*.db-wal
+*.sqlite
+*.sqlite-*
+*.bak.*
+
+# Shopee bot artifacts
+3d-shopee-bot/errors/
+3d-shopee-bot/images/
+3d-shopee-bot/debug_form*.py
+3d-shopee-bot/test_one_listing.py
+3d-shopee-bot/data/
+
+# Claude Code worktree internal state
+.claude/
+
+# OS / editor
+.DS_Store
+*.swp
+*.swo
+
+# Office docs (バイナリは別管理)
+*.docx
