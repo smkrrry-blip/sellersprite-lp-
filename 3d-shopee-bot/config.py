@@ -12,7 +12,7 @@ SHOPEE_SELLER_URL = "https://seller.shopee.co.th"
 BROWSER_SETTINGS = {
     "headless": False,            # 通常のChrome表示（True にするとヘッドレス）
     "slow_mo": 500,               # 操作間の基本遅延（ms）
-    "daily_limit": 20,            # 1日の最大出品数
+    "daily_limit": 50,            # 1日の最大出品数
     "min_wait": 1.0,              # クリック間の最小待機（秒）
     "max_wait": 3.0,              # クリック間の最大待機（秒）
 }
@@ -82,7 +82,7 @@ SCRAPING_SETTINGS = {
     "delay_min_sec": 2.0,           # リクエスト間の最小待機
     "delay_max_sec": 5.0,           # リクエスト間の最大待機
     "max_retries": 3,               # 失敗時のリトライ回数
-    "items_per_run": 50,            # 1回の実行で処理する商品数
+    "items_per_run": 200,           # 1回の実行で処理する商品数
     "min_likes": 10,                # 最低いいね数（品質フィルター）
     "min_makes": 5,                 # 最低印刷実績数
     "commercial_use_only": True,    # 商業利用可のみ（重要！）

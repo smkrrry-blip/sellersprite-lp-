@@ -555,126 +555,13 @@ class ShopeeBrowser:
             stock = LISTING_SETTINGS["default_stock"]
             weight_kg = max(0.1, (product.get("estimated_grams") or 100) / 1000)
 
-            # ── Step2 カテゴリ選択（常に実行）────────────────────────────────────────
-            # Recommended Categories ラジオボタンから安全なカテゴリを選択する
-            # ・カテゴリ未選択 → 安全推奨を選択（Sales Info/Shipping がアンロックされる）
-            # ・危険カテゴリ自動選択 → 安全推奨に変更、全推奨が危険なら pencil edit で手動変更
+            # カテゴリ選択は Basic Info タブ内（レンダリング後）で実行するため
+            # ここでは定数だけ定義しておく
             CAT_BLOCKED = ["medical", "fda", "mom & baby", "stuffed toy", "sexual",
                            "wellness", "adult", "pharmaceutical", "health >",
                            "muslim", "hijab", "prayer", "baby >", "doll"]
             CAT_PREF = ["hobbies", "collectible", "tools", "sport", "electronics",
                         "stationery", "home & living", "arts", "craft", "others", "diy"]
-            try:
-                # Recommended Categories コンテナのラジオボタン一覧を取得
-                reco_info = self._page.evaluate("""
-                    () => {
-                        let recoContainer = null;
-                        for (const el of [...document.querySelectorAll('span, div, strong, p')]) {
-                            if (el.textContent.trim().includes('Recommended Categories')) {
-                                let cur = el.parentElement;
-                                while (cur && cur !== document.body) {
-                                    if (cur.querySelectorAll('input[type="radio"]').length > 0) {
-                                        recoContainer = cur; break;
-                                    }
-                                    cur = cur.parentElement;
-                                }
-                                if (recoContainer) break;
-                            }
-                        }
-                        if (!recoContainer) return [];
-                        return [...recoContainer.querySelectorAll('input[type="radio"]')].map((r, i) => {
-                            const li = r.closest('li, label, [class*="item"]') || r.parentElement;
-                            return { index: i, text: li ? li.textContent.trim() : '', checked: r.checked };
-                        });
-                    }
-                """)
-                logger.info(f"  推奨カテゴリ一覧: {[(r['index'], r['text'][:60]) for r in reco_info]}")
-
-                best_idx = None
-                best_score = -1
-                for r in reco_info:
-                    txt = r['text'].lower()
-                    if any(kw in txt for kw in CAT_BLOCKED):
-                        continue
-                    score = sum(1 for kw in CAT_PREF if kw in txt)
-                    if score > best_score:
-                        best_score = score
-                        best_idx = r['index']
-
-                if best_idx is not None:
-                    # 安全な推奨カテゴリが見つかった → ラジオボタンを JS クリック
-                    clicked_text = self._page.evaluate(f"""
-                        () => {{
-                            let recoContainer = null;
-                            for (const el of [...document.querySelectorAll('span, div, strong, p')]) {{
-                                if (el.textContent.trim().includes('Recommended Categories')) {{
-                                    let cur = el.parentElement;
-                                    while (cur && cur !== document.body) {{
-                                        if (cur.querySelectorAll('input[type="radio"]').length > 0) {{
-                                            recoContainer = cur; break;
-                                        }}
-                                        cur = cur.parentElement;
-                                    }}
-                                    if (recoContainer) break;
-                                }}
-                            }}
-                            if (!recoContainer) return null;
-                            const radios = [...recoContainer.querySelectorAll('input[type="radio"]')];
-                            const radio = radios[{best_idx}];
-                            if (!radio) return null;
-                            const label = radio.closest('label') || radio.parentElement;
-                            (label || radio).click();
-                            const li = radio.closest('li, [class*="item"]') || radio.parentElement;
-                            return li ? li.textContent.trim().substring(0, 80) : 'index {best_idx}';
-                        }}
-                    """)
-                    logger.info(f"  ✅ 推奨カテゴリ選択: {clicked_text}")
-                    _human_wait(1.5, 2.0)
-                else:
-                    # 全推奨がブロック対象 → pencil edit icon で安全カテゴリを手動選択
-                    logger.info("  推奨カテゴリに安全なものなし → pencil edit で変更")
-                    try:
-                        # Category 行の edit/pencil アイコンを Playwright dispatch_event でクリック
-                        # （SVGElement は .click() 非対応のため dispatch_event を使う）
-                        cat_row = self._page.locator(
-                            '[class*="form-item"], [class*="formItem"]'
-                        ).filter(has_text="Category").first
-                        edit_icon = cat_row.locator(
-                            'svg, [class*="edit"], [class*="pencil"], button'
-                        ).last
-                        edit_icon.dispatch_event("click")
-                        _human_wait(2.0, 3.0)
-                        # カテゴリツリーモーダルから安全カテゴリを選ぶ
-                        tree_clicked = False
-                        for top_cat in ["งานอดิเรก", "Hobbies", "Home & Living", "Tools", "Sports"]:
-                            opt = self._page.get_by_text(top_cat, exact=False).first
-                            if opt.count() and opt.is_visible():
-                                opt.click()
-                                _human_wait(0.7, 1.2)
-                                logger.info(f"  カテゴリツリー L1: {top_cat}")
-                                tree_clicked = True
-                                break
-                        if tree_clicked:
-                            for sub in ["Others", "อื่นๆ", "Collectible", "DIY"]:
-                                opt = self._page.get_by_text(sub, exact=False).first
-                                if opt.count() and opt.is_visible():
-                                    opt.click()
-                                    _human_wait(0.5, 1.0)
-                                    logger.info(f"  カテゴリツリー L2: {sub}")
-                                    break
-                        confirm_btn = self._page.locator(
-                            'button:has-text("Confirm"), button:has-text("ยืนยัน")'
-                        ).first
-                        if confirm_btn.count() and confirm_btn.is_visible():
-                            confirm_btn.click()
-                            _human_wait(1.5, 2.0)
-                            logger.info("  ✅ カテゴリ変更 (pencil) 完了")
-                        else:
-                            logger.warning("  pencil edit: Confirm ボタン未発見")
-                    except Exception as e:
-                        logger.warning(f"  pencil edit エラー（続行）: {e}")
-            except Exception as e:
-                logger.warning(f"  カテゴリ選択エラー（続行）: {e}")
 
             # ── Basic Info タブ（ブランド入力）────────
             # タブ名: "Basic information"（Shopee実際のラベル、小文字i）
@@ -691,6 +578,174 @@ class ShopeeBrowser:
                     _human_wait(1.5, 2.5)
                     # 診断スクリーンショット
                     self._screenshot(f"debug_{mw_id}_basicinfo")
+
+                    # ── カテゴリ選択（Basic Info タブ内、レンダリング後）────────────────
+                    # ※ Recommended Categories は input[type="radio"] ではなくカスタム要素
+                    #   sparkle-icon (<i class*="sparkle">) を起点に category パス要素を探す
+                    try:
+                        reco_info = self._page.evaluate("""
+                            () => {
+                                // sparkle icon を起点に Recommended Categories セクションを特定
+                                const sparkle = document.querySelector('[class*="sparkle"]');
+                                if (!sparkle) return [];
+                                // sparkle の祖先を辿り、" > " を含む leaf 要素のあるコンテナを見つける
+                                let container = sparkle.parentElement;
+                                for (let lvl = 0; lvl < 8 && container && container !== document.body;
+                                     lvl++, container = container.parentElement) {
+                                    const items = [];
+                                    for (const el of container.querySelectorAll('*')) {
+                                        if (el === sparkle || el.contains(sparkle)) continue;
+                                        if (el.children.length > 2) continue;
+                                        const txt = el.textContent.trim();
+                                        if (!txt.includes(' > ') || txt.length > 150) continue;
+                                        const rect = el.getBoundingClientRect();
+                                        if (!rect || rect.width < 50 || rect.height < 8) continue;
+                                        items.push({ index: items.length, text: txt });
+                                    }
+                                    if (items.length > 0) return items;
+                                }
+                                return [];
+                            }
+                        """)
+                        logger.info(f"  推奨カテゴリ一覧: {[(r['index'], r['text'][:60]) for r in reco_info]}")
+
+                        best_idx = None
+                        best_score = -1
+                        for r in reco_info:
+                            txt = r['text'].lower()
+                            if any(kw in txt for kw in CAT_BLOCKED):
+                                continue
+                            score = sum(1 for kw in CAT_PREF if kw in txt)
+                            if score > best_score:
+                                best_score = score
+                                best_idx = r['index']
+
+                        if best_idx is not None:
+                            # 安全な推奨カテゴリ → 対応する DOM 要素の親をクリック
+                            clicked_text = self._page.evaluate(f"""
+                                () => {{
+                                    const sparkle = document.querySelector('[class*="sparkle"]');
+                                    if (!sparkle) return null;
+                                    let container = sparkle.parentElement;
+                                    for (let lvl = 0; lvl < 8 && container && container !== document.body;
+                                         lvl++, container = container.parentElement) {{
+                                        const items = [];
+                                        for (const el of container.querySelectorAll('*')) {{
+                                            if (el === sparkle || el.contains(sparkle)) continue;
+                                            if (el.children.length > 2) continue;
+                                            const txt = el.textContent.trim();
+                                            if (!txt.includes(' > ') || txt.length > 150) continue;
+                                            const rect = el.getBoundingClientRect();
+                                            if (!rect || rect.width < 50 || rect.height < 8) continue;
+                                            items.push(el);
+                                        }}
+                                        if (items.length > 0) {{
+                                            const el = items[{best_idx}];
+                                            if (!el) return null;
+                                            // クリックは親コンテナ（行全体）に対して行う
+                                            const row = el.closest('li, [class*="item"], [class*="row"]')
+                                                        || el.parentElement;
+                                            row.click();
+                                            return el.textContent.trim().substring(0, 80);
+                                        }}
+                                    }}
+                                    return null;
+                                }}
+                            """)
+                            logger.info(f"  ✅ 推奨カテゴリ選択: {clicked_text}")
+                            _human_wait(1.5, 2.0)
+                        else:
+                            # 全推奨がブロック or 推奨なし → pencil edit で手動変更
+                            logger.info("  推奨カテゴリに安全なものなし → pencil edit で変更")
+                            try:
+                                # sparkle の前に来る最後の可視 SVG/icon が pencil アイコン
+                                # compareDocumentPosition: bit 2 = other precedes this
+                                pencil_clicked = self._page.evaluate("""
+                                    () => {
+                                        const sparkle = document.querySelector('[class*="sparkle"]');
+                                        // Category 値行の編集アイコン: sparkle より DOM 上位に位置する SVG/i
+                                        const candidates = [...document.querySelectorAll('svg, i[class*="icon"]')]
+                                            .filter(el => {
+                                                const rect = el.getBoundingClientRect();
+                                                if (!rect || rect.width === 0) return false;
+                                                const cls = (el.className?.baseVal || el.getAttribute?.('class') || '').toLowerCase();
+                                                if (cls.includes('sparkle')) return false;
+                                                if (sparkle) {
+                                                    // bit 2: el precedes sparkle in DOM order
+                                                    const pos = sparkle.compareDocumentPosition(el);
+                                                    if (!(pos & 2)) return false;
+                                                }
+                                                return true;
+                                            });
+                                        if (candidates.length === 0) return null;
+                                        // 最後の候補（sparkle に最も近い = pencil icon）
+                                        const icon = candidates[candidates.length - 1];
+                                        const target = icon.closest('button, a, [role="button"]') || icon.parentElement;
+                                        target.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
+                                        const cls = (icon.className?.baseVal || icon.getAttribute?.('class') || '');
+                                        return 'clicked ' + icon.tagName + '.' + cls.substring(0, 40);
+                                    }
+                                """)
+                                logger.info(f"  pencil click: {pencil_clicked}")
+                                _human_wait(2.5, 3.5)
+                                # 診断スクリーンショット（モーダル状態確認）
+                                self._screenshot(f"debug_{mw_id}_cat_modal")
+                                # Shadow DOM 対応: JS evaluate() はモーダル内要素を見えない
+                                # Playwright get_by_text() は Shadow DOM を貫通するため必ず使う
+                                # L3 "Others" は nav タブ（モーダル外）が nth=0 に来て
+                                # モーダルオーバーレイにブロックされる → nth 順に試す
+                                for level, candidates in [
+                                    (1, ["งานอดิเรก", "Hobbies", "งานอดิเรกและงานฝีมือ",
+                                         "Home & Living", "Tools", "Sports"]),
+                                    (2, ["Collectible Items", "Collectible", "Hobby Supplies", "DIY"]),
+                                    (3, ["Others", "อื่นๆ"]),
+                                ]:
+                                    level_clicked = False
+                                    for txt in candidates:
+                                        if level_clicked:
+                                            break
+                                        if level == 3:
+                                            # nth=0 は nav タブ（ブロックされる）なので nth=1 から試す
+                                            for nth in range(1, 6):
+                                                try:
+                                                    self._page.get_by_text(txt, exact=True).nth(nth).click(timeout=2000)
+                                                    logger.info(f"  カテゴリツリー L{level}: {txt} [nth={nth}]")
+                                                    level_clicked = True
+                                                    break
+                                                except Exception:
+                                                    pass
+                                        else:
+                                            try:
+                                                self._page.get_by_text(txt, exact=True).first.click(timeout=5000)
+                                                logger.info(f"  カテゴリツリー L{level}: {txt}")
+                                                level_clicked = True
+                                            except Exception:
+                                                pass
+                                    if not level_clicked:
+                                        logger.warning(f"  カテゴリツリー L{level}: 候補なし（スキップ）")
+                                    _human_wait(0.8, 1.2)
+                                # Confirm ボタン — get_by_text() で Shadow DOM 貫通
+                                confirm_clicked = False
+                                try:
+                                    self._page.get_by_text("Confirm", exact=True).first.click(timeout=5000)
+                                    confirm_clicked = True
+                                except Exception:
+                                    pass
+                                if not confirm_clicked:
+                                    try:
+                                        self._page.get_by_text("ยืนยัน", exact=True).first.click(timeout=3000)
+                                        confirm_clicked = True
+                                    except Exception:
+                                        pass
+                                if confirm_clicked:
+                                    _human_wait(1.5, 2.0)
+                                    logger.info("  ✅ カテゴリ変更 (pencil) 完了")
+                                else:
+                                    logger.warning("  pencil edit: Confirm ボタン未発見")
+                            except Exception as e:
+                                logger.warning(f"  pencil edit エラー（続行）: {e}")
+                    except Exception as e:
+                        logger.warning(f"  カテゴリ選択エラー（続行）: {e}")
 
                     # Brand フィールドは EDS Select ドロップダウン（"Please select" が placeholder）
                     # ※ Playwright CSS locator は EDS コンポーネントを見つけられない（Shadow DOM 疑い）

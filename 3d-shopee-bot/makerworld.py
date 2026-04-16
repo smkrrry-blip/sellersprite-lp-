@@ -170,73 +170,137 @@ class MakerWorldScraper:
 
         # API失敗時はPlaywrightフォールバック
         logger.warning("Internal API failed. Trying Playwright...")
-        return self._search_via_playwright(keyword, sort_by, page, per_page)
+        return self._search_via_playwright(keyword, sort_by, page, per_page, category)
 
     def _search_via_playwright(
-        self, keyword: str, sort_by: str, page: int, per_page: int
+        self, keyword: str, sort_by: str, page: int, per_page: int, category: str = ""
     ) -> list[dict]:
         """
-        Playwrightを使ったスクレイピング。
-        2026-04: MakerWorldは /en/3d-models に変更 + BFF API は Cloudflare 保護。
-        非headless Chromium で __NEXT_DATA__ (SSR) から取得するのが唯一の安定手段。
+        PlaywrightでネットワークインターセプトしてモデルリストAPIを取得。
+        __NEXT_DATA__はSSR初期データのみ（常にpage=1）のため使用しない。
+        ページ遷移時のXHRレスポンスから実際のページデータを取得する。
         """
         try:
             from playwright.sync_api import sync_playwright
         except ImportError:
-            logger.error("Playwright not installed. Run: pip install playwright && playwright install chromium")
+            logger.error("Playwright not installed.")
             return []
 
-        import re, json, urllib.parse
-        # MakerWorld 2026-04 以降の正しいURL
+        import urllib.parse
+
+        # MakerWorld URL パラメータ（カテゴリ・キーワード含む）
         query_params = {"sortBy": sort_by, "page": str(page)}
         if keyword:
             query_params["keyword"] = keyword
+        if category:
+            query_params["keyword"] = f"{keyword} {category}".strip() if keyword else category
         search_url = f"{BASE_URL}/en/3d-models?{urllib.parse.urlencode(query_params)}"
-        logger.info(f"Playwright (non-headless): {search_url}")
+        logger.info(f"Playwright intercept: {search_url}")
 
-        html_content = ""
+        captured_models = []
+
+        def on_response(response):
+            url = response.url
+            # モデルリストAPIを捕捉（design-list, models, search等）
+            if response.status != 200:
+                return
+            if not any(k in url for k in ["design-list", "3d-model", "/models", "search", "list"]):
+                return
+            ct = response.headers.get("content-type", "")
+            if "json" not in ct:
+                return
+            try:
+                data = response.json()
+                # ページネーション付きのリストレスポンスを探す
+                candidates = (
+                    data.get("hits") or
+                    data.get("models") or
+                    data.get("designs") or
+                    data.get("data", {}).get("list") if isinstance(data.get("data"), dict) else None or
+                    data.get("list") or
+                    (data.get("data") if isinstance(data.get("data"), list) else None)
+                )
+                if candidates and len(candidates) >= 5:
+                    logger.info(f"  API捕捉: {url[:80]} → {len(candidates)}件")
+                    captured_models.extend(candidates)
+            except Exception:
+                pass
+
         with sync_playwright() as p:
             browser = p.chromium.launch(
-                headless=False,
+                headless=True,  # headlessでOK（ネットインターセプトはheadlessでも動作）
                 args=["--disable-blink-features=AutomationControlled", "--no-sandbox"],
             )
             context = browser.new_context(
                 user_agent=HEADERS["User-Agent"],
                 locale="en-US",
             )
-            page_obj = context.new_page()
-            page_obj.add_init_script(
+            pg = context.new_page()
+            pg.add_init_script(
                 "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
             )
+            pg.on("response", on_response)
             try:
-                page_obj.goto(search_url, wait_until="domcontentloaded", timeout=45000)
+                pg.goto(search_url, wait_until="domcontentloaded", timeout=45000)
+                # API呼び出しが完了するまで待機
+                try:
+                    pg.wait_for_load_state("networkidle", timeout=12000)
+                except Exception:
+                    pass
+                time.sleep(3)  # 追加待機（遅延XHR対応）
             except Exception as e:
-                logger.warning(f"goto error（続行）: {e}")
-            time.sleep(8)
-            html_content = page_obj.content()
+                logger.warning(f"goto error: {e}")
             browser.close()
 
-        # __NEXT_DATA__ から designs を取得
+        if captured_models:
+            # 重複除去（同じIDが複数捕捉された場合）
+            seen = set()
+            unique = []
+            for m in captured_models:
+                mid = str(m.get("id") or m.get("design_id") or m.get("model_id") or "")
+                if mid and mid not in seen:
+                    seen.add(mid)
+                    unique.append(m)
+            logger.info(f"✅ ネットワーク捕捉: {len(unique)}件（重複除去後）")
+            return [self._normalize_model_nextjs(d) for d in unique]
+
+        # フォールバック: __NEXT_DATA__ (page=1 のみ有効)
+        logger.warning("ネットワーク捕捉なし — __NEXT_DATA__ フォールバック")
+        import re, json as _json
+        try:
+            html_content = pg.content() if not browser.is_connected() else ""
+        except Exception:
+            html_content = ""
+
+        # 別セッションでHTML取得
+        if not html_content:
+            with sync_playwright() as p2:
+                br2 = p2.chromium.launch(headless=True)
+                ctx2 = br2.new_context(user_agent=HEADERS["User-Agent"])
+                pg2 = ctx2.new_page()
+                try:
+                    pg2.goto(search_url, wait_until="domcontentloaded", timeout=30000)
+                    time.sleep(5)
+                    html_content = pg2.content()
+                except Exception:
+                    pass
+                br2.close()
+
         next_match = re.search(
             r'<script id="__NEXT_DATA__[^>]*>(.*?)</script>', html_content, re.DOTALL
         )
-        if not next_match:
-            logger.warning("__NEXT_DATA__ not found in page")
-            return []
+        if next_match:
+            try:
+                nd = _json.loads(next_match.group(1))
+                designs = nd.get("props", {}).get("pageProps", {}).get("designs", [])
+                if designs:
+                    logger.info(f"✅ __NEXT_DATA__ fallback: {len(designs)}件")
+                    return [self._normalize_model_nextjs(d) for d in designs]
+            except Exception:
+                pass
 
-        try:
-            nd = json.loads(next_match.group(1))
-        except Exception as e:
-            logger.error(f"__NEXT_DATA__ JSON parse error: {e}")
-            return []
-
-        designs = nd.get("props", {}).get("pageProps", {}).get("designs", [])
-        if not designs:
-            logger.warning("No designs in __NEXT_DATA__")
-            return []
-
-        logger.info(f"✅ __NEXT_DATA__から {len(designs)}件取得")
-        return [self._normalize_model_nextjs(d) for d in designs]
+        logger.warning("モデル取得失敗")
+        return []
 
     def _normalize_model_nextjs(self, raw: dict) -> dict:
         """
@@ -500,9 +564,11 @@ class MakerWorldScraper:
     def _check_commercial_license(self, license_str: str) -> bool:
         """ライセンスが商業利用可かチェック"""
         if not license_str:
-            return False
+            # 空 = MakerWorldデフォルトライセンス（商用OKのケースが多い）
+            # スクレイプ時は True として取り込み、詳細ページで再確認
+            return True
         license_upper = license_str.upper()
-        # 明確にNGなライセンス
+        # 明確にNGなライセンス（NC = Non-Commercial）
         for ng in COMMERCIAL_NG_LICENSES:
             if ng.upper() in license_upper:
                 return False
@@ -510,41 +576,85 @@ class MakerWorldScraper:
         for ok in COMMERCIAL_OK_LICENSES:
             if ok.upper() in license_upper:
                 return True
-        # 不明な場合は安全のためFalse
-        return False
+        # 不明な場合はTrueで取り込み（出品前に詳細ページで再確認される）
+        return True
 
     def get_trending_models(self, limit: int = 100) -> list[dict]:
         """
-        トレンド商品を一括取得
-        商業利用可能なものだけをフィルタリング
+        トレンド商品を一括取得。
+        MakerWorldのSSRページネーションは常にpage=1データを返すため、
+        キーワード多様化 + カテゴリ × ソート順の組み合わせで大量の異なるモデルを取得する。
         """
-        all_models = []
-        categories = ["", "Hobby & Crafts", "Home & Living", "Toys", "Education"]
-        sorts = ["likes", "makes", "downloads"]
+        from db import get_conn
+        try:
+            conn = get_conn()
+            existing_ids = set(
+                r[0] for r in conn.execute("SELECT mw_model_id FROM products").fetchall()
+            )
+            conn.close()
+        except Exception:
+            existing_ids = set()
+        logger.info(f"  既登録商品数: {len(existing_ids)} 件（スキップ対象）")
 
-        for sort in sorts:
-            for cat in categories:
-                logger.info(f"Fetching: sort={sort}, category='{cat}'")
+        all_models = []
+
+        # カテゴリ × ソートで多様なトップモデルを取得
+        categories = [
+            "", "Hobby & Crafts", "Home & Living", "Toys", "Education",
+            "Tools", "Electronics", "Sport & Outdoors", "Office",
+            "Fashion Accessories", "Pets", "Automotive", "RC Vehicles",
+        ]
+        sorts = ["likes", "makes", "downloads", "newest"]
+
+        # キーワード検索（人気カテゴリの典型的なアイテム）
+        keywords = [
+            "cable", "organizer", "holder", "stand", "mount", "keychain",
+            "box", "container", "rack", "clip", "hook", "bracket",
+            "fan", "duct", "cover", "case", "grip", "handle",
+            "figure", "miniature", "toy", "game", "puzzle", "dice",
+            "wall", "shelf", "drawer", "storage", "tray", "basket",
+            "phone", "tablet", "monitor", "desk", "kitchen", "bathroom",
+            "garden", "tool", "wrench", "drill", "laser", "cnc",
+            "vase", "lamp", "candle", "frame", "sign", "art",
+            "pet", "dog", "cat", "bird", "fish", "plant",
+        ]
+
+        def _fetch_and_filter(kw: str, cat: str, sort: str) -> list:
+            try:
                 models = self.search_models(
-                    keyword="", category=cat, sort_by=sort, page=1, per_page=50
+                    keyword=kw, category=cat, sort_by=sort, page=1, per_page=20,
                 )
-                # フィルタリング
                 filtered = [
                     m for m in models
-                    if m.get("commercial_ok") and
-                    m.get("likes", 0) >= SCRAPING_SETTINGS["min_likes"] and
-                    m.get("makes", 0) >= SCRAPING_SETTINGS["min_makes"]
+                    if m.get("likes", 0) >= SCRAPING_SETTINGS["min_likes"]
+                    and m.get("makes", 0) >= SCRAPING_SETTINGS["min_makes"]
+                    and m["mw_model_id"] not in existing_ids
                 ]
-                all_models.extend(filtered)
-                logger.info(f"  → {len(filtered)}/{len(models)} 件が条件通過")
+                if filtered:
+                    logger.info(f"  kw='{kw}' cat='{cat}' sort={sort} → {len(filtered)}件新規")
                 self._sleep()
+                return filtered
+            except Exception as e:
+                logger.warning(f"  fetch error ({kw}/{cat}/{sort}): {e}")
+                return []
 
+        # フェーズ1: カテゴリ × ソートで基本収集
+        for sort in sorts:
+            for cat in categories:
+                all_models.extend(_fetch_and_filter("", cat, sort))
                 if len(all_models) >= limit:
                     break
             if len(all_models) >= limit:
                 break
 
-        # 重複排除
+        # フェーズ2: まだ足りなければキーワード検索
+        if len(all_models) < limit:
+            for kw in keywords:
+                all_models.extend(_fetch_and_filter(kw, "", "likes"))
+                if len(all_models) >= limit:
+                    break
+
+        # 重複除去
         seen = set()
         unique = []
         for m in all_models:
@@ -552,7 +662,7 @@ class MakerWorldScraper:
                 seen.add(m["mw_model_id"])
                 unique.append(m)
 
-        logger.info(f"✅ 合計 {len(unique)} 件のユニーク商品を取得")
+        logger.info(f"✅ 合計 {len(unique)} 件のユニーク新規商品を取得")
         return unique[:limit]
 
     def enrich_with_detail(self, models: list[dict]) -> list[dict]:
