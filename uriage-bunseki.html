@@ -95,6 +95,14 @@ img{max-width:100%;height:auto;display:block;}
 .sticky-cta-btn{background:#FB8C1E;color:#fff;font-size:14px;font-weight:bold;padding:12px 26px;border-radius:6px;white-space:nowrap;}
 .sticky-cta-btn:hover{opacity:0.88;color:#fff;}
 @media(max-width:600px){.sticky-code{display:none;}.sticky-inner{justify-content:center;}.feature-grid{grid-template-columns:1fr;}}
+.related-section{padding:48px 24px;background:#f9f8f6;border-top:1px solid #f0ede8;}
+.related-inner{max-width:760px;margin:0 auto;}
+.related-label{font-size:12px;font-weight:bold;color:#aaa;letter-spacing:1px;margin-bottom:16px;}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.related-card{background:#fff;border-radius:8px;padding:14px 16px;border:1px solid #f0ede8;display:block;}
+.related-card:hover{border-color:#FB8C1E;}
+.related-card-title{display:block;font-size:13px;font-weight:bold;color:#1a1a1a;margin-bottom:4px;line-height:1.4;}
+.related-card-desc{display:block;font-size:12px;color:#888;line-height:1.5;}
 </style>
 </head>
 <body>
@@ -216,6 +224,21 @@ img{max-width:100%;height:auto;display:block;}
     <p class="cta-sub">いつでも解約OK</p>
   </div>
 </section>
+
+
+<div class="related-section">
+  <div class="related-inner">
+    <p class="related-label">関連記事</p>
+    <div class="related-grid">
+      <a href="./amazon-tool.html" class="related-card"><span class="related-card-title">Amazonリサーチツール おすすめ</span><span class="related-card-desc">主要4ツールを徹底比較</span></a>
+      <a href="./rival-tool.html" class="related-card"><span class="related-card-title">Amazonライバル調査ツール</span><span class="related-card-desc">競合セラーの売上・戦略を分析</span></a>
+      <a href="./keyword-tool.html" class="related-card"><span class="related-card-title">Amazonキーワードツール</span><span class="related-card-desc">キーワードマイニングで需要を発掘</span></a>
+      <a href="./fba-research.html" class="related-card"><span class="related-card-title">Amazon FBA 商品リサーチ方法</span><span class="related-card-desc">データで選べば初心者でも勝てる</span></a>
+      <a href="./getsuu.html" class="related-card"><span class="related-card-title">Amazon月収を上げるツール</span><span class="related-card-desc">月収5万→30万超えへのステップ</span></a>
+      <a href="./seller-tool-hikaku.html" class="related-card"><span class="related-card-title">Amazonセラーツール比較</span><span class="related-card-desc">Keepa・JS・H10・SSを完全比較</span></a>
+    </div>
+  </div>
+</div>
 
 <script>
 function copyCode(btn){navigator.clipboard.writeText('CJ9852').then(function(){btn.textContent='✓ コピー済み';btn.classList.add('ok');setTimeout(function(){btn.textContent='コピー';btn.classList.remove('ok');},2000);});}
