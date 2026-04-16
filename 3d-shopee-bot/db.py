@@ -141,7 +141,7 @@ def update_status(mw_model_id: str, status: str, **kwargs):
 def get_products_by_status(status: str, limit: int = 50) -> list:
     conn = get_conn()
     rows = conn.execute(
-        "SELECT * FROM products WHERE status=? ORDER BY likes DESC LIMIT ?",
+        "SELECT * FROM products WHERE status=? AND commercial_ok=1 ORDER BY likes DESC LIMIT ?",
         (status, limit)
     ).fetchall()
     conn.close()

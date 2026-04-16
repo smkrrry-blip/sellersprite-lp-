@@ -64,10 +64,16 @@ LISTING_SETTINGS = {
 }
 
 # フィラメント原価（1グラムあたりのコスト、THB）
-FILAMENT_COST_PER_GRAM_THB = 1.5  # PLAフィラメント相場
+# Lazada TH実勢: 198 THB/kg → 0.198 THB/g
+# + 失敗品・サポート材ロス約20%加味 → 0.198 × 1.2 ≈ 0.30 THB/g
+FILAMENT_COST_PER_GRAM_THB = 0.30
 
 # 印刷時間あたりコスト（電気代込み、THB/時間）
-PRINT_COST_PER_HOUR_THB = 5.0
+# Bambu A1: 約50W、タイ電気代約4 THB/kWh → 0.2 THB/時 + 機器償却 → 2.0 THB/時
+PRINT_COST_PER_HOUR_THB = 2.0
+
+# タイ国内送料（プラチンブリ発送）
+DOMESTIC_SHIPPING_THB = 55.0  # 50〜60 THB の中央値
 
 # ─────────────────────────────────────────────
 # スクレイピング設定

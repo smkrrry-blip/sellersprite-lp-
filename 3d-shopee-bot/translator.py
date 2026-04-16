@@ -191,18 +191,21 @@ class PriceCalculator:
         from config import (
             FILAMENT_COST_PER_GRAM_THB,
             PRINT_COST_PER_HOUR_THB,
+            DOMESTIC_SHIPPING_THB,
             LISTING_SETTINGS,
         )
         filament_cost = weight_g * FILAMENT_COST_PER_GRAM_THB
         print_cost = print_hours * PRINT_COST_PER_HOUR_THB
         packaging_cost = 15  # 梱包材 THB
-        base_cost = filament_cost + print_cost + packaging_cost
+        shopee_fee_rate = 0.10  # Shopee TH 手数料（約10%）
 
-        # Shopee手数料（約8〜10%）
-        shopee_fee_rate = 0.09
+        # 送料は販売価格から負担するため、逆算して原価に加算
+        # base_cost = 製造原価 + 送料（手数料控除後に回収する必要がある）
+        base_cost = filament_cost + print_cost + packaging_cost + DOMESTIC_SHIPPING_THB
+
         markup = LISTING_SETTINGS["markup_rate"]
 
-        # 販売価格 = 原価 × マークアップ（手数料込み）
+        # 販売価格 = 原価 × マークアップ、最低価格保証
         sell_price = max(base_cost * markup, LISTING_SETTINGS["min_price_thb"])
         sell_price = round(sell_price / 5) * 5  # 5THB単位に丸める
 

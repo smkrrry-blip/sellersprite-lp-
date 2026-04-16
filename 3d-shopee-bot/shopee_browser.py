@@ -6,6 +6,8 @@ import json
 import logging
 import os
 import random
+import shutil
+import tempfile
 import time
 from datetime import date, datetime
 from pathlib import Path
@@ -314,6 +316,41 @@ class ShopeeBrowser:
 
     # ─── 画像アップロード ──────────────────────────────────
 
+    @staticmethod
+    def _prepare_images(paths: list[str]) -> list[str]:
+        """
+        Shopee要件（正方形 500x500以上）に合わせて画像をリサイズする。
+        元ファイルは変更せず、tmpディレクトリにコピーして返す。
+        """
+        try:
+            from PIL import Image as PILImage
+        except ImportError:
+            return paths  # PIL未インストールはそのまま
+
+        MIN_SIZE = 500
+        prepared = []
+        tmpdir = tempfile.mkdtemp(prefix="shopee_img_")
+        for p in paths:
+            try:
+                img = PILImage.open(p).convert("RGB")
+                w, h = img.size
+                # 正方形にクロップ（中央）
+                if w != h:
+                    s = min(w, h)
+                    left = (w - s) // 2
+                    top = (h - s) // 2
+                    img = img.crop((left, top, left + s, top + s))
+                # 500x500 未満はスケールアップ
+                if img.size[0] < MIN_SIZE:
+                    img = img.resize((MIN_SIZE, MIN_SIZE), PILImage.LANCZOS)
+                out_path = os.path.join(tmpdir, os.path.basename(p))
+                img.save(out_path, "JPEG", quality=90)
+                prepared.append(out_path)
+            except Exception as e:
+                logger.warning(f"  画像前処理スキップ {p}: {e}")
+                prepared.append(p)  # 元ファイルそのまま使用
+        return prepared
+
     def _upload_images(self, local_image_paths: list[str]) -> bool:
         """ローカル画像ファイルをShopeeフォームにアップロード"""
         if not local_image_paths:
@@ -333,8 +370,25 @@ class ShopeeBrowser:
                 logger.error("有効な画像ファイルがありません")
                 return False
 
+            # Shopee要件: 正方形 500x500以上 にリサイズ
+            valid_paths = self._prepare_images(valid_paths)
+
             file_input.set_input_files(valid_paths[:9])  # Shopee最大9枚
             _human_wait(2, 4)  # アップロード完了待ち
+
+            # ── アップロード後のエラーポップアップを閉じる ──────────────────
+            # "Your product image may not be of acceptable resolution" など
+            # "Notice" ダイアログの "Confirm" ボタンが出たら自動クローズ
+            try:
+                confirm_btn = self._page.locator(
+                    'button:has-text("Confirm"), button:has-text("OK"), button:has-text("ยืนยัน")'
+                ).first
+                if confirm_btn.count() and confirm_btn.is_visible():
+                    logger.info("  画像アップロード Notice → Confirm クリック")
+                    confirm_btn.click()
+                    _human_wait(1, 1.5)
+            except Exception:
+                pass
 
             logger.info(f"✅ 画像アップロード: {len(valid_paths)} 枚")
             return True
@@ -455,6 +509,8 @@ class ShopeeBrowser:
 
             _human_wait(1, 2)
 
+            # カテゴリチェックは Step2 に移動（Step1では locator が sidebar を拾うため不正確）
+
             # 「Next Step」ボタンをクリック（ポップアップ被りはforce=Trueで回避）
             # (_dismiss_listing_modals は呼ばない — Variation 誤活性化の原因になりうるため)
             next_sel = 'button:has-text("Next Step"), button:has-text("ถัดไป")'
@@ -466,7 +522,25 @@ class ShopeeBrowser:
                 self._page.locator(next_sel).first.click(force=True)
                 self._page.wait_for_load_state("domcontentloaded", timeout=15000)
                 logger.info("  Next Step クリック完了")
-                _human_wait(3, 4)
+                # STEP2 フォームの出現を待つ（SPAなのでdomcontentloadedだけでは不十分）
+                step2_found = False
+                for step2_sel in [
+                    'button:has-text("Save and Publish")',
+                    'button:has-text("Save & Publish")',
+                    ':text("Sales Information")',
+                    ':text("Basic information")',
+                    ':text("Basic Information")',
+                ]:
+                    try:
+                        self._page.wait_for_selector(step2_sel, timeout=8000)
+                        logger.info(f"  STEP2フォーム確認済み ({step2_sel})")
+                        step2_found = True
+                        break
+                    except Exception:
+                        continue
+                if not step2_found:
+                    logger.warning("  STEP2フォーム要素未確認 — 追加待機")
+                    _human_wait(5, 7)
             except Exception as e:
                 logger.warning(f"Next Step ボタンが見つかりません（続行）: {e}")
                 self._screenshot(f"error_{mw_id}_nextstep")
@@ -480,6 +554,127 @@ class ShopeeBrowser:
             description = str(product.get("description_th") or "สินค้า 3D Printed คุณภาพสูง")[:3000]
             stock = LISTING_SETTINGS["default_stock"]
             weight_kg = max(0.1, (product.get("estimated_grams") or 100) / 1000)
+
+            # ── Step2 カテゴリ選択（常に実行）────────────────────────────────────────
+            # Recommended Categories ラジオボタンから安全なカテゴリを選択する
+            # ・カテゴリ未選択 → 安全推奨を選択（Sales Info/Shipping がアンロックされる）
+            # ・危険カテゴリ自動選択 → 安全推奨に変更、全推奨が危険なら pencil edit で手動変更
+            CAT_BLOCKED = ["medical", "fda", "mom & baby", "stuffed toy", "sexual",
+                           "wellness", "adult", "pharmaceutical", "health >",
+                           "muslim", "hijab", "prayer", "baby >", "doll"]
+            CAT_PREF = ["hobbies", "collectible", "tools", "sport", "electronics",
+                        "stationery", "home & living", "arts", "craft", "others", "diy"]
+            try:
+                # Recommended Categories コンテナのラジオボタン一覧を取得
+                reco_info = self._page.evaluate("""
+                    () => {
+                        let recoContainer = null;
+                        for (const el of [...document.querySelectorAll('span, div, strong, p')]) {
+                            if (el.textContent.trim().includes('Recommended Categories')) {
+                                let cur = el.parentElement;
+                                while (cur && cur !== document.body) {
+                                    if (cur.querySelectorAll('input[type="radio"]').length > 0) {
+                                        recoContainer = cur; break;
+                                    }
+                                    cur = cur.parentElement;
+                                }
+                                if (recoContainer) break;
+                            }
+                        }
+                        if (!recoContainer) return [];
+                        return [...recoContainer.querySelectorAll('input[type="radio"]')].map((r, i) => {
+                            const li = r.closest('li, label, [class*="item"]') || r.parentElement;
+                            return { index: i, text: li ? li.textContent.trim() : '', checked: r.checked };
+                        });
+                    }
+                """)
+                logger.info(f"  推奨カテゴリ一覧: {[(r['index'], r['text'][:60]) for r in reco_info]}")
+
+                best_idx = None
+                best_score = -1
+                for r in reco_info:
+                    txt = r['text'].lower()
+                    if any(kw in txt for kw in CAT_BLOCKED):
+                        continue
+                    score = sum(1 for kw in CAT_PREF if kw in txt)
+                    if score > best_score:
+                        best_score = score
+                        best_idx = r['index']
+
+                if best_idx is not None:
+                    # 安全な推奨カテゴリが見つかった → ラジオボタンを JS クリック
+                    clicked_text = self._page.evaluate(f"""
+                        () => {{
+                            let recoContainer = null;
+                            for (const el of [...document.querySelectorAll('span, div, strong, p')]) {{
+                                if (el.textContent.trim().includes('Recommended Categories')) {{
+                                    let cur = el.parentElement;
+                                    while (cur && cur !== document.body) {{
+                                        if (cur.querySelectorAll('input[type="radio"]').length > 0) {{
+                                            recoContainer = cur; break;
+                                        }}
+                                        cur = cur.parentElement;
+                                    }}
+                                    if (recoContainer) break;
+                                }}
+                            }}
+                            if (!recoContainer) return null;
+                            const radios = [...recoContainer.querySelectorAll('input[type="radio"]')];
+                            const radio = radios[{best_idx}];
+                            if (!radio) return null;
+                            const label = radio.closest('label') || radio.parentElement;
+                            (label || radio).click();
+                            const li = radio.closest('li, [class*="item"]') || radio.parentElement;
+                            return li ? li.textContent.trim().substring(0, 80) : 'index {best_idx}';
+                        }}
+                    """)
+                    logger.info(f"  ✅ 推奨カテゴリ選択: {clicked_text}")
+                    _human_wait(1.5, 2.0)
+                else:
+                    # 全推奨がブロック対象 → pencil edit icon で安全カテゴリを手動選択
+                    logger.info("  推奨カテゴリに安全なものなし → pencil edit で変更")
+                    try:
+                        # Category 行の edit/pencil アイコンを Playwright dispatch_event でクリック
+                        # （SVGElement は .click() 非対応のため dispatch_event を使う）
+                        cat_row = self._page.locator(
+                            '[class*="form-item"], [class*="formItem"]'
+                        ).filter(has_text="Category").first
+                        edit_icon = cat_row.locator(
+                            'svg, [class*="edit"], [class*="pencil"], button'
+                        ).last
+                        edit_icon.dispatch_event("click")
+                        _human_wait(2.0, 3.0)
+                        # カテゴリツリーモーダルから安全カテゴリを選ぶ
+                        tree_clicked = False
+                        for top_cat in ["งานอดิเรก", "Hobbies", "Home & Living", "Tools", "Sports"]:
+                            opt = self._page.get_by_text(top_cat, exact=False).first
+                            if opt.count() and opt.is_visible():
+                                opt.click()
+                                _human_wait(0.7, 1.2)
+                                logger.info(f"  カテゴリツリー L1: {top_cat}")
+                                tree_clicked = True
+                                break
+                        if tree_clicked:
+                            for sub in ["Others", "อื่นๆ", "Collectible", "DIY"]:
+                                opt = self._page.get_by_text(sub, exact=False).first
+                                if opt.count() and opt.is_visible():
+                                    opt.click()
+                                    _human_wait(0.5, 1.0)
+                                    logger.info(f"  カテゴリツリー L2: {sub}")
+                                    break
+                        confirm_btn = self._page.locator(
+                            'button:has-text("Confirm"), button:has-text("ยืนยัน")'
+                        ).first
+                        if confirm_btn.count() and confirm_btn.is_visible():
+                            confirm_btn.click()
+                            _human_wait(1.5, 2.0)
+                            logger.info("  ✅ カテゴリ変更 (pencil) 完了")
+                        else:
+                            logger.warning("  pencil edit: Confirm ボタン未発見")
+                    except Exception as e:
+                        logger.warning(f"  pencil edit エラー（続行）: {e}")
+            except Exception as e:
+                logger.warning(f"  カテゴリ選択エラー（続行）: {e}")
 
             # ── Basic Info タブ（ブランド入力）────────
             # タブ名: "Basic information"（Shopee実際のラベル、小文字i）
@@ -505,7 +700,7 @@ class ShopeeBrowser:
                     try:
                         # まずページを少し下にスクロール（Specification セクションを表示）
                         self._page.mouse.wheel(0, 400)
-                        _human_wait(0.5, 0.8)
+                        _human_wait(1.0, 1.5)  # EDS コンポーネントのレンダリング待ち（増加）
 
                         # JS evaluate でクリック
                         # ── "* Brand" ラベルを起点に EDS selector を探す ──
@@ -697,9 +892,9 @@ class ShopeeBrowser:
                             """)
                             if price_marked:
                                 price_inp = self._page.locator('[data-bot-price="true"]').first
-                                price_inp.click()
-                                _human_wait(0.2, 0.3)
-                                price_inp.fill(str(int(price)))
+                                price_inp.click(click_count=3)
+                                _human_wait(0.1, 0.2)
+                                self._page.keyboard.type(str(int(price)), delay=50)
                                 _human_wait(0.5, 1.0)
                                 self._page.evaluate("""
                                     () => {
@@ -725,9 +920,9 @@ class ShopeeBrowser:
                         try:
                             stock_inp = self._page.locator('input[placeholder="-"]').first
                             stock_inp.wait_for(state="visible", timeout=5000)
-                            stock_inp.click()
+                            stock_inp.click(click_count=3)
                             _human_wait(0.1, 0.2)
-                            stock_inp.fill(str(stock))
+                            self._page.keyboard.type(str(stock), delay=50)
                             self._page.evaluate("""
                                 () => {
                                     const el = document.activeElement;
@@ -817,6 +1012,30 @@ class ShopeeBrowser:
             except Exception as e:
                 logger.warning(f"Shippingタブエラー（続行）: {e}")
 
+            # ── Pre-Order設定（Yes / 7日以内） ────────────
+            try:
+                pre_order_yes = self._page.locator('label:has-text("Yes")').filter(
+                    has=self._page.locator('input[type="radio"]')
+                ).first
+                if not (pre_order_yes.count() and pre_order_yes.is_visible()):
+                    # radio直接
+                    pre_order_yes = self._page.locator('input[type="radio"] + span:has-text("Yes"), input[type="radio"][value="true"]').first
+                if pre_order_yes.count() and pre_order_yes.is_visible():
+                    pre_order_yes.click()
+                    _human_wait(0.5, 1.0)
+                    # 日数入力フィールドに7を入力
+                    days_inp = self._page.locator('input[placeholder*="day"], input[placeholder*="Day"]').first
+                    if not (days_inp.count() and days_inp.is_visible()):
+                        days_inp = self._page.locator('input[type="number"]').last
+                    if days_inp.count() and days_inp.is_visible():
+                        days_inp.click(click_count=3)
+                        self._page.keyboard.type("7", delay=50)
+                    logger.info("  Pre-Order: Yes / 7日以内に設定")
+                else:
+                    logger.warning("  Pre-Order Yesボタンが見つからない（スキップ）")
+            except Exception as e:
+                logger.warning(f"  Pre-Order設定エラー（続行）: {e}")
+
             _human_wait(0.8, 1.2)
             _random_scroll(self._page)
 
@@ -898,6 +1117,25 @@ class ShopeeBrowser:
                     logger.info("  Variation入力をJSでクリア")
         except Exception as e:
             logger.warning(f"  Variation無効化エラー（続行）: {e}")
+
+    def _react_set_input(self, selector: str, value: str) -> bool:
+        """React制御inputにnative setterでvalueを注入し、input/changeイベントを発火する。
+        DOM確認後Trueを返す。対象が見つからない場合はFalse。"""
+        return self._page.evaluate("""
+            ([sel, val]) => {
+                const el = document.querySelector(sel);
+                if (!el || el.offsetParent === null) return false;
+                el.scrollIntoView({block: 'center'});
+                el.focus();
+                const setter = Object.getOwnPropertyDescriptor(
+                    window.HTMLInputElement.prototype, 'value').set;
+                setter.call(el, val);
+                el.dispatchEvent(new Event('input',  {bubbles: true}));
+                el.dispatchEvent(new Event('change', {bubbles: true}));
+                el.blur();
+                return el.value === val;
+            }
+        """, [selector, value])
 
     def _fill_variation_pricing(self, price: float, stock: int) -> tuple[bool, bool]:
         """
@@ -982,8 +1220,15 @@ class ShopeeBrowser:
                             HTMLInputElement.prototype, 'value').set;
                         const inputs = [...document.querySelectorAll('input.eds-input__input')]
                             .filter(i => i.offsetParent !== null && !i.readOnly);
-                        const nameInp = inputs.find(i => i.placeholder.includes('Color'));
-                        const optInp  = inputs.find(i => i.placeholder.includes('Red'));
+                        // タイトル欄 (placeholder に "Colors" が含まれる) を誤マッチしないよう
+                        // 短いプレースホルダのみ対象にする (タイトル欄は 50 文字超)
+                        const varInputs = inputs.filter(i => i.placeholder.length < 50);
+                        const nameInp = varInputs.find(i =>
+                            i.placeholder === 'Type or Select' ||
+                            i.placeholder.includes('e.g. Color') ||
+                            i.placeholder.includes('Color, etc')
+                        );
+                        const optInp  = inputs.find(i => i.placeholder.includes('Red') || i.placeholder.includes('e.g. Red'));
                         const res = {nameFound: false, optFound: false};
                         if (nameInp) {
                             nameInp.click();
@@ -1044,64 +1289,68 @@ class ShopeeBrowser:
             """)
             logger.info(f"  [Option後診断] {opt_state}")
 
-            # ── Step 3: 価格入力（placeholder="Price"、grandparent='฿'） ──
+            # ── Step 3 & 4: Apply To All で価格・在庫を一括入力 ──
+            # placeholder="Price" は Apply To All ヘッダー行のinput（各行のpriceはplaceholder="Input"）
+            # Apply To All ボタンで全バリエーション行に一括適用する
+            _human_wait(0.5, 0.8)
             try:
-                price_inp = self._page.locator('input[placeholder="Price"]').first
-                if price_inp.count() and price_inp.is_visible():
-                    price_inp.scroll_into_view_if_needed()
-                    price_inp.click()
-                    _human_wait(0.2, 0.3)
-                    price_inp.fill(str(int(price)))
-                    self._page.keyboard.press("Tab")
-                    logger.info(f"  Variation価格入力: {int(price)} THB")
-                    price_filled = True
+                # ヘッダー行の価格inputに入力（React native setter）
+                price_filled = self._react_set_input('input[placeholder="Price"]', str(int(price)))
+                if price_filled:
+                    logger.info(f"  Apply To All 価格設定: {int(price)} THB")
                 else:
-                    logger.warning("  placeholder='Price' が見つからない — L1_baht fallback")
-                    price_marked = self._page.evaluate("""
-                        () => {
-                            document.querySelectorAll('[data-bot-price]').forEach(
-                                e => e.removeAttribute('data-bot-price'));
-                            const inputs = [...document.querySelectorAll('input.eds-input__input')]
+                    logger.warning("  Apply To All Price input が見つからない")
+
+                # ヘッダー行の在庫inputに入力
+                _human_wait(0.2, 0.3)
+                stock_filled = self._react_set_input('input[placeholder="Stock"]', str(stock))
+                if stock_filled:
+                    logger.info(f"  Apply To All 在庫設定: {stock}")
+                else:
+                    logger.warning("  Apply To All Stock input が見つからない")
+
+                # Apply To All ボタンをクリック
+                _human_wait(0.3, 0.5)
+                apply_btn = self._page.locator('button:has-text("Apply To All")')
+                if apply_btn.count() and apply_btn.is_visible():
+                    apply_btn.click()
+                    _human_wait(1.0, 1.5)
+                    logger.info("  Apply To All クリック完了")
+                    price_filled = True
+                    stock_filled = True
+                else:
+                    logger.warning("  Apply To All ボタンが見つからない — 行直接入力 fallback")
+                    # fallback: 各行のinput[placeholder="Input"] gp='฿' に直接設定
+                    set_results = self._page.evaluate("""
+                        ([priceVal, stockVal]) => {
+                            const setter = Object.getOwnPropertyDescriptor(
+                                window.HTMLInputElement.prototype, 'value').set;
+                            const inputs = [...document.querySelectorAll('input')]
                                 .filter(i => i.offsetParent !== null && !i.readOnly);
+                            let priceSet = false, stockSet = false;
                             for (const inp of inputs) {
                                 const gp = inp.parentElement?.parentElement;
-                                if (gp && gp.textContent.trim() === '\u0e3f') {
-                                    inp.setAttribute('data-bot-price', 'true');
-                                    inp.scrollIntoView({block: 'center'});
-                                    return true;
+                                if (!priceSet && gp && gp.textContent.includes('\u0e3f') && inp.placeholder !== 'Price') {
+                                    setter.call(inp, priceVal);
+                                    inp.dispatchEvent(new Event('input', {bubbles: true}));
+                                    inp.dispatchEvent(new Event('change', {bubbles: true}));
+                                    priceSet = true;
+                                } else if (!stockSet && inp.placeholder === '' && !gp?.textContent.includes('\u0e3f') && !gp?.textContent.includes('kg')) {
+                                    setter.call(inp, stockVal);
+                                    inp.dispatchEvent(new Event('input', {bubbles: true}));
+                                    inp.dispatchEvent(new Event('change', {bubbles: true}));
+                                    stockSet = true;
                                 }
+                                if (priceSet && stockSet) break;
                             }
-                            return false;
+                            return {priceSet, stockSet};
                         }
-                    """)
-                    if price_marked:
-                        pi = self._page.locator('[data-bot-price="true"]').first
-                        pi.click()
-                        _human_wait(0.2, 0.3)
-                        pi.fill(str(int(price)))
-                        self._page.keyboard.press("Tab")
-                        logger.info(f"  Variation価格(L1_baht): {int(price)} THB")
-                        price_filled = True
+                    """, [str(int(price)), str(stock)])
+                    price_filled = set_results.get('priceSet', False)
+                    stock_filled = set_results.get('stockSet', False)
+                    logger.info(f"  行直接入力 fallback: price={price_filled}, stock={stock_filled}")
             except Exception as e:
-                logger.warning(f"  Variation価格入力エラー: {e}")
-
-            # ── Step 4: 在庫入力（placeholder="Stock"） ────────────
-            _human_wait(0.3, 0.5)
-            try:
-                stock_inp = self._page.locator('input[placeholder="Stock"]').first
-                if not (stock_inp.count() and stock_inp.is_visible()):
-                    stock_inp = self._page.locator('input[placeholder="-"]').first
-                stock_inp.wait_for(state="visible", timeout=5000)
-                stock_inp.scroll_into_view_if_needed()
-                stock_inp.click()
-                _human_wait(0.1, 0.2)
-                stock_inp.fill(str(stock))
-                self._page.keyboard.press("Tab")
-                _human_wait(0.3, 0.5)
-                logger.info(f"  Variation在庫入力: {stock}")
-                stock_filled = True
-            except Exception as e:
-                logger.warning(f"  Variation在庫入力エラー: {e}")
+                logger.warning(f"  Variation価格・在庫入力エラー: {e}")
 
         except Exception as e:
             logger.error(f"  Variation入力エラー: {e}")
@@ -1228,6 +1477,34 @@ class ShopeeBrowser:
             logger.error("❌ 出品ボタンが見つかりません")
             self._screenshot(f"error_{mw_id}_no_publish_btn")
             return None
+
+        # 確認ダイアログ（"Are you sure to Save and Publish?"）が出た場合は再クリック
+        # JSで直接ボタンを検索・クリック（Playwright locatorのtext合致問題を回避）
+        _human_wait(2, 3)
+        try:
+            clicked_dialog = self._page.evaluate("""
+                () => {
+                    const btns = [...document.querySelectorAll('button')];
+                    // "Are you sure" ダイアログ内のボタンを探す
+                    // ダイアログ内にある場合、背景オーバーレイのz-index上に存在する
+                    for (const btn of btns) {
+                        if (btn.textContent.trim() === 'Save and Publish' && btn.offsetParent !== null) {
+                            const rect = btn.getBoundingClientRect();
+                            // ダイアログは画面中央付近（y:200-600, x:400-900）
+                            if (rect.top > 150 && rect.top < 600 && rect.left > 300) {
+                                btn.click();
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }
+            """)
+            if clicked_dialog:
+                logger.info("  確認ダイアログ検出 → Save and Publish 再クリック(JS)")
+                _human_wait(5, 7)
+        except Exception as e:
+            logger.warning(f"  確認ダイアログ処理エラー: {e}")
 
         # クリック後 5〜8秒待ってからスクリーンショットを撮る（バリデーションエラー確認）
         _human_wait(5, 8)

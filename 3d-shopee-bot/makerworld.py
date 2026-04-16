@@ -26,17 +26,11 @@ MW_SEARCH_URL   = f"{BASE_URL}/en/models"          # ?keyword=xxx&sortBy=likes
 MW_MODEL_URL    = f"{BASE_URL}/en/models"          # /en/models/{id}
 
 # 内部APIエンドポイント（優先順）
-API_ENDPOINTS_SEARCH = [
-    f"{BASE_URL}/api/v1/design/page",
-    f"{BASE_URL}/api/v1/design/list",
-    f"{BASE_URL}/api/v1/model/page",
-    f"{BASE_URL}/api/v2/design/page",
-]
+# 2026-04 時点: /api/v1/* はすべて404, /bff/* はCloudflare保護
+# Playwright経由でのみ取得可能なためリストを空にしてすぐフォールバックさせる
+API_ENDPOINTS_SEARCH = []
 
-API_ENDPOINTS_DETAIL = [
-    f"{API_BASE}/design",          # GET /api/v1/design/{id}
-    f"{BASE_URL}/api/v1/model",    # GET /api/v1/model/{id}
-]
+API_ENDPOINTS_DETAIL = []  # 2026-04: API endpoints 404 — Playwright fallback only
 
 # ブラウザに偽装するヘッダー
 HEADERS = {
@@ -64,12 +58,16 @@ COMMERCIAL_OK_LICENSES = [
     "Creative Commons Zero",
     "Creative Commons Attribution",
     "Public Domain",
+    # MakerWorld固有ライセンス（2026-04確認: 3Dプリント出品は商業利用可）
+    "Standard Digital File License",
+    "MakerWorld License",
 ]
 
 # 商業利用不可ライセンス
 COMMERCIAL_NG_LICENSES = [
     "CC BY-NC", "CC BY-NC-SA", "CC BY-NC-ND",
     "No Derivatives", "Personal Use",
+    "MakerWorld Exclusive License",  # 独占ライセンス（再配布不可）
 ]
 
 
@@ -178,8 +176,9 @@ class MakerWorldScraper:
         self, keyword: str, sort_by: str, page: int, per_page: int
     ) -> list[dict]:
         """
-        Playwrightを使ったフォールバックスクレイピング
-        MakerWorldの実際のURL: /en/models?sortBy=likes&pageSize=20&keyword=xxx
+        Playwrightを使ったスクレイピング。
+        2026-04: MakerWorldは /en/3d-models に変更 + BFF API は Cloudflare 保護。
+        非headless Chromium で __NEXT_DATA__ (SSR) から取得するのが唯一の安定手段。
         """
         try:
             from playwright.sync_api import sync_playwright
@@ -187,93 +186,96 @@ class MakerWorldScraper:
             logger.error("Playwright not installed. Run: pip install playwright && playwright install chromium")
             return []
 
-        models = []
-        # MakerWorldの実際のURL構造: /en/models（検索もここ）
-        import urllib.parse
-        query_params = {"sortBy": sort_by, "pageSize": str(per_page), "page": str(page)}
+        import re, json, urllib.parse
+        # MakerWorld 2026-04 以降の正しいURL
+        query_params = {"sortBy": sort_by, "page": str(page)}
         if keyword:
             query_params["keyword"] = keyword
-        search_url = f"{MW_MODELS_URL}?{urllib.parse.urlencode(query_params)}"
-        logger.info(f"Playwright: {search_url}")
+        search_url = f"{BASE_URL}/en/3d-models?{urllib.parse.urlencode(query_params)}"
+        logger.info(f"Playwright (non-headless): {search_url}")
 
+        html_content = ""
         with sync_playwright() as p:
             browser = p.chromium.launch(
-                headless=True,
-                args=["--disable-blink-features=AutomationControlled"],
+                headless=False,
+                args=["--disable-blink-features=AutomationControlled", "--no-sandbox"],
             )
             context = browser.new_context(
                 user_agent=HEADERS["User-Agent"],
                 locale="en-US",
-                extra_http_headers={
-                    "Accept-Language": "en-US,en;q=0.9",
-                    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-                },
             )
-
-            # /bff/ と /api/ 両方のAPIレスポンスをインターセプト
-            api_responses = []
-
-            def handle_response(response):
-                if response.status != 200:
-                    return
-                if not any(p in response.url for p in ["/bff/", "/api/"]):
-                    return
-                try:
-                    body = response.json()
-                    items = (
-                        body.get("hits") or
-                        body.get("models") or
-                        body.get("designs") or
-                        (body.get("data") or {}).get("list") or
-                        body.get("list") or
-                        []
-                    )
-                    if items:
-                        api_responses.insert(0, {"url": response.url, "body": body, "items": items})
-                        logger.info(f"API intercepted: {len(items)}件 from {response.url}")
-                    else:
-                        api_responses.append({"url": response.url, "body": body, "items": []})
-                except Exception:
-                    pass
-
             page_obj = context.new_page()
             page_obj.add_init_script(
                 "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
             )
-            page_obj.on("response", handle_response)
-
-            # domcontentloaded で待機（networkidle はCloudflareで無限待機になる）
             try:
-                page_obj.goto(search_url, wait_until="domcontentloaded", timeout=60000)
+                page_obj.goto(search_url, wait_until="domcontentloaded", timeout=45000)
             except Exception as e:
-                logger.warning(f"goto timeout（続行）: {e}")
-
-            # Cloudflare通過 + コンテンツ描画を待つ
-            time.sleep(5)
-            try:
-                page_obj.wait_for_selector(
-                    "a[href*='/en/models/'], [class*='model'], [class*='card']",
-                    timeout=15000,
-                )
-            except Exception:
-                pass
-            time.sleep(3)
-
-            # インターセプトしたAPIレスポンスから商品取得
-            for resp in api_responses:
-                if resp["items"]:
-                    models = [self._normalize_model(m) for m in resp["items"]]
-                    logger.info(f"✅ API経由: {len(models)}件")
-                    break
-
-            # APIレスポンスが取れなかった場合DOMから取得
-            if not models:
-                logger.info("DOM解析にフォールバック...")
-                models = self._parse_dom(page_obj)
-
+                logger.warning(f"goto error（続行）: {e}")
+            time.sleep(8)
+            html_content = page_obj.content()
             browser.close()
 
-        return models
+        # __NEXT_DATA__ から designs を取得
+        next_match = re.search(
+            r'<script id="__NEXT_DATA__[^>]*>(.*?)</script>', html_content, re.DOTALL
+        )
+        if not next_match:
+            logger.warning("__NEXT_DATA__ not found in page")
+            return []
+
+        try:
+            nd = json.loads(next_match.group(1))
+        except Exception as e:
+            logger.error(f"__NEXT_DATA__ JSON parse error: {e}")
+            return []
+
+        designs = nd.get("props", {}).get("pageProps", {}).get("designs", [])
+        if not designs:
+            logger.warning("No designs in __NEXT_DATA__")
+            return []
+
+        logger.info(f"✅ __NEXT_DATA__から {len(designs)}件取得")
+        return [self._normalize_model_nextjs(d) for d in designs]
+
+    def _normalize_model_nextjs(self, raw: dict) -> dict:
+        """
+        MakerWorld 2026-04 の __NEXT_DATA__ フォーマットを正規化。
+        フィールド名が旧APIと異なる（likeCount, printCount 等）。
+        """
+        model_id = str(raw.get("id") or raw.get("design_id") or "")
+        title = raw.get("title") or raw.get("name") or ""
+        license_str = str(raw.get("license") or "")
+        commercial_ok = self._check_commercial_license(license_str)
+
+        # 画像: designExtension.design_pictures + cover
+        pics = (raw.get("designExtension") or {}).get("design_pictures") or []
+        image_urls = [p.get("url") for p in pics if p.get("url")]
+        cover = raw.get("cover") or raw.get("coverPortrait") or ""
+        if cover and cover not in image_urls:
+            image_urls.insert(0, cover)
+
+        # タグ
+        tags = raw.get("tags") or []
+        if isinstance(tags, list) and tags and isinstance(tags[0], dict):
+            tags = [t.get("name") or t.get("tag") or "" for t in tags]
+
+        return {
+            "mw_model_id": model_id,
+            "title_en": title,
+            "description_en": raw.get("description") or raw.get("summary") or "",
+            "mw_url": f"{BASE_URL}/en/3d-models/{raw.get('slug') or model_id}",
+            "image_urls": [u for u in image_urls if u][:8],
+            "category": raw.get("category") or raw.get("category_name") or "",
+            "tags": tags,
+            "likes": int(raw.get("likeCount") or raw.get("like_count") or raw.get("likes") or 0),
+            "makes": int(raw.get("printCount") or raw.get("make_count") or raw.get("makes") or 0),
+            "downloads": int(raw.get("downloadCount") or raw.get("download_count") or raw.get("downloads") or 0),
+            "license": license_str,
+            "commercial_ok": 1 if commercial_ok else 0,
+            "print_weight_g": float(raw.get("weight") or 0),
+            "print_hours": float(raw.get("print_time") or 0),
+        }
 
     def _parse_dom(self, page) -> list[dict]:
         """
