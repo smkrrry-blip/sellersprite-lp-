@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FGG22JG6JB"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-FGG22JG6JB');</script>
+<title>Amazon在庫・倉庫管理を効率化する方法｜多店舗展開に対応した在庫管理術の完全版</title>
+<meta name="description" content="Amazon在庫・倉庫管理を効率化する方法を徹底解説。過剰在庫・在庫切れの防ぎ方、WMS活用、FBA在庫転送戦略、コスト最適化まで。多店舗展開に対応した管理術。セラースプライト公式代理店30%OFFコード「CJ9852」。">
+<link rel="canonical" href="https://sellersprite.blog/amazon-warehouse-management.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Amazon在庫・倉庫管理を効率化する方法｜多店舗展開に対応した在庫管理術の完全版">
+<meta property="og:description" content="Amazon在庫・倉庫管理を効率化する方法を徹底解説。過剰在庫・在庫切れの防ぎ方、WMS活用、FBA在庫転送戦略、コスト最適化まで。多店舗展開に対応した管理術。セラースプライト公式代理店30%OFFコード「CJ9852」。">
+<meta property="og:image" content="https://sellersprite.blog/images/ogp-default.svg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://sellersprite.blog/amazon-warehouse-management.html">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Amazon在庫・倉庫管理を効率化する方法｜多店舗展開に対応した在庫管理術の完全版","description":"Amazon在庫・倉庫管理を効率化する方法を徹底解説。過剰在庫・在庫切れの防ぎ方、WMS活用、FBA在庫転送戦略、コスト最適化まで。多店舗展開に対応した管理術。","author":{"@type":"Person","name":"鬼束壮一"},"datePublished":"2026-04-16","dateModified":"2026-04-16","url":"https://sellersprite.blog/amazon-warehouse-management.html"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"FBA在庫の過剰在庫を防ぐにはどうすればいいですか？","acceptedAnswer":{"@type":"Answer","text":"過剰在庫を防ぐには需要予測に基づいた補充計画が必要です。セラースプライトの在庫分析機能を使えば、過去の販売速度データをもとに適切な補充数量と補充タイミングを計算できます。また、長期保管手数料が発生する前にFBA在庫を自社倉庫に引き取るか、価格を下げて売り切る判断が重要です。"}},{"@type":"Question","name":"Amazonの長期保管手数料とはなんですか？","acceptedAnswer":{"@type":"Answer","text":"FBAの長期保管手数料は、Amazon倉庫に365日以上保管されている商品に対して追加で課される手数料です。2026年現在、保管手数料の詳細はAmazonセラーセントラルの「手数料スケジュール」で確認してください。過剰在庫を抱えると保管手数料が膨らみ利益を圧迫するため、在庫回転率の管理が重要です。"}},{"@type":"Question","name":"在庫切れを防ぐための補充タイミングはどう計算しますか？","acceptedAnswer":{"@type":"Answer","text":"補充タイミングの計算式は「現在の在庫数 ÷ 日次販売速度 = 残日数」です。残日数がリードタイム（発注から入荷まで）＋安全在庫日数（通常7〜14日）を下回ったタイミングで発注をかけてください。セラースプライトでは販売速度データを自動計算し、最適な補充タイミングをアラートで通知できます。"}},{"@type":"Question","name":"WMS（倉庫管理システム）は必要ですか？","acceptedAnswer":{"@type":"Answer","text":"出品SKU数が50を超えたり、FBAと自社倉庫を併用したり、楽天・Yahoo!ショッピングなどとの多店舗展開を行う場合はWMSの導入を検討してください。WMSにより在庫の一元管理が可能になり、二重受注・在庫ズレのリスクを大幅に低減できます。小規模な場合はまずExcelやセラーセントラルのレポートで管理を始め、規模拡大に合わせてWMSに移行するのが一般的です。"}},{"@type":"Question","name":"FBAと自社倉庫はどう使い分けるのが最適ですか？","acceptedAnswer":{"@type":"Answer","text":"回転率が高い商品・プライム対象にしたい商品・重量・体積が小さい商品はFBAが適しています。一方、回転率が低い商品・重量・体積が大きい商品・長期保管が必要な商品は自社倉庫（またはフルフィルメント代行業者）で保管し、売れ行きに応じてFBAに少量転送する戦略が費用対効果が高いです。"}}]}</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Meiryo",sans-serif;font-size:16px;line-height:1.7;color:#333;background:#fff;padding-bottom:80px;}
+a{color:#FB8C1E;text-decoration:none;}
+img{max-width:100%;height:auto;display:block;}
+.announce-bar{background:#FB8C1E;color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:bold;}
+.announce-bar a{color:#fff;text-decoration:underline;}
+.nav-bar{background:#fff;border-bottom:1px solid #efefef;padding:12px 24px;}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.nav-badge{font-size:11px;font-weight:bold;color:#FB8C1E;background:#fff5eb;border:1px solid #fddbb5;border-radius:4px;padding:3px 10px;white-space:nowrap;}
+.nav-cta{background:#FB8C1E;color:#fff;font-size:13px;font-weight:bold;padding:9px 20px;border-radius:6px;white-space:nowrap;}
+.nav-cta:hover{opacity:0.88;color:#fff;}
+.hero{background:linear-gradient(150deg,#fff8f2 0%,#fffcf9 50%,#fff 100%);padding:64px 24px 48px;border-bottom:1px solid #f0ede8;}
+.hero-inner{max-width:760px;margin:0 auto;}
+.hero-sub{font-size:12px;font-weight:700;letter-spacing:1px;display:inline-block;background:#fff5eb;color:#FB8C1E;padding:4px 14px;border-radius:4px;margin-bottom:14px;}
+.hero h1{font-size:clamp(22px,4vw,36px);font-weight:800;line-height:1.35;color:#1a1a1a;margin:12px 0 20px;}
+.hero h1 em{color:#FB8C1E;font-style:normal;}
+.hero-lead{font-size:16px;color:#555;margin-bottom:28px;line-height:1.8;}
+.coupon-block{display:inline-flex;align-items:stretch;border:2px solid #FB8C1E;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(251,140,30,0.18);margin-bottom:8px;}
+.coupon-tag{background:#fff5eb;color:#FB8C1E;font-size:11px;font-weight:bold;padding:0 16px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid #fddbb5;white-space:nowrap;}
+.coupon-code{font-size:28px;font-weight:bold;color:#FB8C1E;padding:12px 24px;letter-spacing:6px;font-family:'Courier New',monospace;}
+.copy-btn{background:#FB8C1E;color:#fff;border:none;font-size:14px;font-weight:bold;padding:0 22px;cursor:pointer;}
+.copy-btn.ok{background:#27ae60;}
+.coupon-note{font-size:11px;color:#bbb;margin-top:6px;margin-bottom:22px;}
+.hero-cta-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:17px;font-weight:bold;padding:18px 40px;border-radius:8px;box-shadow:0 6px 24px rgba(251,140,30,0.35);}
+.hero-cta-btn:hover{opacity:0.9;color:#fff;}
+.hero-assure{font-size:12px;color:#aaa;margin-top:10px;}
+.section{padding:56px 24px;}
+.section-inner{max-width:760px;margin:0 auto;}
+.section-inner h2{font-size:1.35em;font-weight:bold;margin-bottom:16px;line-height:1.4;color:#1a1a1a;}
+.section-inner p{font-size:15px;color:#444;line-height:1.95;margin-bottom:14px;}
+.bg-gray{background:#f9f8f6;}
+.bg-white{background:#fff;}
+.em-box{background:#fff8f2;border-left:4px solid #FB8C1E;padding:18px 22px;border-radius:0 8px 8px 0;margin:24px 0;font-size:15px;color:#444;line-height:1.9;}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:24px 0;}
+.feature-card{background:#f9f8f6;border-radius:10px;padding:22px 20px;border-top:3px solid #FB8C1E;}
+.feature-card h3{font-size:15px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;}
+.feature-card p{font-size:14px;color:#555;line-height:1.85;margin:0;}
+.reason-card{display:flex;gap:18px;align-items:flex-start;background:#f9f8f6;border-radius:10px;padding:22px 20px;margin-bottom:14px;border-left:4px solid #FB8C1E;}
+.reason-num{background:#FB8C1E;color:#fff;font-size:12px;font-weight:bold;min-width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.reason-body h3{font-size:15px;font-weight:bold;color:#1a1a1a;margin-bottom:6px;}
+.reason-body p{font-size:14px;color:#555;line-height:1.85;margin:0;}
+.flow-steps{margin:24px 0;}
+.flow-step{display:flex;gap:16px;margin-bottom:16px;align-items:flex-start;}
+.flow-step-num{background:#fff5eb;border:2px solid #FB8C1E;color:#FB8C1E;font-weight:bold;font-size:13px;min-width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.flow-step-body h4{font-size:15px;font-weight:bold;color:#1a1a1a;margin-bottom:4px;}
+.flow-step-body p{font-size:14px;color:#555;line-height:1.85;margin:0;}
+.faq-item{border-bottom:1px solid #f0ede8;}
+.faq-item:last-child{border-bottom:none;}
+.faq-q{width:100%;background:none;border:none;text-align:left;padding:20px 0;font-size:15px;font-weight:bold;color:#1a1a1a;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.faq-icon{color:#FB8C1E;font-size:20px;flex-shrink:0;transition:transform 0.25s;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
+.faq-a{display:none;padding-bottom:18px;font-size:14px;color:#555;line-height:1.9;}
+.faq-item.open .faq-a{display:block;}
+.cta-section{background:linear-gradient(135deg,#fff8f2 0%,#fff5eb 100%);padding:64px 24px;text-align:center;}
+.cta-inner{max-width:600px;margin:0 auto;}
+.cta-title{font-size:1.5em;font-weight:800;color:#1a1a1a;margin-bottom:12px;line-height:1.4;}
+.cta-title em{color:#FB8C1E;font-style:normal;}
+.cta-lead{font-size:15px;color:#666;margin-bottom:28px;line-height:1.8;}
+.cta-main-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:18px;font-weight:bold;padding:20px 48px;border-radius:10px;box-shadow:0 8px 28px rgba(251,140,30,0.4);}
+.cta-main-btn:hover{opacity:0.9;color:#fff;}
+.cta-sub{font-size:12px;color:#aaa;margin-top:12px;}
+.exit-modal{background:#fff;border-radius:16px;padding:40px 32px;max-width:480px;width:calc(100% - 40px);text-align:center;position:relative;}
+.exit-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;}
+.exit-label{font-size:12px;color:#FB8C1E;font-weight:bold;letter-spacing:1px;margin-bottom:8px;}
+.exit-heading{font-size:1.2em;font-weight:bold;color:#1a1a1a;margin-bottom:12px;line-height:1.4;}
+.exit-body{font-size:14px;color:#666;margin-bottom:20px;line-height:1.8;}
+.exit-code-box{display:inline-flex;align-items:stretch;border:2px solid #FB8C1E;border-radius:8px;overflow:hidden;margin-bottom:20px;}
+.exit-code-label{background:#fff5eb;color:#FB8C1E;font-size:10px;font-weight:bold;padding:0 12px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid #fddbb5;}
+.exit-code-text{font-size:22px;font-weight:bold;color:#FB8C1E;padding:10px 18px;letter-spacing:6px;font-family:'Courier New',monospace;}
+.exit-copy-btn{background:#FB8C1E;color:#fff;border:none;font-size:13px;font-weight:bold;padding:0 18px;cursor:pointer;}
+.exit-cta-btn{display:block;background:#FB8C1E;color:#fff;font-size:15px;font-weight:bold;padding:16px 24px;border-radius:8px;margin-bottom:12px;}
+.exit-cta-btn:hover{opacity:0.88;color:#fff;}
+.exit-footer{font-size:11px;color:#aaa;}
+.sticky-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:10px 20px;gap:12px;}
+.sticky-code{display:flex;align-items:center;gap:10px;}
+.sticky-label{font-size:10px;color:#aaa;font-weight:bold;letter-spacing:1px;}
+.sticky-code-text{font-size:18px;font-weight:bold;color:#FB8C1E;letter-spacing:4px;font-family:'Courier New',monospace;}
+.sticky-copy-btn{background:#444;color:#fff;border:none;font-size:12px;font-weight:bold;padding:6px 14px;border-radius:4px;cursor:pointer;}
+.sticky-cta-btn{background:#FB8C1E;color:#fff;font-size:14px;font-weight:bold;padding:12px 26px;border-radius:6px;white-space:nowrap;}
+.sticky-cta-btn:hover{opacity:0.88;color:#fff;}
+@media(max-width:600px){.sticky-code{display:none;}.sticky-inner{justify-content:center;}.feature-grid{grid-template-columns:1fr;}}
+.related-section{padding:48px 24px;background:#f9f8f6;border-top:1px solid #f0ede8;}
+.related-inner{max-width:760px;margin:0 auto;}
+.related-label{font-size:12px;font-weight:bold;color:#aaa;letter-spacing:1px;margin-bottom:16px;}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.related-card{background:#fff;border-radius:8px;padding:14px 16px;border:1px solid #f0ede8;display:block;}
+.related-card:hover{border-color:#FB8C1E;}
+.related-card-title{display:block;font-size:13px;font-weight:bold;color:#1a1a1a;margin-bottom:4px;line-height:1.4;}
+.related-card-desc{display:block;font-size:12px;color:#888;line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="announce-bar">🎉 期間限定30%OFF｜クーポンコード：CJ9852 — <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank">今すぐ使う →</a></div>
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="nav-badge">公式代理店</span>
+      <span style="font-weight:bold;font-size:15px;color:#1a1a1a;">セラースプライト</span>
+    </div>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':'nav'});" target="_blank" class="nav-cta">30%OFFで試す</a>
+  </div>
+</nav>
+<section class="hero">
+  <div class="hero-inner">
+    <span class="hero-sub">Amazon Inventory &amp; Warehouse Management Guide 2026</span>
+    <h1>Amazon在庫・倉庫管理を効率化する方法<br><em>多店舗展開に対応した在庫管理術の完全版</em></h1>
+    <p class="hero-lead">Amazon物販において在庫管理は利益を最大化するための重要な経営課題です。過剰在庫は保管手数料・キャッシュフローを圧迫し、在庫切れはランキング低下と機会損失を生みます。本ガイドでは、FBA在庫転送戦略・WMS活用・需要予測・コスト最適化まで、規模を問わず使える在庫管理の実践手法を徹底解説します。セラースプライトの在庫分析で先手管理を実現しましょう。</p>
+    <div class="coupon-block">
+      <span class="coupon-tag">30%OFF CODE</span>
+      <span class="coupon-code">CJ9852</span>
+      <button id="heroCopy" class="copy-btn" onclick="gtag('event','code_copy',{'event_label':'CJ9852'});copyCode(this)">コピー</button>
+    </div>
+    <p class="coupon-note">※ 登録時に入力するだけで即時適用</p>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':'hero'});" target="_blank" class="hero-cta-btn">30%OFFでセラースプライトを始める →</a>
+    <p class="hero-assure">7日間無料トライアルあり・いつでも解約OK</p>
+  </div>
+</section>
+
+<section class="section bg-gray">
+  <div class="section-inner">
+    <h2>在庫管理の基本：回転率と補充計画</h2>
+    <p>在庫管理の本質は「売れる分だけ持ち、売れる前に補充する」というシンプルな原則です。しかし実際には需要の変動・仕入れリードタイム・FBAの入庫リードタイムを考慮した緻密な計画が必要です。</p>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-step-num">1</div>
+        <div class="flow-step-body">
+          <h4>日次販売速度を把握する</h4>
+          <p>直近30日・60日・90日の販売数量を日数で割った日次販売速度を計算します。季節変動がある商品は複数の期間を参照して平均的な速度を把握してください。</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">2</div>
+        <div class="flow-step-body">
+          <h4>リードタイムを確認する</h4>
+          <p>仕入れ先への発注から商品入荷まで（仕入れリードタイム）とFBAへの納品から在庫受領まで（FBAリードタイム、通常3〜7営業日）の合計を「総リードタイム」として管理します。</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">3</div>
+        <div class="flow-step-body">
+          <h4>発注点を設定する</h4>
+          <p>発注点 = 日次販売速度 × （総リードタイム＋安全在庫日数）で計算します。安全在庫は通常7〜14日分を確保してください。現在在庫が発注点を下回ったら即座に発注を行います。</p>
+        </div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-step-num">4</div>
+        <div class="flow-step-body">
+          <h4>定期的に発注点を見直す</h4>
+          <p>季節・トレンド・プロモーションによって販売速度は変動します。月次で発注点を再計算し、実態に合った数値に更新することで過剰在庫と在庫切れの両方を防ぎます。</p>
+        </div>
+      </div>
+    </div>
+    <div class="em-box">FBAの在庫受領は繁忙期に1〜2週間以上かかることがあります。第4四半期（10〜12月）は通常の2倍のリードタイムを想定して補充計画を立てることが重要です。</div>
+  </div>
+</section>
+
+<section class="section bg-white">
+  <div class="section-inner">
+    <h2>過剰在庫と在庫切れを同時に防ぐ戦略</h2>
+    <p>過剰在庫と在庫切れは正反対の問題ですが、どちらも利益を大きく損ないます。データに基づいた在庫管理を行うことで、この二つの問題を同時に解決できます。</p>
+    <div class="reason-card">
+      <div class="reason-num">01</div>
+      <div class="reason-body">
+        <h3>過剰在庫の防止：少量テスト仕入れから始める</h3>
+        <p>新商品は最初から大量に仕入れず、30〜60日分の在庫からスタートしてください。実際の販売速度を確認してから追加発注することで、売れない商品を大量に抱えるリスクを避けられます。セラースプライトで競合の売上推計を事前に確認することも重要です。</p>
+      </div>
+    </div>
+    <div class="reason-card">
+      <div class="reason-num">02</div>
+      <div class="reason-body">
+        <h3>過剰在庫の処分：戦略的な価格調整</h3>
+        <p>長期保管手数料が発生する前に、価格を段階的に下げて在庫を消化してください。クーポン発行・セール設定・バンドル販売なども有効です。FBA在庫を自社倉庫に引き取る「在庫引き取り」も選択肢ですが、引き取り手数料がかかる点を考慮してください。</p>
+      </div>
+    </div>
+    <div class="reason-card">
+      <div class="reason-num">03</div>
+      <div class="reason-body">
+        <h3>在庫切れ防止：アラートシステムの構築</h3>
+        <p>セラースプライトの在庫アラート機能で、在庫が発注点を下回ったタイミングで通知を受け取れます。週次レポートと合わせて活用することで、在庫切れによるランキング低下とキャンセル率上昇を防止できます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section bg-gray">
+  <div class="section-inner">
+    <h2>多店舗展開・WMS活用で在庫を一元管理する</h2>
+    <p>Amazon以外にも楽天・Yahoo!・自社ECで販売している多店舗セラーは、在庫の一元管理が欠かせません。チャネルごとに在庫を分けて管理していると、二重受注・欠品・過剰在庫が発生しやすくなります。</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>WMS（倉庫管理システム）の選び方</h3>
+        <p>在庫管理システムはAmazon・楽天・Yahoo!など主要チャネルとのAPI連携が必須です。出品SKU数・月商規模に合わせてコストパフォーマンスを比較。中小規模であればShipBob・LOGILESS・ネクストエンジンなどを検討してください。</p>
+      </div>
+      <div class="feature-card">
+        <h3>FBAと自社倉庫の最適配分</h3>
+        <p>回転率が高い商品・軽量商品・プライム対象にしたい商品はFBAへ。回転率が低い商品・大型商品・直販チャネル専用商品は自社倉庫またはフルフィルメント代行へ。この二段階構造で保管コストを最適化します。</p>
+      </div>
+      <div class="feature-card">
+        <h3>FBA補充タイミングの自動化</h3>
+        <p>WMSとセラースプライトの在庫データを連携させることで、発注点を下回った商品を自動検知してFBA補充リストを生成できます。担当者の判断負荷を減らし、補充漏れを防止します。</p>
+      </div>
+      <div class="feature-card">
+        <h3>在庫コスト可視化でPDCAを回す</h3>
+        <p>在庫保有コスト（仕入れ資金・保管料・廃棄ロス）を商品別に可視化することで、利益率の高い商品に資金を集中投下できます。セラースプライトの利益計算機能と組み合わせることで、商品ポートフォリオの最適化が可能です。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section bg-white">
+  <div class="section-inner">
+    <h2>FBA在庫転送戦略でコストを最適化する</h2>
+    <p>FBAの保管手数料は商品の体積・重量・保管期間によって決まります。在庫転送（FBAと自社倉庫の間での在庫移動）を戦略的に行うことで、年間の保管コストを大幅に削減できます。</p>
+    <div class="reason-card">
+      <div class="reason-num">01</div>
+      <div class="reason-body">
+        <h3>閑散期前にFBA在庫を絞る</h3>
+        <p>販売が落ちる閑散期に合わせてFBA在庫を通常より少なめに設定し、余剰在庫は自社倉庫に引き取ります。閑散期でも長期保管手数料が発生するため、在庫を持ちすぎないことが重要です。</p>
+      </div>
+    </div>
+    <div class="reason-card">
+      <div class="reason-num">02</div>
+      <div class="reason-body">
+        <h3>繁忙期前に計画的な大量補充</h3>
+        <p>ゴールデンウィーク・夏休み・年末商戦の1〜2ヶ月前からFBA在庫を増やし始めてください。繁忙期直前の補充は入庫リードタイムが長くなるため、早めの行動が欠かせません。セラースプライトで昨年の需要データを参照して計画を立ててください。</p>
+      </div>
+    </div>
+    <div class="reason-card">
+      <div class="reason-num">03</div>
+      <div class="reason-body">
+        <h3>大型・低回転商品のFBA外保管</h3>
+        <p>体積が大きい商品や回転率が月0.5回転以下の商品はFBAで保管すると保管手数料が割高になります。これらの商品は自社倉庫または外部フルフィルメントサービスで保管し、受注ごとにFBMで出荷するか少量ずつFBAに補充する方法が費用対効果が高いです。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section bg-gray">
+  <div class="section-inner">
+    <h2>よくある質問</h2>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">FBA在庫の過剰在庫を防ぐにはどうすればいいですか？<span class="faq-icon">+</span></button>
+      <div class="faq-a">過剰在庫を防ぐには需要予測に基づいた補充計画が必要です。セラースプライトの在庫分析機能を使えば、過去の販売速度データをもとに適切な補充数量と補充タイミングを計算できます。また、長期保管手数料が発生する前にFBA在庫を自社倉庫に引き取るか、価格を下げて売り切る判断が重要です。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">Amazonの長期保管手数料とはなんですか？<span class="faq-icon">+</span></button>
+      <div class="faq-a">FBAの長期保管手数料は、Amazon倉庫に365日以上保管されている商品に対して追加で課される手数料です。2026年現在、保管手数料の詳細はAmazonセラーセントラルの「手数料スケジュール」で確認してください。過剰在庫を抱えると保管手数料が膨らみ利益を圧迫するため、在庫回転率の管理が重要です。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">在庫切れを防ぐための補充タイミングはどう計算しますか？<span class="faq-icon">+</span></button>
+      <div class="faq-a">補充タイミングの計算式は「現在の在庫数 ÷ 日次販売速度 = 残日数」です。残日数がリードタイム（発注から入荷まで）＋安全在庫日数（通常7〜14日）を下回ったタイミングで発注をかけてください。セラースプライトでは販売速度データを自動計算し、最適な補充タイミングをアラートで通知できます。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">WMS（倉庫管理システム）は必要ですか？<span class="faq-icon">+</span></button>
+      <div class="faq-a">出品SKU数が50を超えたり、FBAと自社倉庫を併用したり、楽天・Yahoo!ショッピングなどとの多店舗展開を行う場合はWMSの導入を検討してください。WMSにより在庫の一元管理が可能になり、二重受注・在庫ズレのリスクを大幅に低減できます。小規模な場合はまずExcelやセラーセントラルのレポートで管理を始め、規模拡大に合わせてWMSに移行するのが一般的です。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">FBAと自社倉庫はどう使い分けるのが最適ですか？<span class="faq-icon">+</span></button>
+      <div class="faq-a">回転率が高い商品・プライム対象にしたい商品・重量・体積が小さい商品はFBAが適しています。一方、回転率が低い商品・重量・体積が大きい商品・長期保管が必要な商品は自社倉庫（またはフルフィルメント代行業者）で保管し、売れ行きに応じてFBAに少量転送する戦略が費用対効果が高いです。</div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2 class="cta-title"><em>CJ9852</em>で30%OFF<br>在庫管理をデータドリブンで最適化する</h2>
+    <p class="cta-lead">セラースプライト公式代理店の在庫分析で需要予測・補充計画・競合動向を一元管理。過剰在庫と在庫切れを防いで利益を最大化。日本語UI・月4,186円〜。</p>
+    <div class="coupon-block" style="margin-bottom:20px;">
+      <span class="coupon-tag">30%OFF CODE</span>
+      <span class="coupon-code">CJ9852</span>
+      <button id="ctaCopy" class="copy-btn" onclick="gtag('event','code_copy',{'event_label':'CJ9852'});copyCode(this)">コピー</button>
+    </div><br>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':'cta'});" target="_blank" class="cta-main-btn">30%OFFでセラースプライトを始める →</a>
+    <p class="cta-sub">いつでも解約OK</p>
+  </div>
+</section>
+
+<div class="related-section">
+  <div class="related-inner">
+    <p class="related-label">関連記事</p>
+    <div class="related-grid">
+      <a href="./amazon-account-health.html" class="related-card"><span class="related-card-title">Amazonアカウント健全性スコア改善</span><span class="related-card-desc">指標を維持してアカウント停止を防ぐ</span></a>
+      <a href="./amazon-fba-storage.html" class="related-card"><span class="related-card-title">Amazon FBA倉庫保管コスト</span><span class="related-card-desc">保管手数料の最適化と在庫管理</span></a>
+      <a href="./amazon-restock.html" class="related-card"><span class="related-card-title">Amazon在庫補充の方法</span><span class="related-card-desc">在庫切れを防ぐ補充タイミング管理</span></a>
+      <a href="./fba-hajimekata.html" class="related-card"><span class="related-card-title">Amazon FBA 始め方</span><span class="related-card-desc">FBA登録から初出荷まで</span></a>
+      <a href="./amazon-international-shipping.html" class="related-card"><span class="related-card-title">Amazon海外発送・国際配送</span><span class="related-card-desc">FBA輸出とセラー出荷の完全ガイド</span></a>
+      <a href="./amazon-demand-forecast.html" class="related-card"><span class="related-card-title">Amazon需要予測の方法</span><span class="related-card-desc">データで仕入れ計画を立てる</span></a>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyCode(btn){navigator.clipboard.writeText('CJ9852').then(function(){btn.textContent='✓ コピー済み';btn.classList.add('ok');setTimeout(function(){btn.textContent='コピー';btn.classList.remove('ok');},2000);});}
+function toggleFaq(btn){var item=btn.closest('.faq-item');var isOpen=item.classList.contains('open');item.classList.toggle('open',!isOpen);btn.setAttribute('aria-expanded',!isOpen);}
+</script>
+<div id="exit-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;">
+  <div class="exit-modal">
+    <button class="exit-close" onclick="closeExitPopup()">×</button>
+    <p class="exit-label">ちょっと待ってください</p>
+    <h2 class="exit-heading">登録前に、30%OFFコードを持っていって。</h2>
+    <p class="exit-body">「CJ9852」を使えば月4,186円から。7日間無料で試せます。</p>
+    <div class="exit-code-box"><span class="exit-code-label">30%OFF CODE</span><span class="exit-code-text">CJ9852</span><button id="exitCopy" class="exit-copy-btn" onclick="gtag('event','code_copy',{'event_label':'CJ9852'});exitCopyFn(this)">コピー</button></div>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" class="exit-cta-btn">30%OFFで無料トライアルを始める →</a>
+    <p class="exit-footer">いつでも解約OK</p>
+  </div>
+</div>
+<script>
+(function(){if(window.innerWidth<768)return;if(sessionStorage.getItem('exitShown'))return;var ready=false;setTimeout(function(){ready=true;},3000);document.addEventListener('mousemove',function(e){if(!ready)return;if(sessionStorage.getItem('exitShown'))return;if(e.clientY<10){document.getElementById('exit-overlay').style.display='flex';sessionStorage.setItem('exitShown','1');}});document.getElementById('exit-overlay').addEventListener('click',function(e){if(e.target===this)closeExitPopup();});})();
+function closeExitPopup(){document.getElementById('exit-overlay').style.display='none';}
+function exitCopyFn(btn){navigator.clipboard.writeText('CJ9852').then(function(){btn.textContent='✓ コピー済み';setTimeout(function(){btn.textContent='コピー';},2000);});}
+</script>
+<div id="sticky-cta" style="position:fixed;bottom:0;left:0;width:100%;background:#1a1a2e;z-index:9999;box-shadow:0 -2px 12px rgba(0,0,0,0.2);">
+  <div class="sticky-inner">
+    <div class="sticky-code"><span class="sticky-label">30%OFF CODE</span><span class="sticky-code-text">CJ9852</span><button id="stickyCopy" class="sticky-copy-btn" onclick="gtag('event','code_copy',{'event_label':'CJ9852'});stickyCopyFn(this)">コピー</button></div>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" class="sticky-cta-btn">今すぐ30%OFFで登録する →</a>
+  </div>
+</div>
+<script>function stickyCopyFn(btn){navigator.clipboard.writeText('CJ9852').then(function(){btn.textContent='✓ コピー済み';setTimeout(function(){btn.textContent='コピー';},2000);});}</script>
+</body>
+</html>
