@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-ebay-comparison|AmazonとeBayの比較・どちらで売るべきか
-amazon-yahoo-shopping|AmazonとYahooショッピングの違いと併用戦略
-amazon-etsy-comparison|AmazonとEtsyの比較・ハンドメイド販売
-amazon-wholesale|Amazonホールセール・卸売り仕入れの方法
-amazon-arbitrage-tools|Amazon転売ツールの比較と選び方
 amazon-sourcing-china|中国仕入れ・アリババ活用の完全ガイド
 amazon-product-photography|Amazon商品写真の撮り方と最適化
 amazon-a-content-strategy|Aコンテンツ(A+)の効果的な作り方
