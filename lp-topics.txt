@@ -2,16 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-variation-listing|Amazonバリエーション出品の作り方と注意点
-amazon-flat-file|Amazonフラットファイルで一括出品する方法
-amazon-lightning-deal|Amazonタイムセールの申請と活用戦略
-amazon-prime-day|Amazonプライムデーで売上を最大化する方法
-amazon-international-expansion|Amazon海外展開・グローバルセリング入門
-amazon-grocery-category|Amazonフード・グロサリーカテゴリーへの出品方法
-amazon-handmade-guide|Amazonハンドメイドへの出品方法と販売戦略
-amazon-vine-program|AmazonVineプログラムの申請と活用法
-amazon-warehouse-deal|Amazonアウトレット・ウェアハウスの仕組み
-amazon-fulfillment-center|Amazon倉庫・フルフィルメントセンターの種類
 amazon-removal-order|Amazon在庫の撤去・廃棄注文の手順
 amazon-stranded-inventory|Amazon停滞在庫の原因と解決方法
 amazon-ip-complaint|Amazon知的財産侵害申告への対処法
