@@ -2,13 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-ppc-basics|Amazon PPC広告の始め方と基礎知識
-amazon-acos-improvement|Amazon広告ACoSを改善・下げる方法
-amazon-sponsored-products|スポンサープロダクト広告の設定と運用
-amazon-brand-store-design|Amazonブランドストアの作り方と活用法
-amazon-review-increase|Amazonレビューを増やす合法的な方法
-amazon-negative-review|Amazonネガティブレビューへの対処法
-amazon-bundle-product|Amazonバンドル商品・セット販売の戦略
 amazon-variation-listing|Amazonバリエーション出品の作り方と注意点
 amazon-flat-file|Amazonフラットファイルで一括出品する方法
 amazon-lightning-deal|Amazonタイムセールの申請と活用戦略
