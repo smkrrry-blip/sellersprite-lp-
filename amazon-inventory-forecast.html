@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" type="image/svg+xml" href="./favicon.svg">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FGG22JG6JB"></script>
+<script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-FGG22JG6JB');</script>
+<title>Amazon在庫需要予測の方法とツール｜欠品と過剰在庫を同時に防ぐ完全ガイド</title>
+<meta name="description" content="Amazon在庫の需要予測方法を徹底解説。需要予測の重要性・季節変動対応・売上速度から計算する方法・セラースプライトの予測機能まで網羅。30%OFFコード「CJ9852」付き。">
+<link rel="canonical" href="https://sellersprite.blog/amazon-inventory-forecast.html">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Amazon在庫需要予測の方法とツール｜欠品・過剰在庫を防ぐ完全ガイド">
+<meta property="og:description" content="Amazon在庫の需要予測・季節変動対応・売上速度計算をセラースプライトで実践する方法。欠品ゼロを目指す完全ガイド。30%OFFコード付き。">
+<meta property="og:image" content="https://sellersprite.blog/images/ogp-default.svg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://sellersprite.blog/amazon-inventory-forecast.html">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Article","headline":"Amazon在庫需要予測の方法とツール｜欠品と過剰在庫を同時に防ぐ完全ガイド","description":"Amazon在庫の需要予測方法を徹底解説。需要予測の重要性・季節変動対応・売上速度から計算する方法・セラースプライトの予測機能まで網羅。","author":{"@type":"Person","name":"鬼束壮一"},"datePublished":"2026-04-16","dateModified":"2026-04-16","url":"https://sellersprite.blog/amazon-inventory-forecast.html"}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"在庫の需要予測とは何ですか？","acceptedAnswer":{"@type":"Answer","text":"需要予測とは、過去の売上データ・季節トレンド・市場成長率などを元に「いつ・どのくらい売れるか」を事前に推定することです。正確な需要予測ができれば、欠品による機会損失と過剰在庫による保管費コストの両方を最小化できます。Amazonでは欠品するとランキングが下がるため、特に重要な管理指標です。"}},{"@type":"Question","name":"売上速度（Sell-through Rate）はどう計算しますか？","acceptedAnswer":{"@type":"Answer","text":"売上速度（日次）は「直近30日の販売数 ÷ 30」で計算します。この数値に「リードタイム（発注から入荷までの日数）＋安全在庫日数」を掛けることで、発注すべきタイミングの目安在庫数が求められます。例えば日販10個・リードタイム30日・安全在庫15日なら、残在庫が450個を切ったら発注するという計算になります。"}},{"@type":"Question","name":"季節変動に対応した在庫予測はどうすればいいですか？","acceptedAnswer":{"@type":"Answer","text":"過去1〜2年の月別売上データを確認し、季節指数（各月の売上 ÷ 年間平均月次売上）を算出します。需要が高まる時期の1〜2ヶ月前に多めの発注をかけておくことが鉄則です。セラースプライトでカテゴリの季節トレンドを確認してから、商品別の季節係数を掛け合わせると精度が高まります。"}},{"@type":"Question","name":"FBA在庫の保管手数料を最小化する方法は？","acceptedAnswer":{"@type":"Answer","text":"Amazonの長期保管手数料は在庫が365日を超えると急増します。過剰在庫を防ぐには「在庫回転率（月次売上 ÷ 平均在庫数）」を3以上に保つことが目標です。需要予測で発注量を適正化し、需要低迷期は価格を下げてでも在庫を消化する戦略が有効です。"}},{"@type":"Question","name":"セラースプライトで在庫管理・需要予測はできますか？","acceptedAnswer":{"@type":"Answer","text":"はい、セラースプライトの売上推計・トレンド分析機能を使えば、市場全体の需要変動や競合商品の売上推移が確認できます。これを自社の売上速度データと組み合わせることで、より精度の高い需要予測が実現できます。30%OFFコード「CJ9852」でお得に始められます。"}}]}</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Meiryo",sans-serif;font-size:16px;line-height:1.7;color:#333;background:#fff;padding-bottom:80px;}
+a{color:#FB8C1E;text-decoration:none;}
+img{max-width:100%;height:auto;display:block;}
+.announce-bar{background:#FB8C1E;color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:bold;}
+.announce-bar a{color:#fff;text-decoration:underline;}
+.nav-bar{background:#fff;border-bottom:1px solid #efefef;padding:12px 24px;}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.nav-badge{font-size:11px;font-weight:bold;color:#FB8C1E;background:#fff5eb;border:1px solid #fddbb5;border-radius:4px;padding:3px 10px;white-space:nowrap;}
+.nav-cta{background:#FB8C1E;color:#fff;font-size:13px;font-weight:bold;padding:9px 20px;border-radius:6px;white-space:nowrap;}
+.nav-cta:hover{opacity:0.88;color:#fff;}
+.hero{background:linear-gradient(150deg,#fff8f2 0%,#fffcf9 50%,#fff 100%);padding:64px 24px 48px;border-bottom:1px solid #f0ede8;}
+.hero-inner{max-width:760px;margin:0 auto;}
+.hero-sub{font-size:12px;font-weight:700;letter-spacing:1px;display:inline-block;background:#fff5eb;color:#FB8C1E;padding:4px 14px;border-radius:4px;margin-bottom:14px;}
+.hero h1{font-size:clamp(22px,4vw,36px);font-weight:800;line-height:1.35;color:#1a1a1a;margin:12px 0 20px;}
+.hero h1 em{color:#FB8C1E;font-style:normal;}
+.hero-lead{font-size:16px;color:#555;margin-bottom:28px;line-height:1.8;}
+.coupon-block{display:inline-flex;align-items:stretch;border:2px solid #FB8C1E;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(251,140,30,0.18);margin-bottom:8px;}
+.coupon-tag{background:#fff5eb;color:#FB8C1E;font-size:11px;font-weight:bold;padding:0 16px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid #fddbb5;white-space:nowrap;}
+.coupon-code{font-size:28px;font-weight:bold;color:#FB8C1E;padding:12px 24px;letter-spacing:6px;font-family:'Courier New',monospace;}
+.copy-btn{background:#FB8C1E;color:#fff;border:none;font-size:14px;font-weight:bold;padding:0 22px;cursor:pointer;}
+.copy-btn.ok{background:#27ae60;}
+.coupon-note{font-size:11px;color:#bbb;margin-top:6px;margin-bottom:22px;}
+.hero-cta-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:17px;font-weight:bold;padding:18px 40px;border-radius:8px;box-shadow:0 6px 24px rgba(251,140,30,0.35);}
+.hero-cta-btn:hover{opacity:0.9;color:#fff;}
+.hero-assure{font-size:12px;color:#aaa;margin-top:10px;}
+.section{padding:56px 24px;}
+.section-inner{max-width:760px;margin:0 auto;}
+.section-inner h2{font-size:1.35em;font-weight:bold;margin-bottom:16px;line-height:1.4;color:#1a1a1a;}
+.section-inner h3{font-size:1.1em;font-weight:bold;margin:24px 0 10px;color:#1a1a1a;}
+.section-inner p{font-size:15px;color:#444;line-height:1.95;margin-bottom:14px;}
+.bg-gray{background:#f9f8f6;}
+.bg-white{background:#fff;}
+.em-box{background:#fff8f2;border-left:4px solid #FB8C1E;padding:18px 22px;border-radius:0 8px 8px 0;margin:24px 0;font-size:15px;color:#444;line-height:1.9;}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:24px 0;}
+.feature-card{background:#f9f8f6;border-radius:10px;padding:22px 20px;border-top:3px solid #FB8C1E;}
+.feature-card h3{font-size:15px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;margin-top:0;}
+.feature-card p{font-size:14px;color:#555;line-height:1.85;margin:0;}
+.reason-card{display:flex;gap:18px;align-items:flex-start;background:#f9f8f6;border-radius:10px;padding:22px 20px;margin-bottom:14px;border-left:4px solid #FB8C1E;}
+.reason-num{background:#FB8C1E;color:#fff;font-size:12px;font-weight:bold;min-width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.reason-body h3{font-size:15px;font-weight:bold;color:#1a1a1a;margin-bottom:6px;margin-top:0;}
+.reason-body p{font-size:14px;color:#555;line-height:1.85;margin:0;}
+.data-table{width:100%;border-collapse:collapse;margin:24px 0;font-size:14px;}
+.data-table th{background:#FB8C1E;color:#fff;padding:12px 16px;text-align:left;font-weight:bold;}
+.data-table td{padding:11px 16px;border-bottom:1px solid #f0ede8;color:#444;}
+.data-table tr:nth-child(even) td{background:#f9f8f6;}
+.data-table tr:hover td{background:#fff8f2;}
+.step-list{list-style:none;margin:24px 0;}
+.step-list li{display:flex;gap:16px;align-items:flex-start;margin-bottom:16px;background:#f9f8f6;border-radius:10px;padding:18px 20px;}
+.step-num{background:#FB8C1E;color:#fff;font-size:12px;font-weight:bold;min-width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.step-body{font-size:14px;color:#444;line-height:1.85;}
+.step-body strong{display:block;font-size:15px;color:#1a1a1a;margin-bottom:4px;}
+.faq-item{border-bottom:1px solid #f0ede8;}
+.faq-item:last-child{border-bottom:none;}
+.faq-q{width:100%;background:none;border:none;text-align:left;padding:20px 0;font-size:15px;font-weight:bold;color:#1a1a1a;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.faq-icon{color:#FB8C1E;font-size:20px;flex-shrink:0;transition:transform 0.25s;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
+.faq-a{display:none;padding-bottom:18px;font-size:14px;color:#555;line-height:1.9;}
+.faq-item.open .faq-a{display:block;}
+.cta-section{background:linear-gradient(135deg,#fff8f2 0%,#fff5eb 100%);padding:64px 24px;text-align:center;}
+.cta-inner{max-width:600px;margin:0 auto;}
+.cta-title{font-size:1.5em;font-weight:800;color:#1a1a1a;margin-bottom:12px;line-height:1.4;}
+.cta-title em{color:#FB8C1E;font-style:normal;}
+.cta-lead{font-size:15px;color:#666;margin-bottom:28px;line-height:1.8;}
+.cta-main-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:18px;font-weight:bold;padding:20px 48px;border-radius:10px;box-shadow:0 8px 28px rgba(251,140,30,0.4);}
+.cta-main-btn:hover{opacity:0.9;color:#fff;}
+.cta-sub{font-size:12px;color:#aaa;margin-top:12px;}
+.exit-modal{background:#fff;border-radius:16px;padding:40px 32px;max-width:480px;width:calc(100% - 40px);text-align:center;position:relative;}
+.exit-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;}
+.exit-label{font-size:12px;color:#FB8C1E;font-weight:bold;letter-spacing:1px;margin-bottom:8px;}
+.exit-heading{font-size:1.2em;font-weight:bold;color:#1a1a1a;margin-bottom:12px;line-height:1.4;}
+.exit-body{font-size:14px;color:#666;margin-bottom:20px;line-height:1.8;}
+.exit-code-box{display:inline-flex;align-items:stretch;border:2px solid #FB8C1E;border-radius:8px;overflow:hidden;margin-bottom:20px;}
+.exit-code-label{background:#fff5eb;color:#FB8C1E;font-size:10px;font-weight:bold;padding:0 12px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid #fddbb5;}
+.exit-code-text{font-size:22px;font-weight:bold;color:#FB8C1E;padding:10px 18px;letter-spacing:6px;font-family:'Courier New',monospace;}
+.exit-copy-btn{background:#FB8C1E;color:#fff;border:none;font-size:13px;font-weight:bold;padding:0 18px;cursor:pointer;}
+.exit-cta-btn{display:block;background:#FB8C1E;color:#fff;font-size:15px;font-weight:bold;padding:16px 24px;border-radius:8px;margin-bottom:12px;}
+.exit-cta-btn:hover{opacity:0.88;color:#fff;}
+.exit-footer{font-size:11px;color:#aaa;}
+.sticky-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:10px 20px;gap:12px;}
+.sticky-code{display:flex;align-items:center;gap:10px;}
+.sticky-label{font-size:10px;color:#aaa;font-weight:bold;letter-spacing:1px;}
+.sticky-code-text{font-size:18px;font-weight:bold;color:#FB8C1E;letter-spacing:4px;font-family:'Courier New',monospace;}
+.sticky-copy-btn{background:#444;color:#fff;border:none;font-size:12px;font-weight:bold;padding:6px 14px;border-radius:4px;cursor:pointer;}
+.sticky-cta-btn{background:#FB8C1E;color:#fff;font-size:14px;font-weight:bold;padding:12px 26px;border-radius:6px;white-space:nowrap;}
+.sticky-cta-btn:hover{opacity:0.88;color:#fff;}
+@media(max-width:600px){.sticky-code{display:none;}.sticky-inner{justify-content:center;}.feature-grid{grid-template-columns:1fr;}}
+.related-section{padding:48px 24px;background:#f9f8f6;border-top:1px solid #f0ede8;}
+.related-inner{max-width:760px;margin:0 auto;}
+.related-label{font-size:12px;font-weight:bold;color:#aaa;letter-spacing:1px;margin-bottom:16px;}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.related-card{background:#fff;border-radius:8px;padding:14px 16px;border:1px solid #f0ede8;display:block;}
+.related-card:hover{border-color:#FB8C1E;}
+.related-card-title{display:block;font-size:13px;font-weight:bold;color:#1a1a1a;margin-bottom:4px;line-height:1.4;}
+.related-card-desc{display:block;font-size:12px;color:#888;line-height:1.5;}
+</style>
+</head>
+<body>
+<div class="announce-bar">🎉 期間限定30%OFF｜クーポンコード：CJ9852 — <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank">今すぐ使う →</a></div>
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <span class="nav-badge">公式代理店</span>
+      <span style="font-weight:bold;font-size:15px;color:#1a1a1a;">セラースプライト</span>
+    </div>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':'nav'});" target="_blank" class="nav-cta">30%OFFで試す</a>
+  </div>
+</nav>
+<section class="hero">
+  <div class="hero-inner">
+    <span class="hero-sub">Amazon 在庫 需要予測 完全ガイド 2026</span>
+    <h1>Amazon在庫<em>需要予測</em>の方法とツール<br>欠品と過剰在庫を同時に防ぐ</h1>
+    <p class="hero-lead">「在庫が切れてランキングが下がった」「大量に仕入れたのに季節が終わって値崩れした」——Amazon在庫管理の2大失敗です。需要予測の精度を上げることで、機会損失と保管コストの両方を最小化できます。売上速度を使った発注計算から季節変動対応、セラースプライトを活用した市場データ連携まで、在庫需要予測の完全ガイドを解説します。</p>
+    <div class="coupon-block">
+      <span class="coupon-tag">30%OFF CODE</span>
+      <span class="coupon-code">CJ9852</span>
+      <button id="heroCopy" class="copy-btn" onclick="gtag('event','code_copy',{event_label:'CJ9852'});copyCode(this)">コピー</button>
+    </div>
+    <p class="coupon-note">※ 登録時に入力するだけで即時適用</p>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':'hero'});" target="_blank" class="hero-cta-btn">30%OFFでセラースプライトを始める →</a>
+    <p class="hero-assure">7日間無料トライアルあり・いつでも解約OK</p>
+  </div>
+</section>
+
+<section class="section bg-gray">
+  <div class="section-inner">
+    <h2>欠品と過剰在庫がビジネスに与えるダメージ</h2>
+    <p>在庫管理の失敗は、どちらの方向でも深刻な損失を生みます。欠品と過剰在庫それぞれのリスクを理解してから対策を立てましょう。</p>
+    <table class="data-table">
+      <thead><tr><th>問題</th><th>欠品</th><th>過剰在庫</th></tr></thead>
+      <tbody>
+        <tr><td>ランキングへの影響</td><td>在庫切れで順位急落・BSR消失</td><td>直接影響なし</td></tr>
+        <tr><td>コスト影響</td><td>機会損失（売れたはずの利益を失う）</td><td>FBA長期保管手数料・廃棄コスト</td></tr>
+        <tr><td>広告への影響</td><td>キャンペーン継続不可・学習リセット</td><td>予算消化効率が下がる</td></tr>
+        <tr><td>復旧コスト</td><td>ランキング回復に広告費が必要</td><td>値下げ・アウトレット処理</td></tr>
+        <tr><td>発生しやすい時期</td><td>需要急増期・年末商戦・大型セール</td><td>需要見込み外れ・季節終わり</td></tr>
+      </tbody>
+    </table>
+    <div class="em-box">Amazonではランキングが下がると有機表示が減り、広告費をかけないと回復できない「ランキング負のスパイラル」に陥ります。欠品は特に致命的で、1週間の欠品でランキング回復に数週間〜数ヶ月かかることもあります。</div>
+  </div>
+</section>
+
+<section class="section bg-white">
+  <div class="section-inner">
+    <h2>売上速度から発注タイミングを計算する方法</h2>
+    <p>需要予測の基本は売上速度（日次販売数）を軸にした発注点計算です。以下の手順で自社商品の発注点を設定してください。</p>
+    <ul class="step-list">
+      <li>
+        <div class="step-num">01</div>
+        <div class="step-body"><strong>日次売上速度を計算する</strong>直近30日の販売数 ÷ 30 ＝ 日次売上速度。例えば30日で300個売れていれば、日次売上速度は10個/日です。直近7日と30日の両方で計算し、トレンドを確認します。</div>
+      </li>
+      <li>
+        <div class="step-num">02</div>
+        <div class="step-body"><strong>リードタイムを確認する</strong>発注から入荷（FBA到着）までの日数を正確に把握します。中国仕入れ：空輸10〜15日・船便35〜50日。国内仕入れ：3〜7日。これにFBA検品・入庫日数（7〜14日）を加算します。</div>
+      </li>
+      <li>
+        <div class="step-num">03</div>
+        <div class="step-body"><strong>安全在庫日数を設定する</strong>需要の変動幅・仕入れ先の安定性・季節性を考慮した「バッファ」の日数を設定します。一般的には14〜21日分が目安です。不安定なサプライヤーなら30日分を確保します。</div>
+      </li>
+      <li>
+        <div class="step-num">04</div>
+        <div class="step-body"><strong>発注点（Reorder Point）を計算する</strong>発注点 ＝ 日次売上速度 × （リードタイム日数 ＋ 安全在庫日数）。例：10個/日 × （30日 ＋ 21日） ＝ 510個が発注すべき在庫水準です。</div>
+      </li>
+      <li>
+        <div class="step-num">05</div>
+        <div class="step-body"><strong>季節係数を掛けて調整する</strong>過去の季節データから「今月の売上 ÷ 年間平均月次売上」の季節係数を計算。繁忙期は係数を掛けて多めに発注し、閑散期は係数を掛けて少なめに発注することで過剰在庫を防ぎます。</div>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<section class="section bg-gray">
+  <div class="section-inner">
+    <h2>季節変動に対応した在庫戦略</h2>
+    <p>多くのカテゴリには明確な季節パターンがあります。セラースプライトで市場トレンドを事前に確認することが鍵です。</p>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>繁忙期の2〜3ヶ月前に多めに発注</h3>
+        <p>需要ピーク時は仕入れ先も混み合いリードタイムが伸びます。通常より1.5〜2倍の在庫を繁忙期2〜3ヶ月前に確保する先手管理が鉄則です。</p>
+      </div>
+      <div class="feature-card">
+        <h3>閑散期は発注量を絞り在庫回転を維持</h3>
+        <p>FBAの長期保管手数料は在庫が積み上がるほど膨らみます。閑散期は発注量を絞り、在庫回転率（月次売上 ÷ 平均在庫）を3以上に保つことが理想です。</p>
+      </div>
+      <div class="feature-card">
+        <h3>セールイベント（Prime Day・年末）用の在庫計画</h3>
+        <p>Prime Day・ブラックフライデー・年末商戦は通常の3〜5倍の需要増が起こります。セラースプライトでカテゴリのピーク需要データを確認し、特別発注計画を立てます。</p>
+      </div>
+      <div class="feature-card">
+        <h3>需要急増シグナルをリアルタイムで検知</h3>
+        <p>セラースプライトのキーワード需要トレンドをウォッチし、検索ボリューム急増を発注の先行指標として活用します。トレンド商品は機動的な追加発注が利益を最大化します。</p>
+      </div>
+    </div>
+    <div class="em-box">セラースプライトでカテゴリ全体の月別需要推移を確認すると、自社商品の季節係数を高精度で設定できます。市場データと自社売上データの組み合わせが、需要予測精度を大きく上げます。</div>
+  </div>
+</section>
+
+<section class="section bg-white">
+  <div class="section-inner">
+    <h2>セラースプライトで在庫管理に使える機能</h2>
+    <div class="reason-card">
+      <div class="reason-num">01</div>
+      <div class="reason-body">
+        <h3>市場全体の需要トレンドを先読みする</h3>
+        <p>セラースプライトのキーワード検索ボリューム推移でカテゴリの季節トレンドが一目で分かります。需要ピークの2〜3ヶ月前に仕入れ計画を立てることで、常に適正在庫を維持できます。</p>
+      </div>
+    </div>
+    <div class="reason-card">
+      <div class="reason-num">02</div>
+      <div class="reason-body">
+        <h3>競合の在庫枯渇タイミングを把握して売上を取りにいく</h3>
+        <p>競合商品の在庫状況推定機能を使えば、主要競合が欠品する前後に自社の価格・広告を調整し、シェアを奪うタイミングを捉えられます。欠品は損失ですが、競合の欠品は機会です。</p>
+      </div>
+    </div>
+    <div class="reason-card">
+      <div class="reason-num">03</div>
+      <div class="reason-body">
+        <h3>新規参入商品の市場規模から発注量を逆算する</h3>
+        <p>新商品の初回発注量は根拠のない勘になりがちです。セラースプライトで市場の月間売上総数・競合数・自社が取れるシェア推定を計算することで、初回発注量を合理的に決定できます。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section bg-gray">
+  <div class="section-inner">
+    <h2>よくある質問</h2>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">在庫の需要予測とは何ですか？<span class="faq-icon">+</span></button>
+      <div class="faq-a">需要予測とは、過去の売上データ・季節トレンド・市場成長率などを元に「いつ・どのくらい売れるか」を事前に推定することです。正確な需要予測ができれば、欠品による機会損失と過剰在庫による保管費コストの両方を最小化できます。Amazonでは欠品するとランキングが下がるため、特に重要な管理指標です。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">売上速度（Sell-through Rate）はどう計算しますか？<span class="faq-icon">+</span></button>
+      <div class="faq-a">売上速度（日次）は「直近30日の販売数 ÷ 30」で計算します。この数値に「リードタイム（発注から入荷までの日数）＋安全在庫日数」を掛けることで、発注すべきタイミングの目安在庫数が求められます。例えば日販10個・リードタイム30日・安全在庫15日なら、残在庫が450個を切ったら発注するという計算になります。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">季節変動に対応した在庫予測はどうすればいいですか？<span class="faq-icon">+</span></button>
+      <div class="faq-a">過去1〜2年の月別売上データを確認し、季節指数（各月の売上 ÷ 年間平均月次売上）を算出します。需要が高まる時期の1〜2ヶ月前に多めの発注をかけておくことが鉄則です。セラースプライトでカテゴリの季節トレンドを確認してから、商品別の季節係数を掛け合わせると精度が高まります。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">FBA在庫の保管手数料を最小化する方法は？<span class="faq-icon">+</span></button>
+      <div class="faq-a">Amazonの長期保管手数料は在庫が365日を超えると急増します。過剰在庫を防ぐには「在庫回転率（月次売上 ÷ 平均在庫数）」を3以上に保つことが目標です。需要予測で発注量を適正化し、需要低迷期は価格を下げてでも在庫を消化する戦略が有効です。</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)" aria-expanded="false">セラースプライトで在庫管理・需要予測はできますか？<span class="faq-icon">+</span></button>
+      <div class="faq-a">はい、セラースプライトの売上推計・トレンド分析機能を使えば、市場全体の需要変動や競合商品の売上推移が確認できます。これを自社の売上速度データと組み合わせることで、より精度の高い需要予測が実現できます。30%OFFコード「CJ9852」でお得に始められます。</div>
+    </div>
+  </div>
+</section>
+
+<section class="cta-section">
+  <div class="cta-inner">
+    <h2 class="cta-title"><em>CJ9852</em>で30%OFF<br>需要トレンドをデータで先読みする</h2>
+    <p class="cta-lead">セラースプライト公式代理店限定の30%OFFコードで、市場需要トレンド・競合在庫分析・季節変動データを最安値で入手。在庫管理の精度を上げて利益を最大化しましょう。</p>
+    <div class="coupon-block" style="margin-bottom:20px;">
+      <span class="coupon-tag">30%OFF CODE</span>
+      <span class="coupon-code">CJ9852</span>
+      <button id="ctaCopy" class="copy-btn" onclick="gtag('event','code_copy',{event_label:'CJ9852'});copyCode(this)">コピー</button>
+    </div><br>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':'cta'});" target="_blank" class="cta-main-btn">30%OFFでセラースプライトを始める →</a>
+    <p class="cta-sub">いつでも解約OK</p>
+  </div>
+</section>
+
+<div class="related-section">
+  <div class="related-inner">
+    <p class="related-label">関連記事</p>
+    <div class="related-grid">
+      <a href="./amazon-ppc-acos.html" class="related-card"><span class="related-card-title">Amazon PPC ACoS改善方法</span><span class="related-card-desc">広告費を削減して利益を最大化する</span></a>
+      <a href="./amazon-listing-images.html" class="related-card"><span class="related-card-title">Amazon商品画像の最適化</span><span class="related-card-desc">枚数・サイズ・CVRを劇的に上げる方法</span></a>
+      <a href="./amazon-return-rate.html" class="related-card"><span class="related-card-title">Amazon返品率を下げる方法</span><span class="related-card-desc">クレームを減らして評価を守る実践ガイド</span></a>
+      <a href="./amazon-storefront.html" class="related-card"><span class="related-card-title">Amazonストアフロントの作り方</span><span class="related-card-desc">デザイン最適化でファンを増やす方法</span></a>
+      <a href="./amazon-inventory-replenishment.html" class="related-card"><span class="related-card-title">Amazon在庫補充のタイミング計算</span><span class="related-card-desc">欠品ゼロで機会損失を防ぐ完全ガイド</span></a>
+      <a href="./trend-shohin.html" class="related-card"><span class="related-card-title">Amazonトレンド商品の見つけ方</span><span class="related-card-desc">需要が伸びている商品を先読みする方法</span></a>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyCode(btn){navigator.clipboard.writeText('CJ9852').then(function(){btn.textContent='✓ コピー済み';btn.classList.add('ok');setTimeout(function(){btn.textContent='コピー';btn.classList.remove('ok');},2000);});}
+function toggleFaq(btn){var item=btn.closest('.faq-item');var isOpen=item.classList.contains('open');item.classList.toggle('open',!isOpen);btn.setAttribute('aria-expanded',!isOpen);}
+</script>
+<div id="exit-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:10000;align-items:center;justify-content:center;">
+  <div class="exit-modal">
+    <button class="exit-close" onclick="closeExitPopup()">×</button>
+    <p class="exit-label">ちょっと待ってください</p>
+    <h2 class="exit-heading">欠品を防ぐ前に、30%OFFコードを持っていって。</h2>
+    <p class="exit-body">「CJ9852」を使えば月4,186円から。7日間無料で試せます。</p>
+    <div class="exit-code-box"><span class="exit-code-label">30%OFF CODE</span><span class="exit-code-text">CJ9852</span><button id="exitCopy" class="exit-copy-btn" onclick="gtag('event','code_copy',{event_label:'CJ9852'});copyCode(this)">コピー</button></div>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" class="exit-cta-btn">30%OFFで無料トライアルを始める →</a>
+    <p class="exit-footer">いつでも解約OK</p>
+  </div>
+</div>
+<script>
+(function(){if(window.innerWidth<768)return;if(sessionStorage.getItem('exitShown'))return;var ready=false;setTimeout(function(){ready=true;},3000);document.addEventListener('mousemove',function(e){if(!ready)return;if(sessionStorage.getItem('exitShown'))return;if(e.clientY<10){document.getElementById('exit-overlay').style.display='flex';sessionStorage.setItem('exitShown','1');}});document.getElementById('exit-overlay').addEventListener('click',function(e){if(e.target===this)closeExitPopup();});})();
+function closeExitPopup(){document.getElementById('exit-overlay').style.display='none';}
+</script>
+<div id="sticky-cta" style="position:fixed;bottom:0;left:0;width:100%;background:#1a1a2e;z-index:9999;box-shadow:0 -2px 12px rgba(0,0,0,0.2);">
+  <div class="sticky-inner">
+    <div class="sticky-code"><span class="sticky-label">30%OFF CODE</span><span class="sticky-code-text">CJ9852</span><button id="stickyCopy" class="sticky-copy-btn" onclick="gtag('event','code_copy',{event_label:'CJ9852'});copyCode(this)">コピー</button></div>
+    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" class="sticky-cta-btn">今すぐ30%OFFで登録する →</a>
+  </div>
+</div>
+</body>
+</html>
