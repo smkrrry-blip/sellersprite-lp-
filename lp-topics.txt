@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-virtual-bundle|Amazon仮想バンドル商品の作り方
-amazon-posts|AmazonポストSNS機能の活用法
-amazon-storefront-followers|Amazonストアフォロワー獲得の方法
-amazon-influencer-program|Amazonインフルエンサープログラムの活用
-amazon-affiliate-japan|Amazonアソシエイト・アフィリエイトの始め方
 amazon-ebay-comparison|AmazonとeBayの比較・どちらで売るべきか
 amazon-yahoo-shopping|AmazonとYahooショッピングの違いと併用戦略
 amazon-etsy-comparison|AmazonとEtsyの比較・ハンドメイド販売
