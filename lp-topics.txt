@@ -2,9 +2,3 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-business-report|Amazonビジネスレポートの読み方と活用法
-amazon-return-analysis|Amazon返品分析と返品率を下げる方法
-amazon-packaging-insert|Amazon同梱物・パッケージインサートの規約
-amazon-fba-prep|FBA納品前の梱包・ラベル貼りの完全手順
-amazon-inventory-age|Amazon在庫回転率の改善と長期保管料の削減
-amazon-lost-damaged|Amazon紛失・破損在庫の補償請求方法
