@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-tax-settings|Amazon消費税・税金設定の完全ガイド
-amazon-invoice|Amazonインボイス・領収書の発行方法
-amazon-b2b-selling|AmazonビジネスB2B販売の活用法
-amazon-subscription-box|Amazon定期便商品の設定と戦略
-amazon-digital-coupon|Amazonデジタルクーポンの設定と効果的な使い方
 amazon-virtual-bundle|Amazon仮想バンドル商品の作り方
 amazon-posts|AmazonポストSNS機能の活用法
 amazon-storefront-followers|Amazonストアフォロワー獲得の方法
