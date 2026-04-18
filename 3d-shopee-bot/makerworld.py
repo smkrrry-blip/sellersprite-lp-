@@ -416,10 +416,10 @@ class MakerWorldScraper:
         logger.info(f"DOM parse result: {len(models)} models")
         return models
 
-    def get_model_detail(self, model_id: str) -> Optional[dict]:
+    def get_model_detail(self, model_id: str, mw_url: str = "") -> Optional[dict]:
         """
         特定商品の詳細情報を取得
-        MakerWorld実際のURL: /en/models/{model_id}
+        mw_url: DBに保存されているスラッグ付きURL（例: /en/3d-models/knitted-sheep-no-ams）
         """
         for base_ep in API_ENDPOINTS_DETAIL:
             data = self._get(f"{base_ep}/{model_id}")
@@ -428,16 +428,22 @@ class MakerWorldScraper:
             self._sleep()
 
         # Playwright フォールバック
-        return self._get_detail_via_playwright(model_id)
+        return self._get_detail_via_playwright(model_id, mw_url=mw_url)
 
-    def _get_detail_via_playwright(self, model_id: str) -> Optional[dict]:
-        """Playwrightで商品詳細を取得（MakerWorld /en/models/{id}）"""
+    def _get_detail_via_playwright(self, model_id: str, mw_url: str = "") -> Optional[dict]:
+        """Playwrightで商品詳細を取得（スラッグURL優先）"""
         try:
             from playwright.sync_api import sync_playwright
         except ImportError:
             return None
 
-        model_url = f"{MW_MODEL_URL}/{model_id}"
+        # mw_url（スラッグ形式）があればそちらを優先。なければ旧形式にフォールバック
+        if mw_url and mw_url.startswith("http"):
+            model_url = mw_url
+        elif mw_url and mw_url.startswith("/"):
+            model_url = f"{BASE_URL}{mw_url}"
+        else:
+            model_url = f"{BASE_URL}/en/3d-models/{model_id}"
         detail_data = {}
 
         with sync_playwright() as p:
@@ -460,7 +466,11 @@ class MakerWorldScraper:
                         pass
 
             page.on("response", handle_response)
-            page.goto(model_url, wait_until="networkidle", timeout=45000)
+            page.goto(model_url, wait_until="domcontentloaded", timeout=30000)
+            try:
+                page.wait_for_load_state("networkidle", timeout=10000)
+            except Exception:
+                pass
             time.sleep(2)
 
             if api_responses:

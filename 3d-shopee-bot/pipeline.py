@@ -55,6 +55,28 @@ def run_full_pipeline(dry_run: bool = False):
     logger.info("=" * 60)
 
     init_db()
+
+    # ネット切断エラーは自動リセット（毎回実行、私の介入不要）
+    conn = __import__('sqlite3').connect(str(__import__('pathlib').Path(__file__).parent / 'data' / 'products.db'))
+    net_errors = conn.execute(
+        "SELECT COUNT(*) FROM products WHERE status='error' AND ("
+        "  error_msg LIKE '%ERR_INTERNET%' OR error_msg LIKE '%ERR_NETWORK%'"
+        "  OR error_msg LIKE '%ERR_CONNECTION%' OR error_msg LIKE '%Timeout%'"
+        "  OR error_msg LIKE '%timeout%'"
+        ")"
+    ).fetchone()[0]
+    if net_errors > 0:
+        conn.execute(
+            "UPDATE products SET status='scraped', error_msg=NULL WHERE status='error' AND ("
+            "  error_msg LIKE '%ERR_INTERNET%' OR error_msg LIKE '%ERR_NETWORK%'"
+            "  OR error_msg LIKE '%ERR_CONNECTION%' OR error_msg LIKE '%Timeout%'"
+            "  OR error_msg LIKE '%timeout%'"
+            ")"
+        )
+        conn.commit()
+        logger.info(f"🔄 ネット切断エラー自動リセット: {net_errors} 件 → scraped")
+    conn.close()
+
     stats_start = get_stats()
     logger.info(f"DB状態: {stats_start}")
 
@@ -93,7 +115,9 @@ def run_full_pipeline(dry_run: bool = False):
     for product in to_translate:
         try:
             if not product.get("description_en"):
-                detail = scraper.get_model_detail(product["mw_model_id"])
+                detail = scraper.get_model_detail(
+                    product["mw_model_id"], mw_url=product.get("mw_url", "")
+                )
                 if detail:
                     product.update(detail)
 
