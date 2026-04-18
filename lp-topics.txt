@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-sourcing-china|中国仕入れ・アリババ活用の完全ガイド
-amazon-product-photography|Amazon商品写真の撮り方と最適化
-amazon-a-content-strategy|Aコンテンツ(A+)の効果的な作り方
-amazon-brand-analytics-guide|Amazonブランドアナリティクスの読み方と活用
-amazon-search-query-report|Amazon検索クエリレポートの分析方法
 amazon-business-report|Amazonビジネスレポートの読み方と活用法
 amazon-return-analysis|Amazon返品分析と返品率を下げる方法
 amazon-packaging-insert|Amazon同梱物・パッケージインサートの規約
