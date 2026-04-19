@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-fba-fees-calculation|FBA手数料の計算方法と利益率シミュレーション
-amazon-profit-calculation|Amazon販売の利益計算・原価管理完全ガイド
-amazon-tax-consumption|Amazon販売の消費税・インボイス対応ガイド
-amazon-accounting|Amazon物販の経理・確定申告を効率化する方法
-amazon-virtual-assistant|バーチャルアシスタント（VA）の採用・育成・業務委託
 amazon-team-building|Amazon物販チームの作り方・組織化のコツ
 amazon-sop-creation|Amazon物販SOPの作成・業務マニュアル化の方法
 amazon-2nd-product|2商品目・商品ラインナップ拡大のタイミングと戦略
