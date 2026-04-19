@@ -2,9 +2,4 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-team-building|Amazon物販チームの作り方・組織化のコツ
-amazon-sop-creation|Amazon物販SOPの作成・業務マニュアル化の方法
-amazon-2nd-product|2商品目・商品ラインナップ拡大のタイミングと戦略
-amazon-data-driven|データドリブン経営でAmazon物販を科学的に伸ばす方法
-amazon-beginner-roadmap|Amazon物販初心者が最初の1商品を売るまでのロードマップ
 
