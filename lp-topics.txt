@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-counterfeit-protection|偽造品対策・知的財産権保護の完全ガイド
-amazon-account-health|アカウント健全性の維持と停止対策
-amazon-fba-vs-fbm|FBAとFBM（自己発送）の使い分け戦略
-amazon-merch-on-demand|Merch on Demandで稼ぐ完全ガイド
-amazon-kindle-direct|Kindle出版（KDP）でパッシブインカムを作る方法
 amazon-handmade|Amazon Handmadeで手作り商品を販売する方法
 amazon-b2b-selling|AmazonビジネスB2B販売の攻略法
 amazon-wholesale-fba|卸売り×FBAで安定収益を上げる方法
