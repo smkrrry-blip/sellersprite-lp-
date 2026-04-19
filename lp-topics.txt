@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-bundle-strategy|セット販売・バンドル商品で差別化する戦略
-amazon-wholesale-direct|メーカー直仕入れ・卸売業者との取引方法
-amazon-arbitrage-online|オンライン裁定取引（OA）の実践ガイド
-amazon-fba-inventory|FBA在庫管理・過剰在庫の処理方法
-amazon-return-management|返品対策と返品ポリシーの最適化
 amazon-counterfeit-protection|偽造品対策・知的財産権保護の完全ガイド
 amazon-account-health|アカウント健全性の維持と停止対策
 amazon-fba-vs-fbm|FBAとFBM（自己発送）の使い分け戦略
