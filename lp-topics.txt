@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-dropshipping|Amazonドロップシッピングの始め方とリスク管理
-amazon-retail-arbitrage|小売裁定取引（RA）の実践ガイドと利益商品の探し方
-amazon-fba-removal|FBA在庫の返送・廃棄・処分オーダーの使い方
-amazon-title-optimization|タイトル最適化でオーガニック順位を上げる方法
-amazon-bullet-points|商品説明（箇条書き）の書き方で転換率を改善する
 amazon-backend-keywords|バックエンドキーワードの正しい設定方法
 amazon-sp-ads-optimization|スポンサープロダクト広告の最適化完全ガイド
 amazon-sb-ads|スポンサーブランド広告でブランド認知を高める方法
