@@ -1,0 +1,790 @@
+The workspace is read-only, so I couldn’t write the file directly. Here is the complete `fba-profit-calculator.html`:
+
+```html
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>FBA利益計算機【無料】Amazon手数料シミュレーター | セラースプライト公式代理店</title>
+<meta name="description" content="FBA利益計算機（無料）。販売価格・仕入れ原価・FBAサイズ・広告費を入力するだけで利益額・利益率・ROIをリアルタイム計算。セラースプライトで精度をさらに上げる。">
+<link rel="canonical" href="https://sellersprite.blog/fba-profit-calculator.html">
+<!-- OGP -->
+<meta property="og:type" content="article">
+<meta property="og:title" content="FBA利益計算機【無料】Amazon手数料シミュレーター">
+<meta property="og:description" content="販売価格・仕入れ原価・FBAサイズ・広告費を入力するだけで利益額・利益率・ROIをリアルタイム計算。">
+<meta property="og:url" content="https://sellersprite.blog/fba-profit-calculator.html">
+<meta property="og:site_name" content="セラースプライト公式代理店">
+<meta property="og:locale" content="ja_JP">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="FBA利益計算機【無料】Amazon手数料シミュレーター">
+<meta name="twitter:description" content="無料で使えるFBA利益計算機。売上・仕入れ・FBAサイズ・広告費から利益率を即時計算。">
+<!-- GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-FGG22JG6JB"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-FGG22JG6JB');
+</script>
+<!-- JSON-LD: Article -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Article",
+  "headline": "FBA利益計算機【無料】Amazon手数料シミュレーター",
+  "description": "販売価格・仕入れ原価・FBAサイズ・広告費を入力するだけで利益額・利益率・ROIをリアルタイム計算できる無料のFBA利益計算機です。",
+  "author": {
+    "@type": "Person",
+    "name": "鬼束壮一",
+    "affiliation": "セラースプライト公式代理店"
+  },
+  "publisher": {
+    "@type": "Organization",
+    "name": "セラースプライト公式代理店",
+    "url": "https://sellersprite.blog/"
+  },
+  "datePublished": "2026-04-19",
+  "dateModified": "2026-04-19",
+  "url": "https://sellersprite.blog/fba-profit-calculator.html"
+}
+</script>
+<!-- JSON-LD: FAQPage -->
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "このFBA利益計算機は無料ですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "はい、無料で使えます。販売価格・仕入れ原価・FBAサイズ区分・配送重量・広告費率を入力すると、利益額・利益率・ROI・損益分岐点を自動計算します。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "広告費率は何%で入力すればよいですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "まずは販売価格に対して3〜10%程度で試すのがおすすめです。商材や広告戦略によって大きく変わるため、複数の数値を入れて利益率の感度を確認してください。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "FBAサイズ区分はどう選べばよいですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "実際の梱包サイズと重量に近い区分を選んでください。サイズ区分が1つ変わるだけで手数料が大きく変わるため、仕入れ前の検証が重要です。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "利益率の目安はどれくらいですか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "一般的には広告費込みで20%以上を目安にすると、価格変動や手数料改定に耐えやすくなります。10%未満だとリスクが高くなりやすいです。"
+      }
+    },
+    {
+      "@type": "Question",
+      "name": "セラースプライトはこの計算機にどう役立ちますか？",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "セラースプライトでは競合のレビュー数、売れ行き、キーワード、価格帯を分析できます。利益計算機で出した数値を、競合データと照らし合わせることで精度の高い仕入れ判断ができます。"
+      }
+    }
+  ]
+}
+</script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Meiryo",sans-serif;font-size:16px;line-height:1.7;color:#333;background:#fff;padding-bottom:80px;}
+a{color:#FB8C1E;text-decoration:none;}
+img{max-width:100%;height:auto;display:block;}
+.announce-bar{background:#FB8C1E;color:#fff;text-align:center;padding:10px 16px;font-size:13px;font-weight:bold;}
+.announce-bar a{color:#fff;text-decoration:underline;}
+.nav-bar{background:#fff;border-bottom:1px solid #efefef;padding:12px 24px;}
+.nav-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.nav-badge{font-size:11px;font-weight:bold;color:#FB8C1E;background:#fff5eb;border:1px solid #fddbb5;border-radius:4px;padding:3px 10px;white-space:nowrap;}
+.nav-cta{background:#FB8C1E;color:#fff;font-size:13px;font-weight:bold;padding:9px 20px;border-radius:6px;white-space:nowrap;}
+.nav-cta:hover{opacity:0.88;color:#fff;}
+.hero{background:linear-gradient(150deg,#fff8f2 0%,#fffcf9 50%,#fff 100%);padding:64px 24px 48px;border-bottom:1px solid #f0ede8;}
+.hero-inner{max-width:760px;margin:0 auto;}
+.hero-sub{font-size:12px;font-weight:700;letter-spacing:1px;display:inline-block;background:#fff5eb;color:#FB8C1E;padding:4px 14px;border-radius:4px;margin-bottom:14px;}
+.hero h1{font-size:clamp(22px,4vw,36px);font-weight:800;line-height:1.35;color:#1a1a1a;margin:12px 0 20px;}
+.hero h1 em{color:#FB8C1E;font-style:normal;}
+.hero-lead{font-size:16px;color:#555;margin-bottom:28px;line-height:1.8;}
+.coupon-block{display:inline-flex;align-items:stretch;border:2px solid #FB8C1E;border-radius:10px;overflow:hidden;background:#fff;box-shadow:0 4px 20px rgba(251,140,30,0.18);margin-bottom:8px;}
+.coupon-tag{background:#fff5eb;color:#FB8C1E;font-size:11px;font-weight:bold;padding:0 16px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid #fddbb5;white-space:nowrap;}
+.coupon-code{font-size:28px;font-weight:bold;color:#FB8C1E;padding:12px 24px;letter-spacing:6px;font-family:'Courier New',monospace;}
+.copy-btn{background:#FB8C1E;color:#fff;border:none;font-size:14px;font-weight:bold;padding:0 22px;cursor:pointer;}
+.copy-btn.ok{background:#27ae60;}
+.coupon-note{font-size:11px;color:#bbb;margin-top:6px;margin-bottom:22px;}
+.hero-cta-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:17px;font-weight:bold;padding:18px 40px;border-radius:8px;box-shadow:0 6px 24px rgba(251,140,30,0.35);}
+.hero-cta-btn:hover{opacity:0.9;color:#fff;}
+.hero-assure{font-size:12px;color:#aaa;margin-top:10px;}
+.section{padding:56px 24px;}
+.section-inner{max-width:760px;margin:0 auto;}
+.section-inner h2{font-size:1.35em;font-weight:bold;margin-bottom:16px;line-height:1.4;color:#1a1a1a;}
+.section-inner h3{font-size:1.05em;font-weight:bold;margin:22px 0 10px;color:#1a1a1a;}
+.section-inner p{font-size:15px;color:#444;line-height:1.95;margin-bottom:14px;}
+.bg-gray{background:#f9f8f6;}
+.bg-white{background:#fff;}
+.em-box{background:#fff8f2;border-left:4px solid #FB8C1E;padding:18px 22px;border-radius:0 8px 8px 0;margin:24px 0;font-size:15px;color:#444;line-height:1.9;}
+.feature-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:16px;margin:24px 0;}
+.feature-card{background:#f9f8f6;border-radius:10px;padding:22px 20px;border-top:3px solid #FB8C1E;}
+.feature-card h3{font-size:15px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;margin-top:0;}
+.feature-card p{font-size:14px;color:#555;line-height:1.85;margin:0;}
+.faq-item{border-bottom:1px solid #f0ede8;}
+.faq-item:last-child{border-bottom:none;}
+.faq-q{width:100%;background:none;border:none;text-align:left;padding:20px 0;font-size:15px;font-weight:bold;color:#1a1a1a;cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:16px;}
+.faq-icon{color:#FB8C1E;font-size:20px;flex-shrink:0;transition:transform 0.25s;}
+.faq-item.open .faq-icon{transform:rotate(45deg);}
+.faq-a{display:none;padding-bottom:18px;font-size:14px;color:#555;line-height:1.9;}
+.faq-item.open .faq-a{display:block;}
+.cta-section{background:linear-gradient(135deg,#fff8f2 0%,#fff5eb 100%);padding:64px 24px;text-align:center;}
+.cta-inner{max-width:600px;margin:0 auto;}
+.cta-title{font-size:1.5em;font-weight:800;color:#1a1a1a;margin-bottom:12px;line-height:1.4;}
+.cta-title em{color:#FB8C1E;font-style:normal;}
+.cta-lead{font-size:15px;color:#666;margin-bottom:28px;line-height:1.8;}
+.cta-main-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:18px;font-weight:bold;padding:20px 48px;border-radius:10px;box-shadow:0 8px 28px rgba(251,140,30,0.4);}
+.cta-main-btn:hover{opacity:0.9;color:#fff;}
+.cta-sub{font-size:12px;color:#aaa;margin-top:12px;}
+
+/* Calculator */
+.calc-layout{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(320px,0.95fr);gap:20px;align-items:start;margin-top:24px;}
+.calc-panel{background:#fff;border:1px solid #f0ede8;border-radius:18px;padding:24px;box-shadow:0 18px 42px rgba(26,26,26,0.06);}
+.calc-panel-title{font-size:12px;font-weight:800;color:#FB8C1E;letter-spacing:1px;margin-bottom:12px;}
+.calc-panel h3{margin-top:0;margin-bottom:18px;}
+.input-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.field{display:flex;flex-direction:column;gap:8px;}
+.field.full{grid-column:1/-1;}
+.field label{font-size:13px;font-weight:700;color:#1a1a1a;}
+.field input,.field select{
+  width:100%;
+  border:1px solid #e6dfd8;
+  border-radius:12px;
+  padding:14px 14px;
+  font-size:15px;
+  background:#fff;
+  color:#1a1a1a;
+  outline:none;
+  transition:border-color 0.2s,box-shadow 0.2s,transform 0.2s;
+}
+.field input:focus,.field select:focus{
+  border-color:#FB8C1E;
+  box-shadow:0 0 0 4px rgba(251,140,30,0.15);
+}
+.field small{font-size:12px;color:#888;line-height:1.6;}
+.helper-box{margin-top:18px;background:#fff8f2;border:1px solid #fddbb5;border-radius:14px;padding:16px 18px;font-size:13px;color:#555;line-height:1.8;}
+.calc-result{
+  background:linear-gradient(180deg,#1f1f1f 0%,#121212 100%);
+  color:#fff;
+  border-radius:18px;
+  padding:24px;
+  box-shadow:0 18px 42px rgba(26,26,26,0.10);
+  position:sticky;
+  top:16px;
+}
+.calc-result-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px;}
+.calc-result-head h3{margin:0;font-size:16px;color:#fff;}
+.result-badge{
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:1px;
+  color:#FB8C1E;
+  background:#fff5eb;
+  padding:4px 10px;
+  border-radius:999px;
+  white-space:nowrap;
+}
+.profit-hero{
+  background:linear-gradient(135deg,rgba(251,140,30,0.16),rgba(255,255,255,0.04));
+  border:1px solid rgba(251,140,30,0.25);
+  border-radius:16px;
+  padding:20px;
+  margin-bottom:16px;
+}
+.profit-label{font-size:12px;font-weight:800;letter-spacing:1px;color:#ffbb7c;text-transform:uppercase;}
+.profit-amount{font-size:clamp(30px,5vw,48px);font-weight:900;line-height:1.1;margin-top:8px;}
+.profit-status{font-size:13px;color:#ddd;margin-top:10px;line-height:1.7;}
+.profit-meter{
+  width:100%;
+  height:10px;
+  background:rgba(255,255,255,0.10);
+  border-radius:999px;
+  overflow:hidden;
+  margin-top:14px;
+}
+.profit-meter-fill{
+  width:0%;
+  height:100%;
+  background:linear-gradient(90deg,#FB8C1E 0%,#ffb157 100%);
+  border-radius:999px;
+  transition:width 0.25s ease;
+}
+.result-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-bottom:16px;}
+.result-card{
+  background:rgba(255,255,255,0.06);
+  border:1px solid rgba(255,255,255,0.10);
+  border-radius:14px;
+  padding:14px 14px 12px;
+}
+.result-card span{display:block;font-size:12px;color:#cfcfcf;margin-bottom:8px;}
+.result-card strong{display:block;font-size:20px;line-height:1.2;color:#fff;}
+.breakdown{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.08);
+  border-radius:16px;
+  padding:16px;
+}
+.breakdown-row{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:10px 0;border-bottom:1px dashed rgba(255,255,255,0.12);}
+.breakdown-row:last-child{border-bottom:none;padding-bottom:0;}
+.breakdown-row:first-child{padding-top:0;}
+.breakdown-row .label{font-size:13px;color:#ddd;}
+.breakdown-row .value{font-size:14px;font-weight:700;color:#fff;}
+.breakdown-row.total{padding-top:14px;margin-top:6px;border-top:2px solid rgba(251,140,30,0.65);}
+.breakdown-row.total .label,.breakdown-row.total .value{font-size:15px;font-weight:800;color:#FB8C1E;}
+.calc-note{font-size:11px;color:#aaa;line-height:1.8;margin-top:14px;}
+.calc-note strong{color:#fff;}
+.highlight-line{
+  margin-top:16px;
+  background:#fff8f2;
+  color:#444;
+  border-left:4px solid #FB8C1E;
+  border-radius:0 12px 12px 0;
+  padding:14px 16px;
+  font-size:13px;
+  line-height:1.8;
+}
+.tip-list{margin:20px 0;}
+.tip-item{display:flex;gap:14px;align-items:flex-start;padding:16px;background:#f9f8f6;border-radius:10px;margin-bottom:12px;}
+.tip-icon{background:#FB8C1E;color:#fff;font-size:13px;font-weight:bold;min-width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.tip-body h3{font-size:14px;font-weight:bold;color:#1a1a1a;margin-bottom:4px;margin-top:0;}
+.tip-body p{font-size:13px;color:#555;line-height:1.8;margin:0;}
+.exit-modal{background:#fff;border-radius:16px;padding:40px 32px;max-width:480px;width:calc(100% - 40px);text-align:center;position:relative;}
+.exit-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:22px;color:#aaa;cursor:pointer;}
+.exit-label{font-size:12px;color:#FB8C1E;font-weight:bold;letter-spacing:1px;margin-bottom:8px;}
+.exit-heading{font-size:1.2em;font-weight:bold;color:#1a1a1a;margin-bottom:12px;line-height:1.4;}
+.exit-body{font-size:14px;color:#666;margin-bottom:20px;line-height:1.8;}
+.exit-code-box{display:inline-flex;align-items:stretch;border:2px solid #FB8C1E;border-radius:8px;overflow:hidden;margin-bottom:20px;}
+.exit-code-label{background:#fff5eb;color:#FB8C1E;font-size:10px;font-weight:bold;padding:0 12px;display:flex;align-items:center;letter-spacing:1px;border-right:1px solid #fddbb5;}
+.exit-code-text{font-size:22px;font-weight:bold;color:#FB8C1E;padding:10px 18px;letter-spacing:6px;font-family:'Courier New',monospace;}
+.exit-copy-btn{background:#FB8C1E;color:#fff;border:none;font-size:13px;font-weight:bold;padding:0 18px;cursor:pointer;}
+.exit-cta-btn{display:block;background:#FB8C1E;color:#fff;font-size:15px;font-weight:bold;padding:16px 24px;border-radius:8px;margin-bottom:12px;}
+.exit-cta-btn:hover{opacity:0.88;color:#fff;}
+.exit-footer{font-size:11px;color:#aaa;}
+.sticky-inner{max-width:1100px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:10px 20px;gap:12px;}
+.sticky-code{display:flex;align-items:center;gap:10px;}
+.sticky-label{font-size:10px;color:#aaa;font-weight:bold;letter-spacing:1px;}
+.sticky-code-text{font-size:18px;font-weight:bold;color:#FB8C1E;letter-spacing:4px;font-family:'Courier New',monospace;}
+.sticky-copy-btn{background:#444;color:#fff;border:none;font-size:12px;font-weight:bold;padding:6px 14px;border-radius:4px;cursor:pointer;}
+.sticky-cta-btn{background:#FB8C1E;color:#fff;font-size:14px;font-weight:bold;padding:12px 26px;border-radius:6px;white-space:nowrap;}
+.sticky-cta-btn:hover{opacity:0.88;color:#fff;}
+@media(max-width:600px){
+  .sticky-code{display:none;}
+  .sticky-inner{justify-content:center;}
+  .feature-grid{grid-template-columns:1fr;}
+}
+@media(max-width:900px){
+  .calc-layout{grid-template-columns:1fr;}
+  .calc-result{position:static;}
+  .input-grid{grid-template-columns:1fr;}
+}
+.related-section{padding:48px 24px;background:#f9f8f6;border-top:1px solid #f0ede8;}
+.related-inner{max-width:760px;margin:0 auto;}
+.related-label{font-size:12px;font-weight:bold;color:#aaa;letter-spacing:1px;margin-bottom:16px;}
+.related-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;}
+.related-card{background:#fff;border-radius:8px;padding:14px 16px;border:1px solid #f0ede8;display:block;}
+.related-card:hover{border-color:#FB8C1E;}
+.related-card-title{display:block;font-size:13px;font-weight:bold;color:#1a1a1a;margin-bottom:4px;line-height:1.4;}
+.related-card-desc{display:block;font-size:12px;color:#888;line-height:1.5;}
+</style>
+</head>
+<body>
+
+<!-- Announce bar -->
+<div class="announce-bar">【期間限定】割引コード <strong>CJ9852</strong> で30%OFF！ → <a href="https://www.sellersprite.com/jp/w/user/login">今すぐ試す</a></div>
+
+<!-- Nav -->
+<nav class="nav-bar">
+  <div class="nav-inner">
+    <span style="font-size:15px;font-weight:bold;color:#1a1a1a;">セラースプライト<span style="color:#FB8C1E;">公式代理店</span></span>
+    <span class="nav-badge">公式代理店限定30%OFF</span>
+    <a href="https://www.sellersprite.com/jp/w/user/login" class="nav-cta" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':'nav'});" target="_blank">無料で始める</a>
+  </div>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-inner">
+    <span class="hero-sub">完全無料ツール</span>
+    <h1>FBA利益計算機<br><em>【無料】</em>Amazon手数料シミュレーター</h1>
+    <p class="hero-lead">
+      販売価格・仕入れ原価・FBAサイズを入力するだけで、利益額・利益率・ROIをリアルタイムで計算。Amazon FBAビジネスの収益性を正確に把握しましょう。
+    </p>
+    <div class="coupon-block">
+      <span class="coupon-tag">30%OFF</span>
+      <span class="coupon-code" id="heroCode">CJ9852</span>
+      <button class="copy-btn" id="heroBtn" onclick="copyCode('heroBtn','CJ9852','hero')">コピー</button>
+    </div>
+    <p class="coupon-note">※ セラースプライト公式サイトのお支払い画面でご利用ください</p>
+    <a href="https://www.sellersprite.com/jp/w/user/login" class="hero-cta-btn" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':'hero'});" target="_blank">セラースプライトを試す →</a>
+    <p class="hero-assure">クレジットカード不要・無料プランあり</p>
+  </div>
+</section>
+
+<!-- Calculator Section -->
+<section class="section bg-white">
+  <div class="section-inner">
+    <h2>① 無料FBA利益計算機</h2>
+    <p>入力するとすぐに利益額・利益率・ROIが更新されます。Amazonの手数料構造をざっくり把握しつつ、仕入れ判断の初速を上げるためのシミュレーターです。</p>
+
+    <div class="calc-layout">
+      <div class="calc-panel">
+        <div class="calc-panel-title">入力フォーム</div>
+        <h3>販売条件を入力してください</h3>
+
+        <div class="input-grid">
+          <div class="field">
+            <label for="salePrice">販売価格 (円)</label>
+            <input id="salePrice" type="number" min="0" step="1" placeholder="例: 3980" oninput="calculateFbaProfit()">
+          </div>
+
+          <div class="field">
+            <label for="purchaseCost">仕入れ原価 (円)</label>
+            <input id="purchaseCost" type="number" min="0" step="1" placeholder="例: 800" oninput="calculateFbaProfit()">
+          </div>
+
+          <div class="field">
+            <label for="fbaSize">FBAサイズ区分</label>
+            <select id="fbaSize" oninput="calculateFbaProfit()">
+              <option value="310">小型 (310円)</option>
+              <option value="540" selected>標準 (540円)</option>
+              <option value="1200">大型 (1200円)</option>
+              <option value="2500">特大 (2500円)</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="shippingWeight">配送重量 (kg)</label>
+            <input id="shippingWeight" type="number" min="0" step="0.1" placeholder="例: 0.5" oninput="calculateFbaProfit()">
+            <small>重量が重い商品ほど、FBA費用の目安が上がります。</small>
+          </div>
+
+          <div class="field">
+            <label for="adRate">広告費率 (%)</label>
+            <input id="adRate" type="number" min="0" step="0.1" placeholder="例: 8" value="8" oninput="calculateFbaProfit()">
+            <small>販売価格に対する広告費の割合を入力してください。</small>
+          </div>
+
+          <div class="field">
+            <label for="referralRate">Amazon販売手数料率 (%)</label>
+            <select id="referralRate" oninput="calculateFbaProfit()">
+              <option value="0.08">8%（低率カテゴリ）</option>
+              <option value="0.10">10%（標準）</option>
+              <option value="0.15" selected>15%（一般的）</option>
+              <option value="0.20">20%（高率カテゴリ）</option>
+            </select>
+            <small>カテゴリによって料率が変わるため、実際の数値に合わせて調整してください。</small>
+          </div>
+        </div>
+
+        <div class="helper-box">
+          <strong>計算式の考え方:</strong><br>
+          利益 = 販売価格 - 仕入れ原価 - Amazon手数料 - 広告費<br>
+          このページのFBA手数料は、サイズ区分 + 重量加算の概算モデルです。
+        </div>
+      </div>
+
+      <div class="calc-result" aria-live="polite">
+        <div class="calc-result-head">
+          <h3>計算結果</h3>
+          <span class="result-badge">リアルタイム更新</span>
+        </div>
+
+        <div class="profit-hero">
+          <div class="profit-label">想定利益</div>
+          <div class="profit-amount" id="profitValue">¥0</div>
+          <div class="profit-status" id="profitStatus">数値を入力すると利益が表示されます。</div>
+          <div class="profit-meter"><div id="profitMeterFill" class="profit-meter-fill"></div></div>
+        </div>
+
+        <div class="result-grid">
+          <div class="result-card">
+            <span>利益率</span>
+            <strong id="marginValue">0.0%</strong>
+          </div>
+          <div class="result-card">
+            <span>ROI</span>
+            <strong id="roiValue">0.0%</strong>
+          </div>
+          <div class="result-card">
+            <span>Amazon手数料</span>
+            <strong id="amazonFeeValue">¥0</strong>
+          </div>
+          <div class="result-card">
+            <span>損益分岐点</span>
+            <strong id="breakEvenValue">¥0</strong>
+          </div>
+        </div>
+
+        <div class="breakdown">
+          <div class="breakdown-row">
+            <div class="label">販売価格</div>
+            <div class="value" id="saleValue">¥0</div>
+          </div>
+          <div class="breakdown-row">
+            <div class="label">仕入れ原価</div>
+            <div class="value" id="purchaseValue">¥0</div>
+          </div>
+          <div class="breakdown-row">
+            <div class="label">FBA手数料</div>
+            <div class="value" id="fbaFeeValue">¥0</div>
+          </div>
+          <div class="breakdown-row">
+            <div class="label">販売手数料</div>
+            <div class="value" id="referralFeeValue">¥0</div>
+          </div>
+          <div class="breakdown-row">
+            <div class="label">広告費</div>
+            <div class="value" id="adFeeValue">¥0</div>
+          </div>
+          <div class="breakdown-row total">
+            <div class="label">総コスト</div>
+            <div class="value" id="totalCostValue">¥0</div>
+          </div>
+        </div>
+
+        <div class="highlight-line" id="resultHint">
+          黒字判断の目安は「利益率20%以上」「ROI100%以上」です。
+        </div>
+
+        <p class="calc-note">
+          ※ これは概算シミュレーションです。実際のAmazon手数料はカテゴリ、キャンペーン、時期によって変動します。<strong>正確な競合分析や利益管理にはセラースプライトのデータ活用が有効です。</strong>
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 2: How to read -->
+<section class="section bg-gray">
+  <div class="section-inner">
+    <h2>② この計算機の見方</h2>
+    <p>入力項目は少ないですが、仕入れの意思決定に必要な基本要素は一通り押さえています。まずは販売価格と仕入れ原価を入れて、次にFBAサイズと広告費率を調整してください。</p>
+
+    <div class="feature-grid">
+      <div class="feature-card">
+        <h3>利益額</h3>
+        <p>売上から原価・Amazon手数料・広告費を引いた金額です。ここがプラスでなければ、販売しても利益が残りません。</p>
+      </div>
+      <div class="feature-card">
+        <h3>利益率</h3>
+        <p>売上に対する利益の割合です。価格競争に耐えられるかを判断する重要な指標で、20%前後を一つの目安にできます。</p>
+      </div>
+      <div class="feature-card">
+        <h3>ROI</h3>
+        <p>投資したコストに対して何%の利益が出るかを示します。少ない資本でどれだけ効率よく回せるかを確認できます。</p>
+      </div>
+      <div class="feature-card">
+        <h3>損益分岐点</h3>
+        <p>この価格を下回ると赤字になるというラインです。セールや広告の投入前に、最低販売価格を把握する用途で役立ちます。</p>
+      </div>
+    </div>
+
+    <div class="em-box">
+      <strong>仕入れ前のチェックポイント:</strong><br>
+      1. FBAサイズ区分が上がっていないか<br>
+      2. 広告費率を現実的に入れているか<br>
+      3. 競合の価格帯に対して利益が残るか
+    </div>
+  </div>
+</section>
+
+<!-- Section 3: Optimization tips -->
+<section class="section bg-white">
+  <div class="section-inner">
+    <h2>③ 利益率を上げるための改善ポイント</h2>
+    <p>同じ商品でも、数値の調整だけで利益構造は大きく変わります。下記のポイントを押さえると、仕入れ判断の精度が上がります。</p>
+
+    <div class="tip-list">
+      <div class="tip-item">
+        <div class="tip-icon">1</div>
+        <div class="tip-body">
+          <h3>FBAサイズを1段階下げる</h3>
+          <p>梱包を見直してサイズ区分が下がると、配送コストが大きく変わります。利益率改善のインパクトが最も大きい項目です。</p>
+        </div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-icon">2</div>
+        <div class="tip-body">
+          <h3>広告費率を複数パターンで試す</h3>
+          <p>広告運用は初期と成熟期で数字が変わります。3%、5%、8%のように複数パターンを比較すると、赤字ラインが見えやすくなります。</p>
+        </div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-icon">3</div>
+        <div class="tip-body">
+          <h3>販売手数料率の高いカテゴリを避ける</h3>
+          <p>カテゴリによってAmazonの料率は変わります。高い料率のカテゴリでは、価格戦略をより慎重に設計する必要があります。</p>
+        </div>
+      </div>
+      <div class="tip-item">
+        <div class="tip-icon">4</div>
+        <div class="tip-body">
+          <h3>競合価格とレビュー数を同時に見る</h3>
+          <p>価格だけでなく、レビュー数や評価も合わせて見ると、どこまで価格を上げられるかの判断材料になります。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Section 4: SellerSprite -->
+<section class="section bg-gray">
+  <div class="section-inner">
+    <h2>④ セラースプライトで精度を上げる</h2>
+    <p>この無料計算機は、仕入れ判断の入り口として使うのに向いています。さらに精度を上げたい場合は、セラースプライトのデータを組み合わせるのが有効です。</p>
+    <p>競合商品のレビュー推移、売れ行き、キーワード、価格帯を分析すると、数字の裏付けを持った仕入れ判断ができます。感覚ではなく、データで黒字候補を絞り込めます。</p>
+
+    <div class="em-box">
+      <strong>セラースプライトを使うメリット:</strong><br>
+      • 競合の販売状況を把握できる<br>
+      • キーワード需要と価格帯を確認できる<br>
+      • 仕入れ判断の精度を上げやすい<br>
+      • 利益計算と市場分析をセットで進められる
+    </div>
+
+    <p>今なら割引コード <strong style="color:#FB8C1E;">CJ9852</strong> を使うと30%OFFで始められます。</p>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section bg-white">
+  <div class="section-inner">
+    <h2>よくある質問</h2>
+    <div id="faqList">
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">このFBA利益計算機は無料ですか？<span class="faq-icon">+</span></button>
+        <div class="faq-a">はい、無料で使えます。販売価格・仕入れ原価・FBAサイズ区分・配送重量・広告費率を入力すると、利益額・利益率・ROI・損益分岐点を自動計算します。</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">広告費率は何%で入力すればよいですか？<span class="faq-icon">+</span></button>
+        <div class="faq-a">まずは販売価格に対して3〜10%程度で試すのがおすすめです。商材や広告戦略によって大きく変わるため、複数の数値を入れて利益率の感度を確認してください。</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">FBAサイズ区分はどう選べばよいですか？<span class="faq-icon">+</span></button>
+        <div class="faq-a">実際の梱包サイズと重量に近い区分を選んでください。サイズ区分が1つ変わるだけで手数料が大きく変わるため、仕入れ前の検証が重要です。</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">利益率の目安はどれくらいですか？<span class="faq-icon">+</span></button>
+        <div class="faq-a">一般的には広告費込みで20%以上を目安にすると、価格変動や手数料改定に耐えやすくなります。10%未満だとリスクが高くなりやすいです。</div>
+      </div>
+      <div class="faq-item">
+        <button class="faq-q" onclick="toggleFaq(this)">セラースプライトはこの計算機にどう役立ちますか？<span class="faq-icon">+</span></button>
+        <div class="faq-a">セラースプライトでは競合のレビュー数、売れ行き、キーワード、価格帯を分析できます。利益計算機で出した数値を、競合データと照らし合わせることで精度の高い仕入れ判断ができます。</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CTA Section -->
+<section class="cta-section">
+  <div class="cta-inner">
+    <p class="cta-title">無料計算機で<em>利益の見える化</em>を始めよう</p>
+    <p class="cta-lead">セラースプライトで競合データも確認すれば、数字ベースで仕入れ判断ができます。公式代理店限定コードで30%OFFでスタートできます。</p>
+    <div class="coupon-block" style="margin-bottom:20px;">
+      <span class="coupon-tag">30%OFF</span>
+      <span class="coupon-code" id="ctaCode">CJ9852</span>
+      <button class="copy-btn" id="ctaBtn" onclick="copyCode('ctaBtn','CJ9852','cta')">コピー</button>
+    </div>
+    <br>
+    <a href="https://www.sellersprite.com/jp/w/user/login" class="cta-main-btn" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':'cta'});" target="_blank">セラースプライトで分析を始める →</a>
+    <p class="cta-sub">著者：鬼束壮一（セラースプライト公式代理店）</p>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer style="padding:32px 24px;text-align:center;background:#f9f8f6;border-top:1px solid #f0ede8;">
+  <p style="font-size:12px;color:#aaa;">© 2026 セラースプライト公式代理店 | 鬼束壮一<br>本サイトはセラースプライトの公式代理店によって運営されています。</p>
+</footer>
+
+<!-- Related Guides -->
+<section class="section bg-gray">
+  <div class="section-inner">
+    <h2>📚 関連ガイド｜FBA・利益改善</h2>
+    <p style="font-size:14px;color:#666;margin-bottom:20px;">このトピックに関連するガイドも参考にしてください。</p>
+    <ul style="list-style:none;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px;margin-bottom:20px;">
+      <li style="background:#fff;border-radius:8px;padding:14px 16px;border:1px solid #f0ede8;"><a href="https://sellersprite.blog/fba-keisan.html" style="font-size:14px;font-weight:bold;color:#FB8C1E;line-height:1.5;">Amazon FBA 利益計算 ツール【2026年版】</a></li>
+      <li style="background:#fff;border-radius:8px;padding:14px 16px;border:1px solid #f0ede8;"><a href="https://sellersprite.blog/amazon-fba-fee-calculator.html" style="font-size:14px;font-weight:bold;color:#FB8C1E;line-height:1.5;">Amazon FBA手数料を正確に計算する方法</a></li>
+      <li style="background:#fff;border-radius:8px;padding:14px 16px;border:1px solid #f0ede8;"><a href="https://sellersprite.blog/profit-margin.html" style="font-size:14px;font-weight:bold;color:#FB8C1E;line-height:1.5;">Amazon 利益率 計算 方法</a></li>
+      <li style="background:#fff;border-radius:8px;padding:14px 16px;border:1px solid #f0ede8;"><a href="https://sellersprite.blog/amazon-fba-cost.html" style="font-size:14px;font-weight:bold;color:#FB8C1E;line-height:1.5;">Amazon FBA コストの考え方</a></li>
+    </ul>
+    <p style="text-align:center;"><a href="https://sellersprite.blog/product-research-hub.html" style="font-size:13px;color:#FB8C1E;font-weight:bold;">→ もっと関連ガイドを見る</a></p>
+  </div>
+</section>
+
+<!-- Sticky bar -->
+<div class="sticky-inner" style="position:fixed;bottom:0;left:0;width:100%;background:#1a1a1a;z-index:900;">
+  <div class="sticky-inner">
+    <span>公式代理店限定</span>
+    <span class="sticky-code-text">CJ9852</span>
+    <span style="color:#aaa;font-size:12px;">で30%OFF</span>
+    <button class="sticky-copy-btn" id="stickyBtn" onclick="copyCode('stickyBtn','CJ9852','sticky')">コードをコピー</button>
+  </div>
+</div>
+
+<!-- Exit-intent modal -->
+<div class="modal-overlay" id="exitModal">
+  <div class="exit-modal">
+    <button class="exit-close" onclick="closeModal()">×</button>
+    <div class="exit-label">離脱前に確認</div>
+    <div class="exit-heading">30%OFF割引コードを<em style="color:#FB8C1E;font-style:normal;">受け取りましたか？</em></div>
+    <div class="exit-body">セラースプライト公式代理店限定の割引コードです。今すぐコピーして、登録画面でご利用ください。</div>
+    <div class="exit-code-box">
+      <span class="exit-code-label">30%OFF</span>
+      <span class="exit-code-text">CJ9852</span>
+      <button class="exit-copy-btn" id="exitBtn" onclick="copyCode('exitBtn','CJ9852','exit_intent')">コピー</button>
+    </div>
+    <br>
+    <a href="https://www.sellersprite.com/jp/w/user/login" class="exit-cta-btn" onclick="closeModal();gtag('event','cta_click',{'event_category':'conversion','event_label':'modal'});" target="_blank">セラースプライトを試す →</a>
+    <div class="exit-footer">クレジットカード不要・無料プランあり</div>
+  </div>
+</div>
+
+<script>
+function formatYen(value) {
+  return '¥' + Math.round(value).toLocaleString('ja-JP');
+}
+
+function formatPct(value) {
+  if (!isFinite(value)) return '0.0%';
+  return value.toFixed(1) + '%';
+}
+
+function getNumber(id) {
+  var el = document.getElementById(id);
+  if (!el) return 0;
+  var value = parseFloat(el.value);
+  return isFinite(value) ? value : 0;
+}
+
+function getWeightFee(weight) {
+  if (weight <= 0) return 0;
+  if (weight <= 0.25) return 0;
+  if (weight <= 0.5) return 20;
+  if (weight <= 1) return 80;
+  if (weight <= 2) return 140;
+  if (weight <= 3) return 220;
+  if (weight <= 5) return 360;
+  return 600;
+}
+
+function calculateFbaProfit() {
+  var salePrice = getNumber('salePrice');
+  var purchaseCost = getNumber('purchaseCost');
+  var shippingWeight = getNumber('shippingWeight');
+  var adRate = getNumber('adRate') / 100;
+  var referralRate = parseFloat(document.getElementById('referralRate').value) || 0;
+  var sizeSelect = document.getElementById('fbaSize');
+  var sizeFee = parseFloat(sizeSelect.value) || 0;
+  var sizeLabel = sizeSelect.options[sizeSelect.selectedIndex].text;
+  var weightFee = getWeightFee(shippingWeight);
+
+  var fbaFee = sizeFee + weightFee;
+  var referralFee = salePrice * referralRate;
+  var adFee = salePrice * adRate;
+  var amazonFee = referralFee + fbaFee;
+  var totalCost = purchaseCost + amazonFee + adFee;
+  var profit = salePrice - totalCost;
+  var margin = salePrice > 0 ? (profit / salePrice) * 100 : 0;
+  var roiBase = purchaseCost + amazonFee + adFee;
+  var roi = roiBase > 0 ? (profit / roiBase) * 100 : 0;
+  var denominator = 1 - referralRate - adRate;
+  var breakEven = denominator > 0 ? (purchaseCost + fbaFee) / denominator : 0;
+
+  document.getElementById('profitValue').textContent = formatYen(profit);
+  document.getElementById('marginValue').textContent = formatPct(margin);
+  document.getElementById('roiValue').textContent = formatPct(roi);
+  document.getElementById('amazonFeeValue').textContent = formatYen(amazonFee);
+  document.getElementById('breakEvenValue').textContent = breakEven > 0 ? formatYen(breakEven) : '計算不可';
+
+  document.getElementById('saleValue').textContent = formatYen(salePrice);
+  document.getElementById('purchaseValue').textContent = formatYen(purchaseCost);
+  document.getElementById('fbaFeeValue').textContent = formatYen(fbaFee);
+  document.getElementById('referralFeeValue').textContent = formatYen(referralFee);
+  document.getElementById('adFeeValue').textContent = formatYen(adFee);
+  document.getElementById('totalCostValue').textContent = formatYen(totalCost);
+
+  var profitStatus = document.getElementById('profitStatus');
+  var resultHint = document.getElementById('resultHint');
+  var meterFill = document.getElementById('profitMeterFill');
+
+  if (salePrice <= 0 && purchaseCost <= 0) {
+    profitStatus.textContent = '数値を入力すると利益が表示されます。';
+    resultHint.textContent = '黒字判断の目安は「利益率20%以上」「ROI100%以上」です。';
+    meterFill.style.width = '0%';
+    meterFill.style.background = 'linear-gradient(90deg,#FB8C1E 0%,#ffb157 100%)';
+    return;
+  }
+
+  if (profit >= 0) {
+    profitStatus.textContent = '黒字です。販売条件は現時点で成立しています。';
+    resultHint.textContent = 'この条件なら黒字ですが、競合価格や広告効率の変化も定期的に確認しましょう。';
+    meterFill.style.width = Math.min(margin * 2, 100) + '%';
+    meterFill.style.background = 'linear-gradient(90deg,#27ae60 0%,#7ee2a8 100%)';
+  } else {
+    profitStatus.textContent = '赤字です。価格、原価、広告費、サイズ区分の見直しが必要です。';
+    resultHint.textContent = '赤字回避のために、販売価格の上積みか原価削減、FBAサイズの最適化を検討してください。';
+    meterFill.style.width = '0%';
+    meterFill.style.background = 'linear-gradient(90deg,#e74c3c 0%,#ff8a80 100%)';
+  }
+}
+
+// Copy code function
+function copyCode(btnId, code, label) {
+  navigator.clipboard.writeText(code).then(function() {
+    var btn = document.getElementById(btnId);
+    btn.textContent = 'コピー済';
+    btn.classList.add('ok');
+    setTimeout(function() {
+      btn.textContent = btnId === 'stickyBtn' ? 'コードをコピー' : 'コピー';
+      btn.classList.remove('ok');
+    }, 2000);
+    gtag('event', 'code_copy', { event_label: 'CJ9852', copy_location: label });
+  });
+}
+
+// FAQ toggle
+function toggleFaq(btn) {
+  var item = btn.parentElement;
+  item.classList.toggle('open');
+}
+
+// Exit-intent modal (PC only, width > 768px)
+var exitModalShown = false;
+document.addEventListener('mouseleave', function(e) {
+  if (window.innerWidth > 768 && !exitModalShown && e.clientY <= 0) {
+    exitModalShown = true;
+    document.getElementById('exitModal').classList.add('show');
+  }
+});
+
+function closeModal() {
+  document.getElementById('exitModal').classList.remove('show');
+}
+
+document.getElementById('exitModal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+calculateFbaProfit();
+</script>
+</body>
+</html>
+```
+
+If you want, I can also turn this into a version that matches the site’s existing `amazon-fba-fee-calculator.html` styling more tightly, or generate a second variant with a more compact calculator and stronger conversion CTA.
