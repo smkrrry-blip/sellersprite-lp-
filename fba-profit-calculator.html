@@ -783,6 +783,9 @@ document.getElementById('exitModal').addEventListener('click', function(e) {
 
 calculateFbaProfit();
 </script>
+<script>
+(function(){try{var s=location.pathname.split('/').pop().replace('.html','');document.querySelectorAll('a[href*="sellersprite.com"]').forEach(function(a){var l='other',c=a.className||'';if(c.indexOf('hero-cta')>-1)l='hero';else if(c.indexOf('cta-main')>-1)l='cta';else if(c.indexOf('modal-cta')>-1)l='modal';else if(c.indexOf('nav-cta')>-1)l='nav';else if(a.closest&&a.closest('.announce-bar'))l='announce';else if(a.closest&&a.closest('.sticky-bar'))l='sticky';var b=a.href.split('?')[0];a.href=b+'?utm_source=sellersprite-blog&utm_medium=lp&utm_campaign=cj9852&utm_content='+encodeURIComponent(s)+'&utm_term='+l;a.addEventListener('click',function(){if(typeof gtag==='function')gtag('event','cta_click',{event_label:'CJ9852',click_location:l,page_slug:s});});});}catch(e){}})();
+</script>
 </body>
 </html>
 ```
