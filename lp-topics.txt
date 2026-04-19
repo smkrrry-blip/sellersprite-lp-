@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-account-health-score|アカウント健全性スコアの改善方法
-amazon-order-defect-rate|注文不良率（ODR）の改善と管理方法
-amazon-late-shipment|出荷遅延率の改善と防止策
-amazon-search-suppressed|検索非表示リスティングの原因と修正方法
-amazon-seller-app|Amazonセラーアプリの使い方と活用術
 amazon-merch-on-demand|Amazon Merch on Demandの始め方と戦略
 amazon-print-on-demand|プリントオンデマンド販売の完全ガイド
 amazon-fba-europe|ヨーロッパFBA（Pan-EU）の始め方と設定
