@@ -2,9 +2,4 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-canada-market|カナダAmazon市場への進出戦略
-amazon-fba-prep-guide|FBA納品準備・ラベル貼り・梱包の完全ガイド
-amazon-hazmat|危険物・ハズマット商品の取り扱いと申請方法
-amazon-reimbursement|FBA紛失・破損の補償請求（リインバースメント）方法
-amazon-brand-analytics|ブランドアナリティクスでデータ分析して売上を伸ばす方法
 
