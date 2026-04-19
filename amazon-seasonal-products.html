@@ -331,5 +331,41 @@ function exitCopy(btn){navigator.clipboard.writeText('CJ9852').then(function(){b
     <p style="text-align:center;"><a href="https://sellersprite.blog/product-research-hub.html" style="font-size:13px;color:#FB8C1E;font-weight:bold;">→ 商品リサーチのガイドを全て見る</a></p>
   </div>
 </section>
+<script>
+/* ① UTM attribution + ② CTA click tracking — sellersprite-blog */
+(function(){
+  try {
+    var slug = location.pathname.split('/').pop().replace('.html','') || 'index';
+    document.querySelectorAll('a[href*="sellersprite.com"]').forEach(function(a){
+      var loc = 'other';
+      var cls = a.className || '';
+      if(cls.indexOf('hero-cta')>-1)      loc = 'hero';
+      else if(cls.indexOf('cta-main')>-1) loc = 'cta';
+      else if(cls.indexOf('modal-cta')>-1)loc = 'modal';
+      else if(cls.indexOf('nav-cta')>-1)  loc = 'nav';
+      else if(a.closest && a.closest('.announce-bar')) loc = 'announce';
+      else if(a.closest && a.closest('.sticky-bar'))   loc = 'sticky';
+      // ① UTMパラメータ付与
+      var base = a.href.split('?')[0];
+      a.href = base
+        + '?utm_source=sellersprite-blog'
+        + '&utm_medium=lp'
+        + '&utm_campaign=cj9852'
+        + '&utm_content=' + encodeURIComponent(slug)
+        + '&utm_term=' + loc;
+      // ② GA4 cta_click イベント
+      a.addEventListener('click', function(){
+        if(typeof gtag === 'function'){
+          gtag('event', 'cta_click', {
+            event_label: 'CJ9852',
+            click_location: loc,
+            page_slug: slug
+          });
+        }
+      });
+    });
+  } catch(e) {}
+})();
+</script>
 </body>
 </html>
