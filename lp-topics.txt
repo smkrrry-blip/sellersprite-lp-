@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-trademark-registration|商標登録とAmazonブランド保護の完全ガイド
-amazon-seller-vacation|長期休暇中の在庫・アカウント管理方法
-amazon-category-bsr-deep|カテゴリBSR分析の深掘りと活用法
-amazon-keyword-rank-tracking|キーワード順位の日次追跡と改善サイクル
-amazon-deals-strategy|Amazonセール・ディール戦略の立て方
 amazon-tiktok-amazon|TikTokとAmazonを組み合わせた集客戦略
 amazon-sns-marketing|SNS（Instagram・X）を活用したAmazon集客
 amazon-email-list|メールリスト構築とAmazon外販路の作り方
