@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-handmade|Amazon Handmadeで手作り商品を販売する方法
-amazon-b2b-selling|AmazonビジネスB2B販売の攻略法
-amazon-wholesale-fba|卸売り×FBAで安定収益を上げる方法
-amazon-ppc-new-launch|新商品ローンチ時のPPC戦略完全ガイド
-amazon-auto-manual-campaign|オートキャンペーンと手動キャンペーンの使い分け
 amazon-negative-keyword|ネガティブキーワードで広告費を削減する方法
 amazon-listing-images|商品画像の最適化で転換率を上げる実践法
 amazon-product-video|商品動画（プロダクトビデオ）の作り方と効果
