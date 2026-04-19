@@ -2,8 +2,4 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-a9-algorithm|Amazon A9/A10アルゴリズム完全解説【2026年版】
-amazon-dsp-ads|Amazon DSP広告の使い方と費用対効果
-amazon-browse-node|ブラウズノード設定で売上を3倍にする方法
-amazon-rakuten-comparison|Amazon vs 楽天市場 どちらで売るべきか徹底比較
-amazon-external-traffic|外部トラフィック（SNS・SEO・YouTube）でAmazon売上を伸ばす方法
+
