@@ -2,13 +2,3 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-tiktok-amazon|TikTokとAmazonを組み合わせた集客戦略
-amazon-sns-marketing|SNS（Instagram・X）を活用したAmazon集客
-amazon-email-list|メールリスト構築とAmazon外販路の作り方
-amazon-private-label-deep|プライベートラベルの深掘り・ブランド化戦略
-amazon-sourcing-vietnam|ベトナム・東南アジア仕入れの完全ガイド
-amazon-sourcing-india|インド仕入れ・製造委託の始め方
-amazon-low-price-strategy|低価格商品で利益を出す戦略とセラースプライト活用
-amazon-high-ticket|高単価商品（1万円以上）の仕入れ・販売戦略
-amazon-subscription-strategy|サブスクリプション型ビジネスモデルの構築法
-amazon-exit-strategy|Amazon物販ビジネスの出口戦略・売却方法
