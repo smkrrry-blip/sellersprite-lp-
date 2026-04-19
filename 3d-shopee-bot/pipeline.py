@@ -31,7 +31,7 @@ def _parse_image_urls(raw) -> list[str]:
 from db import init_db, upsert_product, update_status, get_products_by_status, get_stats, log_run
 from makerworld import MakerWorldScraper
 from translator import Translator, PriceCalculator
-from shopee_browser import ShopeeBrowser, _get_today_count
+from shopee_browser import ShopeeBrowser, _get_today_count, LoginLoopError
 from image_downloader import download_product_images, cleanup_images
 from config import SCRAPING_SETTINGS, BROWSER_SETTINGS
 
@@ -275,8 +275,21 @@ def run_step(step: str):
         print(f"✅ 画像ダウンロード完了: {len(products)} 件")
 
     elif step == "list":
+        import subprocess
+        def _tg_notify(msg: str):
+            BOT_TOKEN = "8772700188:AAFbw1U0tJFB56uX5z7veVAMQ-5dLbP1f6U"
+            CHAT_ID = "7138196877"
+            subprocess.run(
+                ["curl", "-sS", "-X", "POST",
+                 f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage",
+                 "-d", f"chat_id={CHAT_ID}",
+                 "--data-urlencode", f"text={msg}"],
+                capture_output=True,
+            )
+
         products = get_products_by_status("images_ready", limit=BROWSER_SETTINGS["daily_limit"])
         listed = 0
+        loop_aborted = False
         with ShopeeBrowser() as browser:
             if browser.login():
                 for p in products:
@@ -287,12 +300,21 @@ def run_step(step: str):
                         image_urls = _parse_image_urls(p.get("image_urls"))
                         local_paths = download_product_images(p["mw_model_id"], image_urls)
                     if local_paths:
-                        url = browser.list_product(p, local_paths)
+                        try:
+                            url = browser.list_product(p, local_paths)
+                        except LoginLoopError as e:
+                            logger.error(f"🛑 ループ検出 — 出品中断: {e}")
+                            _tg_notify(f"🛑 Shopee出品ループ検出 — 自動中断\n{e}\n出品済み: {listed}件")
+                            loop_aborted = True
+                            break
                         if url:
                             update_status(p["mw_model_id"], "listed", shopee_url=url)
                             cleanup_images(p["mw_model_id"])
                             listed += 1
-        print(f"✅ 出品完了: {listed} 件")
+        if loop_aborted:
+            print(f"🛑 ログインループ検出により中断: {listed} 件出品済み")
+        else:
+            print(f"✅ 出品完了: {listed} 件")
 
     elif step == "status":
         stats = get_stats()

@@ -15,6 +15,15 @@ from typing import Optional
 
 from playwright.sync_api import sync_playwright, Page, BrowserContext, TimeoutError as PlaywrightTimeout
 
+CDP_PORT = 9222
+CDP_URL = f"http://localhost:{CDP_PORT}"
+MAX_CONSECUTIVE_SESSION_ERRORS = 3  # 連続セッション切れでループ検出→中断
+
+
+class LoginLoopError(Exception):
+    """ログイン→セッション切れのループを検出した場合に raise"""
+    pass
+
 from config import (
     SHOPEE_EMAIL, SHOPEE_PASSWORD, SHOPEE_SELLER_URL,
     BROWSER_SETTINGS, LISTING_SETTINGS, CATEGORY_MAP,
@@ -98,12 +107,29 @@ class ShopeeBrowser:
         self._browser = None
         self._context: Optional[BrowserContext] = None
         self._page: Optional[Page] = None
+        self._using_cdp = False
+        self._session_error_count = 0
 
     # ─── 起動・終了 ───────────────────────────────────────
 
     def start(self):
-        """ブラウザを起動してコンテキストを初期化"""
+        """ブラウザを起動してコンテキストを初期化。CDP接続を優先する。"""
         self._playwright = sync_playwright().start()
+
+        # ── CDP接続を試みる（既存Chromeセッション優先）──────────────
+        try:
+            import urllib.request
+            urllib.request.urlopen(f"{CDP_URL}/json/version", timeout=2)
+            self._browser = self._playwright.chromium.connect_over_cdp(CDP_URL)
+            self._context = self._browser.contexts[0]
+            self._page = self._context.new_page()
+            self._using_cdp = True
+            logger.info(f"✅ CDP接続成功 (port {CDP_PORT}) — 既存Chromeセッション使用")
+            return
+        except Exception as e:
+            logger.info(f"CDP未起動 ({e}) — 新規ブラウザ起動")
+
+        # ── 通常のPlaywright起動（フォールバック）──────────────────
         self._browser = self._playwright.chromium.launch(
             headless=BROWSER_SETTINGS["headless"],
             slow_mo=BROWSER_SETTINGS["slow_mo"],
@@ -113,8 +139,6 @@ class ShopeeBrowser:
                 "--disable-infobars",
             ],
         )
-
-        # Cookieが保存済みならロード
         storage_state = str(COOKIES_FILE) if COOKIES_FILE.exists() else None
         self._context = self._browser.new_context(
             storage_state=storage_state,
@@ -128,19 +152,23 @@ class ShopeeBrowser:
             timezone_id="Asia/Bangkok",
         )
         self._page = self._context.new_page()
-        # Playwright検出回避
         self._page.add_init_script(
             "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
         )
         logger.info("✅ ブラウザ起動完了")
 
     def stop(self):
-        """ブラウザを終了"""
+        """ブラウザを終了（CDP接続の場合はユーザーのChromeを閉じない）"""
         try:
-            if self._context:
-                self._context.close()
-            if self._browser:
-                self._browser.close()
+            if self._using_cdp:
+                # CDP接続時: 開いたページだけ閉じる。Chrome本体はそのまま
+                if self._page and not self._page.is_closed():
+                    self._page.close()
+            else:
+                if self._context:
+                    self._context.close()
+                if self._browser:
+                    self._browser.close()
             if self._playwright:
                 self._playwright.stop()
         except Exception as e:
@@ -438,14 +466,46 @@ class ShopeeBrowser:
             )
             _human_wait(2, 3)
 
+            # /product/new がログインにリダイレクトされた場合: リロード前に再ログイン
+            if "login" in self._page.url:
+                logger.info("セッション切れ (/product/new) — 再ログイン")
+                if not self.login():
+                    self._session_error_count += 1
+                    if self._session_error_count >= MAX_CONSECUTIVE_SESSION_ERRORS:
+                        raise LoginLoopError(
+                            f"ログイン失敗が{self._session_error_count}回連続 — 自動中断"
+                        )
+                    return None
+                self._page.goto(
+                    f"{SHOPEE_SELLER_URL}/portal/product/new",
+                    timeout=60000,
+                    wait_until="domcontentloaded",
+                )
+                _human_wait(3, 5)
+                try:
+                    self._page.wait_for_load_state("networkidle", timeout=15000)
+                except Exception:
+                    pass
+                if "login" in self._page.url:
+                    self._session_error_count += 1
+                    logger.error(
+                        f"❌ 再ログイン後も /product/new でセッション切れ "
+                        f"({self._session_error_count}/{MAX_CONSECUTIVE_SESSION_ERRORS})"
+                    )
+                    if self._session_error_count >= MAX_CONSECUTIVE_SESSION_ERRORS:
+                        raise LoginLoopError(
+                            f"ログイン→セッション切れのループを{self._session_error_count}回検出 — 自動中断"
+                        )
+                    return None
+                # ログイン成功・セッション回復
+                self._session_error_count = 0
+
             # ページをリロードしてドラフト復元をクリア
-            # (デバッグで確認: reload後は常にクリーンなフォームが読み込まれる)
             self._page.reload(wait_until="domcontentloaded", timeout=60000)
-            # React アプリのレンダリングを待つ（networkidle で JS実行完了を確認）
             try:
                 self._page.wait_for_load_state("networkidle", timeout=20000)
             except Exception:
-                pass  # networkidle がタイムアウトしても続行
+                pass
             _human_wait(3, 5)
 
             logger.info(f"  URL: {self._page.url}")
@@ -459,13 +519,10 @@ class ShopeeBrowser:
                 _notify_captcha()
                 return None
 
-            # セッション切れ確認
+            # リロード後も login リダイレクトになった場合
             if "login" in self._page.url:
-                logger.info("セッション切れ — 再ログイン")
-                if not self.login():
-                    return None
-                self._page.goto(f"{SHOPEE_SELLER_URL}/portal/product/add", timeout=30000)
-                _human_wait(2, 4)
+                logger.error("❌ リロード後もログインページ — スキップ")
+                return None
 
             # ════════════════════════════════════════
             # STEP 1: 商品名 + 画像
@@ -1580,10 +1637,12 @@ class ShopeeBrowser:
         # ※ /portal/product/ だけではダメ (/new を除外する)
         if "product/edit" in current_url:
             logger.info("  ✅ 出品成功（product/edit に遷移）")
+            self._session_error_count = 0
             return current_url
 
         if "product/list" in current_url:
             logger.info("  ✅ 出品成功（product/list に遷移）")
+            self._session_error_count = 0
             return current_url
 
         # まだ /portal/product/new にいる場合はエラー
