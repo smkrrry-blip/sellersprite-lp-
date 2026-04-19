@@ -2,11 +2,6 @@
 # フォーマット: slug|日本語タイトル
 # 処理済みはこのファイルから削除される
 
-amazon-negative-keyword|ネガティブキーワードで広告費を削減する方法
-amazon-listing-images|商品画像の最適化で転換率を上げる実践法
-amazon-product-video|商品動画（プロダクトビデオ）の作り方と効果
-amazon-global-selling|Amazon Global Selling（輸出販売）入門
-amazon-australia-market|オーストラリアAmazon市場への参入ガイド
 amazon-canada-market|カナダAmazon市場への進出戦略
 amazon-fba-prep-guide|FBA納品準備・ラベル貼り・梱包の完全ガイド
 amazon-hazmat|危険物・ハズマット商品の取り扱いと申請方法
