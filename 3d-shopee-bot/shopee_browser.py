@@ -7,6 +7,7 @@ import logging
 import os
 import random
 import shutil
+import subprocess
 import tempfile
 import time
 from datetime import date, datetime
@@ -109,25 +110,70 @@ class ShopeeBrowser:
         self._page: Optional[Page] = None
         self._using_cdp = False
         self._session_error_count = 0
+        self._auto_chrome_proc: Optional[subprocess.Popen] = None
 
     # ─── 起動・終了 ───────────────────────────────────────
 
+    def _launch_chrome_debug(self) -> None:
+        """Chrome をデバッグモードで自動起動する"""
+        chrome_path = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+        profile_dir = os.path.expanduser("~/.shopee-bot-chrome-profile")
+        os.makedirs(profile_dir, exist_ok=True)
+        try:
+            self._auto_chrome_proc = subprocess.Popen(
+                [
+                    chrome_path,
+                    f"--remote-debugging-port={CDP_PORT}",
+                    f"--user-data-dir={profile_dir}",
+                    "--no-first-run",
+                    "--no-default-browser-check",
+                    f"{SHOPEE_SELLER_URL}/account/login",
+                ],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+            )
+            logger.info(f"🚀 Chrome 自動起動 (PID {self._auto_chrome_proc.pid}, port {CDP_PORT})")
+        except Exception as e:
+            logger.error(f"Chrome 起動失敗: {e}")
+
     def start(self):
         """ブラウザを起動してコンテキストを初期化。CDP接続を優先する。"""
+        import urllib.request
         self._playwright = sync_playwright().start()
 
         # ── CDP接続を試みる（既存Chromeセッション優先）──────────────
+        cdp_ready = False
         try:
-            import urllib.request
             urllib.request.urlopen(f"{CDP_URL}/json/version", timeout=2)
-            self._browser = self._playwright.chromium.connect_over_cdp(CDP_URL)
-            self._context = self._browser.contexts[0]
-            self._page = self._context.new_page()
-            self._using_cdp = True
-            logger.info(f"✅ CDP接続成功 (port {CDP_PORT}) — 既存Chromeセッション使用")
-            return
-        except Exception as e:
-            logger.info(f"CDP未起動 ({e}) — 新規ブラウザ起動")
+            cdp_ready = True
+        except Exception:
+            pass
+
+        # CDP未起動なら Chrome を自動起動して待つ（最大15秒）
+        if not cdp_ready:
+            logger.info(f"CDP未起動 — Chrome を自動起動します (port {CDP_PORT})")
+            self._launch_chrome_debug()
+            for _ in range(30):
+                time.sleep(0.5)
+                try:
+                    urllib.request.urlopen(f"{CDP_URL}/json/version", timeout=1)
+                    cdp_ready = True
+                    break
+                except Exception:
+                    pass
+            if not cdp_ready:
+                logger.warning("Chrome CDP 起動タイムアウト — 通常起動にフォールバック")
+
+        if cdp_ready:
+            try:
+                self._browser = self._playwright.chromium.connect_over_cdp(CDP_URL)
+                self._context = self._browser.contexts[0]
+                self._page = self._context.new_page()
+                self._using_cdp = True
+                logger.info(f"✅ CDP接続成功 (port {CDP_PORT})")
+                return
+            except Exception as e:
+                logger.warning(f"CDP接続失敗 ({e}) — 通常起動にフォールバック")
 
         # ── 通常のPlaywright起動（フォールバック）──────────────────
         self._browser = self._playwright.chromium.launch(
@@ -158,12 +204,18 @@ class ShopeeBrowser:
         logger.info("✅ ブラウザ起動完了")
 
     def stop(self):
-        """ブラウザを終了（CDP接続の場合はユーザーのChromeを閉じない）"""
+        """ブラウザを終了。自動起動した Chrome は終了、手動起動はそのまま。"""
         try:
             if self._using_cdp:
-                # CDP接続時: 開いたページだけ閉じる。Chrome本体はそのまま
                 if self._page and not self._page.is_closed():
                     self._page.close()
+                # 自動起動した Chrome のみ終了する（手動起動のChromeは維持）
+                if self._auto_chrome_proc is not None:
+                    try:
+                        self._auto_chrome_proc.terminate()
+                        logger.info("Chrome 自動起動プロセスを終了しました")
+                    except Exception:
+                        pass
             else:
                 if self._context:
                     self._context.close()
@@ -968,70 +1020,102 @@ class ShopeeBrowser:
                     """)
                     logger.info(f"  [診断] Variation状態={var_state}")
 
-                    # ── カテゴリ必須バリエーション対応 ──────────────────────────
-                    # カテゴリ "Docks & Stands" 等はサーバー側でバリエーション必須。
-                    # "Enable Variations" ボタンが表示されていればクリックして _fill_variation_pricing() で設定。
-                    enable_var_btn = self._page.locator('button:has-text("Enable Variations")').first
+                    # バリエーション不要 → 通常の価格・在庫入力（3Dプリント品はバリエーション不使用）
+                    logger.info("  通常価格入力（バリエーションなし）")
 
-                    if enable_var_btn.count() and enable_var_btn.is_visible():
-                        logger.info("  'Enable Variations' ボタン検出 → バリエーション設定開始")
-                        enable_var_btn.click()
-                        _human_wait(2, 3)
-                        self._screenshot(f"debug_{mw_id}_variation_enabled")
-                        price_filled, stock_filled = self._fill_variation_pricing(price, stock)
-                        logger.info(f"  バリエーション設定完了: price={price_filled}, stock={stock_filled}")
-                    else:
-                        # バリエーション不要 → 通常の価格・在庫入力
-                        logger.info("  バリエーションなし → 通常価格入力")
-
-                        # 価格入力: L1 text が '฿' の input を特定
-                        try:
-                            price_marked = self._page.evaluate("""
-                                () => {
-                                    document.querySelectorAll('[data-bot-price]').forEach(e => e.removeAttribute('data-bot-price'));
-                                    const inputs = [...document.querySelectorAll('input.eds-input__input')]
-                                        .filter(i => i.offsetParent !== null);
-                                    for (const inp of inputs) {
-                                        const L1 = inp.parentElement?.parentElement;
-                                        if (L1 && L1.textContent.trim() === '\u0e3f') {
-                                            inp.setAttribute('data-bot-price', 'true');
-                                            inp.scrollIntoView({block: 'center'});
-                                            return true;
-                                        }
+                    # 価格入力: L1 text が '฿' の input を特定
+                    try:
+                        price_marked = self._page.evaluate("""
+                            () => {
+                                document.querySelectorAll('[data-bot-price]').forEach(e => e.removeAttribute('data-bot-price'));
+                                const inputs = [...document.querySelectorAll('input.eds-input__input')]
+                                    .filter(i => i.offsetParent !== null);
+                                for (const inp of inputs) {
+                                    const L1 = inp.parentElement?.parentElement;
+                                    if (L1 && L1.textContent.trim() === '\u0e3f') {
+                                        inp.setAttribute('data-bot-price', 'true');
+                                        inp.scrollIntoView({block: 'center'});
+                                        return true;
                                     }
-                                    return false;
+                                }
+                                return false;
+                            }
+                        """)
+                        if price_marked:
+                            price_inp = self._page.locator('[data-bot-price="true"]').first
+                            price_inp.click(click_count=3)
+                            _human_wait(0.1, 0.2)
+                            self._page.keyboard.type(str(int(price)), delay=50)
+                            _human_wait(0.5, 1.0)
+                            self._page.evaluate("""
+                                () => {
+                                    const el = document.activeElement;
+                                    if (el) {
+                                        el.dispatchEvent(new Event('change', {bubbles: true}));
+                                        el.dispatchEvent(new Event('blur', {bubbles: true}));
+                                        el.blur();
+                                    }
                                 }
                             """)
-                            if price_marked:
-                                price_inp = self._page.locator('[data-bot-price="true"]').first
-                                price_inp.click(click_count=3)
-                                _human_wait(0.1, 0.2)
-                                self._page.keyboard.type(str(int(price)), delay=50)
-                                _human_wait(0.5, 1.0)
-                                self._page.evaluate("""
-                                    () => {
-                                        const el = document.activeElement;
-                                        if (el) {
-                                            el.dispatchEvent(new Event('change', {bubbles: true}));
-                                            el.dispatchEvent(new Event('blur', {bubbles: true}));
-                                            el.blur();
+                            _human_wait(0.3, 0.5)
+                            got_val = price_inp.input_value()
+                            logger.info(f"  価格入力完了: {int(price)} THB (確認={got_val})")
+                            price_filled = True
+                        else:
+                            logger.warning("  ⚠️ 価格inputが特定できません")
+                    except Exception as e:
+                        logger.warning(f"  価格入力エラー: {e}")
+
+                    # 在庫入力: Stockラベルの親コンテナから input を特定（SKU/ParentSKU との混同を避ける）
+                    _human_wait(0.5, 1.0)
+                    try:
+                        stock_marked = self._page.evaluate("""
+                            () => {
+                                document.querySelectorAll('[data-bot-stock]').forEach(e => e.removeAttribute('data-bot-stock'));
+                                // "* Stock" ラベルを持つフォームアイテムの input を探す
+                                const labels = [...document.querySelectorAll(
+                                    'label, .eds-form-item__label, [class*="form-item__label"]'
+                                )];
+                                const stockLabel = labels.find(l => {
+                                    const t = l.textContent.replace('*','').trim();
+                                    return t === 'Stock' || t === 'จำนวนสินค้า';
+                                });
+                                if (stockLabel) {
+                                    let container = stockLabel.parentElement;
+                                    for (let i = 0; i < 6; i++) {
+                                        if (!container) break;
+                                        const inp = container.querySelector('input');
+                                        if (inp && inp.offsetParent !== null && !inp.readOnly && !inp.disabled) {
+                                            inp.setAttribute('data-bot-stock', 'true');
+                                            inp.scrollIntoView({block: 'center'});
+                                            return {found: true, method: 'label', val: inp.value};
+                                        }
+                                        container = container.parentElement;
+                                    }
+                                }
+                                // フォールバック: 価格inputの次の可視inputでSKUでないもの
+                                const priceInp = document.querySelector('[data-bot-price]');
+                                if (priceInp) {
+                                    const allInputs = [...document.querySelectorAll('input.eds-input__input')]
+                                        .filter(i => i.offsetParent !== null && !i.readOnly);
+                                    const priceIdx = allInputs.indexOf(priceInp);
+                                    for (let j = priceIdx + 1; j < allInputs.length; j++) {
+                                        const inp = allInputs[j];
+                                        const anc = inp.closest('[class*="form-item"]');
+                                        const ancText = anc ? anc.textContent : '';
+                                        if (!ancText.includes('SKU') && !ancText.includes('Wholesale')) {
+                                            inp.setAttribute('data-bot-stock', 'true');
+                                            inp.scrollIntoView({block: 'center'});
+                                            return {found: true, method: 'next_after_price', val: inp.value};
                                         }
                                     }
-                                """)
-                                _human_wait(0.3, 0.5)
-                                got_val = price_inp.input_value()
-                                logger.info(f"  価格入力完了: {int(price)} THB (確認={got_val})")
-                                price_filled = True
-                            else:
-                                logger.warning("  ⚠️ 価格inputが特定できません")
-                        except Exception as e:
-                            logger.warning(f"  価格入力エラー: {e}")
-
-                        # 在庫入力 (placeholder="-")
-                        _human_wait(0.5, 1.0)
-                        try:
-                            stock_inp = self._page.locator('input[placeholder="-"]').first
-                            stock_inp.wait_for(state="visible", timeout=5000)
+                                }
+                                return {found: false};
+                            }
+                        """)
+                        logger.info(f"  在庫input特定: {stock_marked}")
+                        if stock_marked.get("found"):
+                            stock_inp = self._page.locator('[data-bot-stock="true"]').first
                             stock_inp.click(click_count=3)
                             _human_wait(0.1, 0.2)
                             self._page.keyboard.type(str(stock), delay=50)
@@ -1046,10 +1130,13 @@ class ShopeeBrowser:
                                 }
                             """)
                             _human_wait(0.3, 0.5)
-                            logger.info(f"  在庫入力完了: {stock}")
+                            actual = stock_inp.input_value()
+                            logger.info(f"  在庫入力完了: {stock} (確認={actual})")
                             stock_filled = True
-                        except Exception as e:
-                            logger.warning(f"  在庫入力エラー: {e}")
+                        else:
+                            logger.warning("  ⚠️ 在庫inputが特定できません")
+                    except Exception as e:
+                        logger.warning(f"  在庫入力エラー: {e}")
 
             except Exception as e:
                 logger.warning(f"Sales Informationタブエラー（続行）: {e}")
@@ -1124,27 +1211,19 @@ class ShopeeBrowser:
             except Exception as e:
                 logger.warning(f"Shippingタブエラー（続行）: {e}")
 
-            # ── Pre-Order設定（Yes / 7日以内） ────────────
+            # ── Pre-Order設定（No — 即出荷で必須フィールドを最小化） ────────
             try:
-                pre_order_yes = self._page.locator('label:has-text("Yes")').filter(
+                pre_order_no = self._page.locator('label:has-text("No")').filter(
                     has=self._page.locator('input[type="radio"]')
                 ).first
-                if not (pre_order_yes.count() and pre_order_yes.is_visible()):
-                    # radio直接
-                    pre_order_yes = self._page.locator('input[type="radio"] + span:has-text("Yes"), input[type="radio"][value="true"]').first
-                if pre_order_yes.count() and pre_order_yes.is_visible():
-                    pre_order_yes.click()
+                if not (pre_order_no.count() and pre_order_no.is_visible()):
+                    pre_order_no = self._page.locator('input[type="radio"][value="false"], input[type="radio"]:first-of-type').first
+                if pre_order_no.count() and pre_order_no.is_visible():
+                    pre_order_no.click()
                     _human_wait(0.5, 1.0)
-                    # 日数入力フィールドに7を入力
-                    days_inp = self._page.locator('input[placeholder*="day"], input[placeholder*="Day"]').first
-                    if not (days_inp.count() and days_inp.is_visible()):
-                        days_inp = self._page.locator('input[type="number"]').last
-                    if days_inp.count() and days_inp.is_visible():
-                        days_inp.click(click_count=3)
-                        self._page.keyboard.type("7", delay=50)
-                    logger.info("  Pre-Order: Yes / 7日以内に設定")
+                    logger.info("  Pre-Order: No に設定")
                 else:
-                    logger.warning("  Pre-Order Yesボタンが見つからない（スキップ）")
+                    logger.info("  Pre-Order: ラジオボタン未検出（デフォルト使用）")
             except Exception as e:
                 logger.warning(f"  Pre-Order設定エラー（続行）: {e}")
 
@@ -1577,7 +1656,35 @@ class ShopeeBrowser:
                 if btn.count() and btn.is_visible():
                     logger.info(f"  出品ボタン発見: {sel}")
                     _human_wait(1, 2)
-                    btn.click()
+                    # スクロールして表示してからクリック（サイドバーオーバーレイ対策）
+                    try:
+                        btn.scroll_into_view_if_needed(timeout=3000)
+                    except Exception:
+                        pass
+                    _human_wait(0.5, 1.0)
+                    try:
+                        btn.click(timeout=5000)
+                    except Exception:
+                        # force=True でアクショナビリティチェックをバイパス
+                        logger.info("  通常クリック失敗 → force=True で再試行")
+                        try:
+                            btn.click(force=True, timeout=5000)
+                        except Exception:
+                            # JS直接クリック（最終手段）
+                            logger.info("  force click失敗 → JS直接クリック")
+                            self._page.evaluate("""
+                                () => {
+                                    const btns = [...document.querySelectorAll('button')];
+                                    for (const b of btns) {
+                                        const txt = b.textContent.trim();
+                                        if (txt.includes('Save and Publish') || txt.includes('Save & Publish') || txt.includes('เผยแพร่')) {
+                                            b.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
+                                            return true;
+                                        }
+                                    }
+                                    return false;
+                                }
+                            """)
                     clicked = True
                     logger.info("  Save and Publish クリック完了 — 結果待ち...")
                     break
