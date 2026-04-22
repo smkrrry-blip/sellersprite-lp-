@@ -3184,17 +3184,17 @@ class ShopeeBrowser:
                 """)
                 if _fix_ok:
                     _human_wait(1.5, 2.0)  # ドロップダウンアニメーション待ち（長め）
-                    # Step 2: 原子的操作 — No Brand 選択 + 即時 Save and Publish クリック
-                    # 同一 JS evaluate 内で実行することで Vue の nextTick が走る前に完了する
+                    # Step 2: 原子的操作 — No Brand 選択 + Publishボタンenabled待機 + クリック
+                    # Fix 5: No Brand click 直後は Vue が validation 走らせるため button disabled。
+                    # async 関数にして await + setTimeout で Vue の nextTick/watcher を回してから
+                    # button enabled 状態をポーリング（最大3秒）してクリック。
                     _atomic = self._page.evaluate("""
-                        () => {
+                        async () => {
+                            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
                             const isVis = (el) => {
                                 const r = el.getBoundingClientRect();
                                 return r.width > 0 && r.height > 0;
                             };
-                            // Shopee EDS は mousedown で v-model をコミットする実装が多い。
-                            // click 単独では selection が反映されないケースがある。
-                            // 対策: mouseover → mousedown → mouseup → click のフルシーケンスを発火。
                             const fire = (el, type) => {
                                 el.dispatchEvent(new MouseEvent(type, {
                                     bubbles: true, cancelable: true, view: window, button: 0
@@ -3210,6 +3210,32 @@ class ShopeeBrowser:
                                 const s = (t || '').trim().toLowerCase();
                                 return s.includes('no brand') || s.includes('ไม่มีแบรนด์');
                             };
+                            const findPublishBtn = () => {
+                                const btns = [...document.querySelectorAll('button')]
+                                    .filter(b => b.offsetParent !== null);
+                                for (const b of btns) {
+                                    const txt = b.textContent.trim();
+                                    if (txt.includes('Save and Publish') ||
+                                            txt.includes('Save & Publish') ||
+                                            txt.includes('บันทึกและเผยแพร่') ||
+                                            txt.includes('เผยแพร่')) {
+                                        return b;
+                                    }
+                                }
+                                return null;
+                            };
+                            const diagDisabled = (b) => {
+                                const reasons = [];
+                                if (!b) return 'no_button';
+                                if (b.disabled) reasons.push('disabled-prop');
+                                if (b.hasAttribute('disabled')) reasons.push('disabled-attr');
+                                if (b.className.includes('disabled')) reasons.push('disabled-class');
+                                if (b.getAttribute('aria-disabled') === 'true') reasons.push('aria-disabled');
+                                return reasons.length > 0 ? reasons.join(',') : 'enabled';
+                            };
+                            const isEnabled = (b) => diagDisabled(b) === 'enabled';
+
+                            // === Phase 1: No Brand 選択 ===
                             let noBrandClicked = false;
                             const candidates = [...document.querySelectorAll(
                                 'li, [role="option"], [class*="option"]'
@@ -3224,29 +3250,24 @@ class ShopeeBrowser:
                                 noBrandClicked = true;
                             }
                             if (!noBrandClicked) return {noBrand: false, publish: false, reason: 'no_option'};
-                            // Publish ボタンを探索。disabled 状態なら push せず bail-out する。
-                            // disabled ボタンへの click dispatch は no-op で、URL 遷移もしない。
-                            // bail-out で呼び出し側が通常フローにフォールバックできる。
-                            const btns = [...document.querySelectorAll('button')]
-                                .filter(b => b.offsetParent !== null);
-                            for (const b of btns) {
-                                const txt = b.textContent.trim();
-                                if (txt.includes('Save and Publish') ||
-                                        txt.includes('Save & Publish') ||
-                                        txt.includes('บันทึกและเผยแพร่') ||
-                                        txt.includes('เผยแพร่')) {
-                                    const isDisabled = b.disabled ||
-                                        b.hasAttribute('disabled') ||
-                                        b.className.includes('disabled') ||
-                                        b.getAttribute('aria-disabled') === 'true';
-                                    if (isDisabled) {
-                                        return {noBrand: true, publish: false, reason: 'button_disabled'};
-                                    }
-                                    fullClick(b);
-                                    return {noBrand: true, publish: true};
-                                }
+
+                            // === Phase 2: Vue nextTick と validation を走らせる ===
+                            // 100ms 間隔で最大 30 回（計 3 秒）ポーリング。
+                            // enabled になった瞬間に click する。
+                            let btn = null;
+                            let lastState = 'init';
+                            for (let i = 0; i < 30; i++) {
+                                await sleep(100);
+                                btn = findPublishBtn();
+                                lastState = diagDisabled(btn);
+                                if (lastState === 'enabled') break;
                             }
-                            return {noBrand: true, publish: false, reason: 'no_button'};
+                            if (!btn) return {noBrand: true, publish: false, reason: 'no_button'};
+                            if (lastState !== 'enabled') {
+                                return {noBrand: true, publish: false, reason: 'button_disabled', disabled_by: lastState};
+                            }
+                            fullClick(btn);
+                            return {noBrand: true, publish: true, wait_ms: 'variable'};
                         }
                     """)
                     logger.info(f"  [Pre-publish] 原子的操作結果: {_atomic}")
