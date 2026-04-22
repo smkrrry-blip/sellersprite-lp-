@@ -3109,16 +3109,22 @@ class ShopeeBrowser:
                                 return r.width > 0 && r.height > 0;
                             };
                             // No Brand オプションを探してクリック
-                            const noBrandTexts = new Set(['No Brand', 'ไม่มีแบรนด์']);
+                            // 部分一致: Shopee UIで "No Brand (ไม่มีแบรนด์)" 結合表示にも対応
+                            const hasNoBrandText = (t) => {
+                                const s = (t || '').trim().toLowerCase();
+                                return s.includes('no brand') || s.includes('ไม่มีแบรนด์');
+                            };
                             let noBrandClicked = false;
                             // form-item 除外フィルタを外す（ポップアップが form-item 内に描画される場合も対応）
                             const candidates = [...document.querySelectorAll(
                                 'li, [role="option"], [class*="option"]'
                             )].filter(el =>
                                 isVis(el) &&
-                                noBrandTexts.has(el.textContent.trim())
+                                hasNoBrandText(el.textContent) &&
+                                el.textContent.trim().length < 40  // 長文誤爆防止
                             );
                             if (candidates.length > 0) {
+                                candidates[0].scrollIntoView({block:'center'});
                                 candidates[0].click();
                                 noBrandClicked = true;
                             }
