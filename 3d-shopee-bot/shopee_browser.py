@@ -3014,7 +3014,46 @@ class ShopeeBrowser:
                             except Exception:
                                 pass
                         if not _pw_nb_done:
-                            logger.warning("  [Pre-publish] Playwright No Brand も失敗 → そのまま続行")
+                            logger.warning("  [Pre-publish] Playwright No Brand も失敗 → native setter で再試行")
+                            # 第3段フォールバック: native setter + input/change dispatch
+                            # Vue の watcher が戻す前に v-model の正規経路に値を流す
+                            try:
+                                _ns_res = self._page.evaluate("""
+                                    () => {
+                                        const isVisible = (el) => !!(el && el.offsetParent !== null);
+                                        const setNativeValue = (el, value) => {
+                                            const proto = Object.getPrototypeOf(el);
+                                            const desc = Object.getOwnPropertyDescriptor(proto, 'value')
+                                                || Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+                                            if (!desc || !desc.set) return false;
+                                            desc.set.call(el, value);
+                                            el.dispatchEvent(new InputEvent('input', {
+                                                bubbles: true, cancelable: true, composed: true,
+                                                data: value, inputType: 'insertText'
+                                            }));
+                                            el.dispatchEvent(new Event('change', {bubbles: true, cancelable: true}));
+                                            el.dispatchEvent(new FocusEvent('blur', {bubbles: true}));
+                                            return true;
+                                        };
+                                        const candidates = [...document.querySelectorAll('input, textarea')]
+                                            .filter(isVisible)
+                                            .filter(el => {
+                                                const t = [
+                                                    el.getAttribute('aria-label'),
+                                                    el.getAttribute('placeholder'),
+                                                    el.getAttribute('name'),
+                                                    el.closest('[class*="brand"]')?.textContent || ''
+                                                ].join(' ').toLowerCase();
+                                                return t.includes('brand') || t.includes('แบรนด์');
+                                            });
+                                        const input = candidates[0];
+                                        if (!input) return {ok: false, reason: 'no brand input'};
+                                        return {ok: setNativeValue(input, 'No Brand')};
+                                    }
+                                """)
+                                logger.info(f"  [Pre-publish] native setter 結果: {_ns_res}")
+                            except Exception as _ns_e:
+                                logger.debug(f"  [Pre-publish] native setter エラー（無視）: {_ns_e}")
                 else:
                     logger.warning("  [Pre-publish] Brand EDS が見つからず → そのまま続行")
         except Exception as _pb_e:
