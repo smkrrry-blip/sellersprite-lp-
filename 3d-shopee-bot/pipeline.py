@@ -31,7 +31,7 @@ def _parse_image_urls(raw) -> list[str]:
 from db import init_db, upsert_product, update_status, get_products_by_status, get_stats, log_run
 from makerworld import MakerWorldScraper
 from translator import Translator, PriceCalculator
-from shopee_browser import ShopeeBrowser, _get_today_count, LoginLoopError
+from shopee_browser import ShopeeBrowser, _get_today_count, LoginLoopError, NavigationLoopError
 from image_downloader import download_product_images, cleanup_images
 from config import SCRAPING_SETTINGS, BROWSER_SETTINGS
 
@@ -213,6 +213,10 @@ def run_full_pipeline(dry_run: bool = False):
                             update_status(product["mw_model_id"], "error", error_msg="browser listing failed")
                             counters["errors"] += 1
 
+                    except (LoginLoopError, NavigationLoopError) as e:
+                        logger.error(f"  🛑 ループ検出 — 以降の出品を中断: {e}")
+                        counters["errors"] += 1
+                        break
                     except Exception as e:
                         logger.error(f"  ❌ 出品エラー ({product['mw_model_id']}): {traceback.format_exc()}")
                         counters["errors"] += 1
@@ -307,12 +311,17 @@ def run_step(step: str):
                             _tg_notify(f"🛑 Shopee出品ループ検出 — 自動中断\n{e}\n出品済み: {listed}件")
                             loop_aborted = True
                             break
+                        except NavigationLoopError as e:
+                            logger.error(f"🛑 ナビゲーション連続失敗 — 出品中断: {e}")
+                            _tg_notify(f"🛑 Shopeeナビゲーション連続失敗 — 自動中断\n{e}\n出品済み: {listed}件")
+                            loop_aborted = True
+                            break
                         if url:
                             update_status(p["mw_model_id"], "listed", shopee_url=url)
                             cleanup_images(p["mw_model_id"])
                             listed += 1
         if loop_aborted:
-            print(f"🛑 ログインループ検出により中断: {listed} 件出品済み")
+            print(f"🛑 ループ検出により中断: {listed} 件出品済み")
         else:
             print(f"✅ 出品完了: {listed} 件")
 

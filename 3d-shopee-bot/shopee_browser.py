@@ -19,10 +19,16 @@ from playwright.sync_api import sync_playwright, Page, BrowserContext, TimeoutEr
 CDP_PORT = 9222
 CDP_URL = f"http://localhost:{CDP_PORT}"
 MAX_CONSECUTIVE_SESSION_ERRORS = 3  # 連続セッション切れでループ検出→中断
+MAX_CONSECUTIVE_NAV_ERRORS = 3  # 連続ナビゲーション失敗でループ検出→中断
 
 
 class LoginLoopError(Exception):
     """ログイン→セッション切れのループを検出した場合に raise"""
+    pass
+
+
+class NavigationLoopError(Exception):
+    """product/new への連続ナビゲーション失敗（ERR_ABORTED等）を検出した場合に raise"""
     pass
 
 from config import (
@@ -110,6 +116,7 @@ class ShopeeBrowser:
         self._page: Optional[Page] = None
         self._using_cdp = False
         self._session_error_count = 0
+        self._nav_error_count = 0
         self._auto_chrome_proc: Optional[subprocess.Popen] = None
 
     # ─── 起動・終了 ───────────────────────────────────────
@@ -253,12 +260,14 @@ class ShopeeBrowser:
         Shopeeセラーセンターにログイン
         Cookieが有効ならスキップ、無効なら再ログイン
         """
-        if COOKIES_FILE.exists():
-            logger.info("Cookie確認中...")
+        # CDP接続時はCookieファイルに関わらず既存セッションを先に確認
+        if self._using_cdp or COOKIES_FILE.exists():
+            logger.info("セッション確認中...")
             if self._is_logged_in():
-                logger.info("✅ Cookie有効 — ログインスキップ")
+                logger.info("✅ セッション有効 — ログインスキップ")
+                self._save_cookies()
                 return True
-            logger.info("Cookie期限切れ — 再ログインします")
+            logger.info("セッション無効 — 再ログインします")
 
         logger.info("🔑 ログイン開始...")
         try:
@@ -510,12 +519,25 @@ class ShopeeBrowser:
             except Exception as e:
                 logger.warning(f"  product/list/all ナビゲーション失敗（続行）: {e}")
 
-            # 出品ページへ直接移動
-            self._page.goto(
-                f"{SHOPEE_SELLER_URL}/portal/product/new",
-                timeout=60000,
-                wait_until="domcontentloaded",
-            )
+            # 出品ページへ直接移動（ERR_ABORTED 等の連続失敗を検出してループ中断）
+            try:
+                self._page.goto(
+                    f"{SHOPEE_SELLER_URL}/portal/product/new",
+                    timeout=60000,
+                    wait_until="domcontentloaded",
+                )
+                self._nav_error_count = 0  # 成功時はカウンタリセット
+            except Exception as _nav_e:
+                self._nav_error_count += 1
+                logger.error(
+                    f"❌ /product/new ナビゲーション失敗 "
+                    f"({self._nav_error_count}/{MAX_CONSECUTIVE_NAV_ERRORS}): {_nav_e}"
+                )
+                if self._nav_error_count >= MAX_CONSECUTIVE_NAV_ERRORS:
+                    raise NavigationLoopError(
+                        f"/product/new への連続失敗が{self._nav_error_count}回 — 自動中断"
+                    )
+                raise
             _human_wait(2, 3)
 
             # /product/new がログインにリダイレクトされた場合: リロード前に再ログイン
@@ -668,7 +690,10 @@ class ShopeeBrowser:
             # ここでは定数だけ定義しておく
             CAT_BLOCKED = ["medical", "fda", "mom & baby", "stuffed toy", "sexual",
                            "wellness", "adult", "pharmaceutical", "health >",
-                           "muslim", "hijab", "prayer", "baby >", "doll"]
+                           "muslim", "hijab", "prayer", "baby >", "doll",
+                           # ブランドライセンス必須カテゴリ（選択肢なし→必ず失敗）
+                           "lighting", "vehicles", "motorcycle", "automotive",
+                           "statues & sculptures", "statues", "figurines"]
             CAT_PREF = ["hobbies", "collectible", "tools", "sport", "electronics",
                         "stationery", "home & living", "arts", "craft", "others", "diy"]
 
@@ -729,10 +754,13 @@ class ShopeeBrowser:
                                 best_score = score
                                 best_idx = r['index']
 
+                        _do_pencil = False  # 推奨カテゴリ失敗 or なし → pencil edit フォールバック
+
                         if best_idx is not None:
-                            # 安全な推奨カテゴリ → 対応する DOM 要素の親をクリック
-                            clicked_text = self._page.evaluate(f"""
+                            # 安全な推奨カテゴリ → data属性でマークしてPlaywrightクリック
+                            mark_result = self._page.evaluate(f"""
                                 () => {{
+                                    document.querySelectorAll('[data-cat-sel]').forEach(e => e.removeAttribute('data-cat-sel'));
                                     const sparkle = document.querySelector('[class*="sparkle"]');
                                     if (!sparkle) return null;
                                     let container = sparkle.parentElement;
@@ -751,28 +779,123 @@ class ShopeeBrowser:
                                         if (items.length > 0) {{
                                             const el = items[{best_idx}];
                                             if (!el) return null;
-                                            // クリックは親コンテナ（行全体）に対して行う
+                                            // 行全体をマーク（Playwrightクリック用）
                                             const row = el.closest('li, [class*="item"], [class*="row"]')
                                                         || el.parentElement;
-                                            row.click();
+                                            row.setAttribute('data-cat-sel', 'target');
                                             return el.textContent.trim().substring(0, 80);
                                         }}
                                     }}
                                     return null;
                                 }}
                             """)
-                            logger.info(f"  ✅ 推奨カテゴリ選択: {clicked_text}")
-                            _human_wait(1.5, 2.0)
+                            if mark_result:
+                                # Playwrightのクリック（実際のマウスイベント、Reactに確実に届く）
+                                try:
+                                    self._page.locator('[data-cat-sel="target"]').first.click(timeout=5000)
+                                except Exception:
+                                    # フォールバック: dispatchEvent
+                                    self._page.evaluate("""
+                                        () => {
+                                            const el = document.querySelector('[data-cat-sel="target"]');
+                                            if (el) el.dispatchEvent(new MouseEvent('click', {bubbles:true,cancelable:true,view:window}));
+                                        }
+                                    """)
+                                logger.info(f"  ✅ 推奨カテゴリ選択: {mark_result}")
+                                # Enter キーでカテゴリ選択を確定させる（Vueが単一クリックだけでは未コミットの場合）
+                                try:
+                                    _human_wait(0.3, 0.5)
+                                    self._page.keyboard.press("Enter")
+                                except Exception:
+                                    pass
+                            _human_wait(3.0, 4.0)  # Vue 再描画 + カテゴリ確定待ち（長めに）
+                            # ── カテゴリ変更確認ダイアログを処理 ──────────────────────
+                            # "Changing category will clear product info" → Confirm が必要
+                            _cat_confirmed = False
+                            for _cconf_sel in [
+                                'button:has-text("Confirm")',
+                                'button:has-text("ยืนยัน")',
+                                '[role="dialog"] button:last-child',
+                                '[class*="modal"] button:last-child',
+                            ]:
+                                try:
+                                    _cconf = self._page.locator(_cconf_sel).first
+                                    if _cconf.count() and _cconf.is_visible():
+                                        _cconf.click()
+                                        logger.info(f"  カテゴリ確認ダイアログ: Confirm クリック ({_cconf_sel})")
+                                        _cat_confirmed = True
+                                        _human_wait(1.5, 2.0)
+                                        break
+                                except Exception:
+                                    pass
+                            if _cat_confirmed:
+                                _human_wait(1.0, 1.5)  # ダイアログ消去 + Vue 再描画待ち
+                            # カテゴリ選択確認（eds-selectors が増えるか形式が変わるか）
+                            cat_ok = self._page.evaluate("""
+                                () => {
+                                    const eds = [...document.querySelectorAll('[class*="eds-selector"]')]
+                                        .filter(e => e.offsetParent !== null);
+                                    // カテゴリが選択されると Brand selector が出る(totalEds>0)
+                                    // または "Please set category" が消える
+                                    const catPlaceholder = document.querySelector('[placeholder*="category"], [placeholder*="Category"]');
+                                    const catText = [...document.querySelectorAll('[class*="category"] [class*="value"], [class*="category-path"]')]
+                                        .find(e => e.textContent.trim().includes('>'));
+                                    return eds.length > 0 || catText !== undefined;
+                                }
+                            """)
+                            if not cat_ok:
+                                logger.warning("  ⚠️ カテゴリ未選択（フォーム未更新） → 再クリック試行")
+                                # セカンド試行: 直接 JS click
+                                self._page.evaluate("""
+                                    () => {
+                                        const el = document.querySelector('[data-cat-sel="target"]');
+                                        if (el) {
+                                            el.dispatchEvent(new MouseEvent('mousedown', {bubbles:true,cancelable:true,view:window}));
+                                            el.dispatchEvent(new MouseEvent('mouseup',   {bubbles:true,cancelable:true,view:window}));
+                                            el.dispatchEvent(new MouseEvent('click',     {bubbles:true,cancelable:true,view:window}));
+                                        }
+                                    }
+                                """)
+                                _human_wait(2.0, 3.0)
+                                # 2回目確認 — まだ未コミットならpencil editへ
+                                _cat_ok_r2 = self._page.evaluate("""
+                                    () => {
+                                        const eds = [...document.querySelectorAll('[class*="eds-selector"]')]
+                                            .filter(e => e.offsetParent !== null);
+                                        const catText = [...document.querySelectorAll(
+                                            '[class*="category"] [class*="value"], [class*="category-path"]'
+                                        )].find(e => e.textContent.trim().includes('>'));
+                                        return eds.length > 0 || catText !== undefined;
+                                    }
+                                """)
+                                if not _cat_ok_r2:
+                                    logger.warning("  ⚠️ 推奨カテゴリ2回試行でも未コミット → pencil edit フォールバック")
+                                    _do_pencil = True
                         else:
-                            # 全推奨がブロック or 推奨なし → pencil edit で手動変更
+                            # 全推奨がブロック or 推奨なし → pencil edit
+                            _do_pencil = True
                             logger.info("  推奨カテゴリに安全なものなし → pencil edit で変更")
+                        if _do_pencil:
                             try:
-                                # sparkle の前に来る最後の可視 SVG/icon が pencil アイコン
-                                # compareDocumentPosition: bit 2 = other precedes this
+                                # カテゴリ picker を開く
+                                # 方法1: "Please set category" プレースホルダを直接クリック
+                                # 方法2: sparkle の前の pencil SVG/アイコン
                                 pencil_clicked = self._page.evaluate("""
                                     () => {
+                                        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, null);
+                                        let node;
+                                        while (node = walker.nextNode()) {
+                                            const txt = node.textContent.trim();
+                                            if ((txt === 'Please set category' || txt === 'Please Select Category'
+                                                    || txt === 'โปรดเลือกหมวดหมู่')
+                                                    && node.parentElement.offsetParent !== null) {
+                                                const el = node.parentElement;
+                                                el.click();
+                                                return 'placeholder: ' + el.tagName + '.' + (el.className || '').substring(0, 40);
+                                            }
+                                        }
+                                        // フォールバック: sparkle 前の SVG アイコン
                                         const sparkle = document.querySelector('[class*="sparkle"]');
-                                        // Category 値行の編集アイコン: sparkle より DOM 上位に位置する SVG/i
                                         const candidates = [...document.querySelectorAll('svg, i[class*="icon"]')]
                                             .filter(el => {
                                                 const rect = el.getBoundingClientRect();
@@ -780,148 +903,311 @@ class ShopeeBrowser:
                                                 const cls = (el.className?.baseVal || el.getAttribute?.('class') || '').toLowerCase();
                                                 if (cls.includes('sparkle')) return false;
                                                 if (sparkle) {
-                                                    // bit 2: el precedes sparkle in DOM order
                                                     const pos = sparkle.compareDocumentPosition(el);
                                                     if (!(pos & 2)) return false;
                                                 }
                                                 return true;
                                             });
                                         if (candidates.length === 0) return null;
-                                        // 最後の候補（sparkle に最も近い = pencil icon）
                                         const icon = candidates[candidates.length - 1];
                                         const target = icon.closest('button, a, [role="button"]') || icon.parentElement;
                                         target.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
                                         const cls = (icon.className?.baseVal || icon.getAttribute?.('class') || '');
-                                        return 'clicked ' + icon.tagName + '.' + cls.substring(0, 40);
+                                        return 'icon: ' + icon.tagName + '.' + cls.substring(0, 40);
                                     }
                                 """)
                                 logger.info(f"  pencil click: {pencil_clicked}")
-                                _human_wait(2.5, 3.5)
-                                # 診断スクリーンショット（モーダル状態確認）
+                                _human_wait(2.0, 3.0)
                                 self._screenshot(f"debug_{mw_id}_cat_modal")
-                                # Shadow DOM 対応: JS evaluate() はモーダル内要素を見えない
-                                # Playwright get_by_text() は Shadow DOM を貫通するため必ず使う
-                                # L3 "Others" は nav タブ（モーダル外）が nth=0 に来て
-                                # モーダルオーバーレイにブロックされる → nth 順に試す
-                                for level, candidates in [
-                                    (1, ["งานอดิเรก", "Hobbies", "งานอดิเรกและงานฝีมือ",
-                                         "Home & Living", "Tools", "Sports"]),
-                                    (2, ["Collectible Items", "Collectible", "Hobby Supplies", "DIY"]),
-                                    (3, ["Others", "อื่นๆ"]),
-                                ]:
-                                    level_clicked = False
-                                    for txt in candidates:
-                                        if level_clicked:
-                                            break
-                                        if level == 3:
-                                            # nth=0 は nav タブ（ブロックされる）なので nth=1 から試す
-                                            for nth in range(1, 6):
-                                                try:
-                                                    self._page.get_by_text(txt, exact=True).nth(nth).click(timeout=2000)
-                                                    logger.info(f"  カテゴリツリー L{level}: {txt} [nth={nth}]")
-                                                    level_clicked = True
-                                                    break
-                                                except Exception:
-                                                    pass
-                                        else:
-                                            try:
-                                                self._page.get_by_text(txt, exact=True).first.click(timeout=5000)
-                                                logger.info(f"  カテゴリツリー L{level}: {txt}")
-                                                level_clicked = True
-                                            except Exception:
-                                                pass
-                                    if not level_clicked:
-                                        logger.warning(f"  カテゴリツリー L{level}: 候補なし（スキップ）")
-                                    _human_wait(0.8, 1.2)
-                                # Confirm ボタン — get_by_text() で Shadow DOM 貫通
-                                confirm_clicked = False
+
+                                # ── Recently Used ショートカット ────────────────────────
+                                # picker が「最近使用」ドロップダウンを開いた場合に直接選択
+                                _ru_selected = False
                                 try:
-                                    self._page.get_by_text("Confirm", exact=True).first.click(timeout=5000)
-                                    confirm_clicked = True
-                                except Exception:
-                                    pass
-                                if not confirm_clicked:
+                                    _visible_cat_paths = self._page.evaluate("""
+                                        () => {
+                                            const results = [];
+                                            const walker = document.createTreeWalker(
+                                                document.body, NodeFilter.SHOW_TEXT, null
+                                            );
+                                            let node;
+                                            while (node = walker.nextNode()) {
+                                                const el = node.parentElement;
+                                                if (!el || el.offsetParent === null) continue;
+                                                const txt = node.textContent.trim();
+                                                if (txt.includes(' > ') && txt.length > 8 && txt.length < 200)
+                                                    results.push(txt);
+                                            }
+                                            return [...new Set(results)];
+                                        }
+                                    """)
+                                    logger.info(f"  picker カテゴリ候補: {_visible_cat_paths}")
+                                    for _rc in (_visible_cat_paths or []):
+                                        if any(kw in _rc.lower() for kw in CAT_BLOCKED):
+                                            logger.info(f"  picker スキップ（ブロック）: {_rc[:60]}")
+                                            continue
+                                        try:
+                                            self._page.get_by_text(_rc, exact=True).first.click(timeout=2000)
+                                            logger.info(f"  ✅ picker カテゴリ選択: {_rc[:60]}")
+                                            _ru_selected = True
+                                            _human_wait(2.0, 3.0)
+                                            break
+                                        except Exception:
+                                            pass
+                                except Exception as _ru_e:
+                                    logger.debug(f"  picker shortcut エラー（無視）: {_ru_e}")
+
+                                if not _ru_selected:
+                                    # フルツリーモーダル ナビゲーション
+                                    # 推奨カテゴリパスから動的にナビパスを取得（ブロックされていないもの）
+                                    _nav_parts = None
+                                    for _rc in (_visible_cat_paths or []):
+                                        if not any(kw in _rc.lower() for kw in CAT_BLOCKED):
+                                            parts = [p.strip() for p in _rc.split(' > ')]
+                                            if len(parts) >= 2:
+                                                _nav_parts = parts
+                                                logger.info(f"  動的ナビパス: {' > '.join(_nav_parts)}")
+                                                break
+
+                                    if _nav_parts:
+                                        # 推奨カテゴリパスを使って動的ツリーナビ
+                                        for _li, _cat_name in enumerate(_nav_parts):
+                                            _lv = _li + 1
+                                            _lv_clicked = False
+                                            if _lv < len(_nav_parts):
+                                                # L1/L2: exact click
+                                                try:
+                                                    self._page.get_by_text(_cat_name, exact=True).first.click(timeout=3000)
+                                                    logger.info(f"  カテゴリツリー L{_lv}: {_cat_name}")
+                                                    _lv_clicked = True
+                                                    _human_wait(0.8, 1.2)
+                                                except Exception:
+                                                    logger.warning(f"  カテゴリツリー L{_lv}: '{_cat_name}' not found")
+                                            else:
+                                                # L3（最終）: nth 順に試す
+                                                for nth in range(1, 6):
+                                                    try:
+                                                        self._page.get_by_text(_cat_name, exact=True).nth(nth).click(timeout=2000)
+                                                        logger.info(f"  カテゴリツリー L{_lv}: {_cat_name} [nth={nth}]")
+                                                        _lv_clicked = True
+                                                        break
+                                                    except Exception:
+                                                        pass
+                                                if not _lv_clicked:
+                                                    # 最終LV: "Others" で代替
+                                                    for _alt in ["Others", "อื่นๆ"]:
+                                                        for nth in range(1, 6):
+                                                            try:
+                                                                self._page.get_by_text(_alt, exact=True).nth(nth).click(timeout=2000)
+                                                                logger.info(f"  カテゴリツリー L{_lv}: {_alt} [nth={nth}] (代替)")
+                                                                _lv_clicked = True
+                                                                break
+                                                            except Exception:
+                                                                pass
+                                                        if _lv_clicked:
+                                                            break
+                                    else:
+                                        # フォールバック: 固定候補リスト
+                                        for level, candidates in [
+                                            (1, ["งานอดิเรก", "Hobbies & Collections", "Hobbies",
+                                                 "งานอดิเรกและของสะสม", "Home & Living",
+                                                 "บ้านและชีวิตประจำวัน", "Tools", "Sports"]),
+                                            (2, ["Collectible Items", "Collectible", "Hobby Supplies",
+                                                 "Gardening", "Garden Supplies", "Kitchen & Dining",
+                                                 "Home Decor", "DIY", "ของสะสม"]),
+                                            (3, ["Others", "อื่นๆ"]),
+                                        ]:
+                                            level_clicked = False
+                                            for txt in candidates:
+                                                if level_clicked:
+                                                    break
+                                                if level == 3:
+                                                    for nth in range(1, 6):
+                                                        try:
+                                                            self._page.get_by_text(txt, exact=True).nth(nth).click(timeout=2000)
+                                                            logger.info(f"  カテゴリツリー L{level}: {txt} [nth={nth}]")
+                                                            level_clicked = True
+                                                            break
+                                                        except Exception:
+                                                            pass
+                                                else:
+                                                    try:
+                                                        self._page.get_by_text(txt, exact=True).first.click(timeout=3000)
+                                                        logger.info(f"  カテゴリツリー L{level}: {txt}")
+                                                        level_clicked = True
+                                                    except Exception:
+                                                        pass
+                                            if not level_clicked:
+                                                logger.warning(f"  カテゴリツリー L{level}: 候補なし（スキップ）")
+                                            _human_wait(0.8, 1.2)
+
+                                    # Confirm ボタン
+                                    _human_wait(0.5, 1.0)
+                                    confirm_clicked = False
                                     try:
-                                        self._page.get_by_text("ยืนยัน", exact=True).first.click(timeout=3000)
+                                        self._page.get_by_text("Confirm", exact=True).first.click(timeout=5000)
                                         confirm_clicked = True
                                     except Exception:
                                         pass
-                                if confirm_clicked:
-                                    _human_wait(1.5, 2.0)
-                                    logger.info("  ✅ カテゴリ変更 (pencil) 完了")
-                                else:
-                                    logger.warning("  pencil edit: Confirm ボタン未発見")
+                                    if not confirm_clicked:
+                                        try:
+                                            self._page.get_by_text("ยืนยัน", exact=True).first.click(timeout=3000)
+                                            confirm_clicked = True
+                                        except Exception:
+                                            pass
+                                    if confirm_clicked:
+                                        _human_wait(1.5, 2.0)
+                                        logger.info("  ✅ カテゴリ変更 (pencil) 完了")
+                                    else:
+                                        logger.warning("  pencil edit: Confirm ボタン未発見")
                             except Exception as e:
                                 logger.warning(f"  pencil edit エラー（続行）: {e}")
                     except Exception as e:
                         logger.warning(f"  カテゴリ選択エラー（続行）: {e}")
 
-                    # Brand フィールドは EDS Select ドロップダウン（"Please select" が placeholder）
-                    # ※ Playwright CSS locator は EDS コンポーネントを見つけられない（Shadow DOM 疑い）
-                    # ※ input[placeholder*="Brand"] は商品名フィールドに一致するため使用禁止
-                    # → JS evaluate で querySelectorAll('[class*="eds-selector"]') を使う（診断で確認済み）
+                    # ── カテゴリ非対応の早期検出 ──────────────────────────
+                    # "Selected category is not supported" バナーが出た場合は
+                    # 全フォームを埋めても失敗するため、ここで中断する
+                    _human_wait(0.5, 1.0)
+                    cat_error = self._page.evaluate("""
+                        () => {
+                            const txt = document.body.innerText || '';
+                            if (txt.includes('Selected category is not supported') ||
+                                txt.includes('category is not supported')) {
+                                return true;
+                            }
+                            const banner = document.querySelector(
+                                '[class*="error-banner"], [class*="alert-error"], .error-message'
+                            );
+                            return banner ? banner.textContent.includes('not supported') : false;
+                        }
+                    """)
+                    if cat_error:
+                        logger.error("❌ カテゴリ非対応 — このカテゴリはこのセラーでは出品不可。スキップします")
+                        self._screenshot(f"cat_unsupported_{mw_id}")
+                        return None
+
+                    # Brand フィールドは Specification タブの先頭にある
+                    # → Basic Info タブがアクティブな間は Specification セクションが
+                    #   v-show="false" で非表示のため、先に Specification タブをクリックする
                     brand_filled = False
+                    _spec_tab_activated_for_brand = False  # Specタブを既にアクティブ化したか追跡
                     try:
-                        # まずページを少し下にスクロール（Specification セクションを表示）
-                        self._page.mouse.wheel(0, 400)
-                        _human_wait(1.0, 1.5)  # EDS コンポーネントのレンダリング待ち（増加）
+                        # Specification タブをクリック（Brand は Specification セクションの先頭）
+                        # get_by_text が複数マッチする場合 JS fallback でタブを確実に切り替える
+                        spec_clicked = self._page.evaluate("""
+                            () => {
+                                const tabs = [...document.querySelectorAll(
+                                    '[class*="tabs__nav-tab"], [class*="tab-item"], ' +
+                                    '[class*="tab-nav"], [role="tab"]'
+                                )];
+                                const spec = tabs.find(el =>
+                                    el.textContent.trim().startsWith('Specification'));
+                                if (spec) { spec.click(); return true; }
+                                return false;
+                            }
+                        """)
+                        if not spec_clicked:
+                            _spec_tab_early = self._page.get_by_text("Specification", exact=True).first
+                            if _spec_tab_early.count():
+                                _spec_tab_early.click()
+                        _spec_tab_activated_for_brand = True  # Specタブをアクティブ化した
+                        _human_wait(1.5, 2.0)  # セクションが表示されるまで待つ
+                        # ページ最上部にスクロール（Brandフィールドは常にSpecificationの先頭）
+                        self._page.evaluate("window.scrollTo(0, 0)")
+                        _human_wait(0.5, 1.0)
 
                         # JS evaluate でクリック
-                        # ── "* Brand" ラベルを起点に EDS selector を探す ──
-                        # （以前の single-selector フィルタは全 46 件をミスするため廃止）
+                        # ── TreeWalker でテキストノード "Brand" を直接探し EDS selector へ ──
+                        # 以前の children.length==0 フィルタはラベルに子 span(*印) がある場合に
+                        # 誤って除外する。TreeWalker はテキストノード(=常にleaf)を直接走査するため
+                        # 子要素数に左右されない。またparent.textContent の代わりに先祖単位で
+                        # 検索することで "Brand License" と誤マッチする問題も解消する。
                         brand_click = self._page.evaluate("""
                             () => {
-                                // ① ラベルテキストで親コンテナを特定 → その中の eds-selector をクリック
-                                const labels = [...document.querySelectorAll(
-                                    'label, .eds-form-item__label, [class*="form-item__label"]'
-                                )];
-                                const brandLabel = labels.find(
-                                    l => l.textContent.trim().replace('*','').trim() === 'Brand'
-                                );
-                                if (brandLabel) {
-                                    let container = brandLabel.parentElement;
-                                    for (let i = 0; i < 6; i++) {
+                                // ① TreeWalker でテキストノード "Brand" を探す
+                                // テキストノードに children はないため children.length 制約不要
+                                const walker = document.createTreeWalker(
+                                    document.body, NodeFilter.SHOW_TEXT);
+                                let node;
+                                const brandNodes = [];
+                                while (node = walker.nextNode()) {
+                                    const raw = node.textContent.trim();
+                                    const clean = raw.replace(/[*\\s]/g, '');
+                                    // "Brand" のみ。"BrandLicense" は除外
+                                    if (clean !== 'Brand') continue;
+                                    const par = node.parentElement;
+                                    if (!par || par.offsetParent === null) continue;
+                                    brandNodes.push(par);
+                                }
+                                // 各 Brand テキストノードの親から上に向かって EDS selector を探す
+                                for (const par of brandNodes) {
+                                    let container = par;
+                                    for (let i = 0; i < 12; i++) {
                                         if (!container) break;
                                         const sel = container.querySelector('[class*="eds-selector"]');
-                                        if (sel) {
+                                        if (sel && sel.offsetParent !== null) {
                                             sel.scrollIntoView({block: 'center'});
                                             sel.click();
-                                            return {found: true, method: 'label_parent',
-                                                    cls: sel.className.substring(0, 60)};
+                                            return {found: true, method: 'textnode_walk',
+                                                    txt: par.textContent.trim().substring(0, 30),
+                                                    level: i};
                                         }
                                         container = container.parentElement;
                                     }
                                 }
-                                // ② EDS selector の祖先に "Brand" テキストを持つものを探す
-                                const allEds = [...document.querySelectorAll('[class*="eds-selector"]')];
-                                for (const el of allEds) {
-                                    let p = el.parentElement;
-                                    for (let i = 0; i < 4; i++) {
-                                        if (!p) break;
-                                        const t = (p.textContent || '');
-                                        if (t.includes('Brand') && !t.includes('Variation')
-                                                && !t.includes('Shipping')) {
-                                            el.scrollIntoView({block: 'center'});
-                                            el.click();
-                                            return {found: true, method: 'ancestor_text',
-                                                    cls: el.className.substring(0, 60)};
+                                // ② EDS selector から逆に先祖を辿り Brand ラベルを確認
+                                // parent.textContent でなく各先祖の直下 children のテキストを確認
+                                // → Brand と Brand License が同一親に居ても先祖レベルで切り分け
+                                const allEds = [...document.querySelectorAll('[class*="eds-selector"]')]
+                                    .filter(el => el.offsetParent !== null);
+                                for (const eds of allEds) {
+                                    let ancestor = eds.parentElement;
+                                    for (let depth = 0; depth < 8; depth++) {
+                                        if (!ancestor) break;
+                                        // この先祖の直接の子要素のテキストに "Brand" があり
+                                        // "Brand License" / "Variation" / "Lighting" が含まれないか確認
+                                        for (const child of ancestor.children) {
+                                            const ct = child.textContent.trim().replace(/\\s+/g,' ');
+                                            if (ct.includes('Brand')
+                                                    && !ct.includes('Brand License')
+                                                    && !ct.includes('Variation')
+                                                    && !ct.includes('Shipping')
+                                                    && ct.length < 30) {
+                                                eds.scrollIntoView({block: 'center'});
+                                                eds.click();
+                                                return {found: true, method: 'ancestor_child',
+                                                        depth, labelText: ct.substring(0, 30)};
+                                            }
                                         }
-                                        p = p.parentElement;
+                                        ancestor = ancestor.parentElement;
                                     }
                                 }
-                                // ③ フォールバック: single-selector（clearable なし）
-                                const candidates = allEds.filter(el => {
-                                    const cls = el.className || '';
-                                    return cls.includes('single-selector') && !cls.includes('clearable');
-                                });
-                                if (candidates.length > 0) {
-                                    candidates[0].scrollIntoView({block: 'center'});
-                                    candidates[0].click();
-                                    return {found: true, method: 'single_selector',
-                                            cls: candidates[0].className.substring(0, 60)};
+                                // ③ フォールバック: Specification セクション内の最初の EDS selector
+                                // Brand フィールドは常にSpecificationの先頭
+                                const specSec = document.querySelector(
+                                    '[class*="specification"], [class*="spec-section"], ' +
+                                    '[class*="product-specification"]'
+                                );
+                                if (specSec) {
+                                    const eds = specSec.querySelector('[class*="eds-selector"]');
+                                    if (eds && eds.offsetParent !== null) {
+                                        eds.scrollIntoView({block: 'center'});
+                                        eds.click();
+                                        return {found: true, method: 'spec_section_first',
+                                                secClass: specSec.className.substring(0, 60)};
+                                    }
                                 }
+                                // デバッグ情報を返す
+                                const firstEdsCtx = allEds.length > 0
+                                    ? (allEds[0].closest('[class*="form-item"], [class*="field"]')
+                                        || allEds[0].parentElement
+                                      )?.textContent?.trim()?.substring(0, 80)
+                                    : 'none';
                                 return {found: false, totalEds: allEds.length,
-                                        labelFound: !!brandLabel};
+                                        brandNodesFound: brandNodes.length,
+                                        firstEdsCtx: firstEdsCtx,
+                                        reason: 'no brand selector found'};
                             }
                         """)
                         logger.info(f"  Brand JS click: {brand_click}")
@@ -965,6 +1251,154 @@ class ShopeeBrowser:
 
                     if not brand_filled:
                         logger.warning("  ⚠️ ブランドを設定できませんでした")
+
+                    # ── ブランド選択確認 + Brand License ──────────────
+                    # Brand が "No Brand" 以外になっていた場合（single_selector誤選択等）
+                    # Brand License ドロップダウンを選択してフォームバリデーションを通過させる
+                    try:
+                        _human_wait(0.5, 0.8)
+                        brand_license_result = self._page.evaluate("""
+                            () => {
+                                // TreeWalker でテキストノードを直接探す（children.length制約なし）
+                                const findTextNode = (searchText, excludeText) => {
+                                    const walker = document.createTreeWalker(
+                                        document.body, NodeFilter.SHOW_TEXT);
+                                    let node;
+                                    while (node = walker.nextNode()) {
+                                        const raw = node.textContent.trim();
+                                        if (!raw.includes(searchText)) continue;
+                                        if (excludeText && raw.includes(excludeText)) continue;
+                                        const par = node.parentElement;
+                                        if (!par || par.offsetParent === null) continue;
+                                        return par;
+                                    }
+                                    return null;
+                                };
+
+                                // Brand の現在値を読み取る
+                                // 方法1: form-item の label "Brand" から eds-selector を探す（最も信頼性が高い）
+                                let currentBrand = null;
+                                const allItems = [...document.querySelectorAll('[class*="form-item"]')];
+                                for (const item of allItems) {
+                                    const lbl = item.querySelector(
+                                        'label, [class*="form-item__label"], [class*="label"]'
+                                    );
+                                    if (!lbl) continue;
+                                    const lblTxt = lbl.textContent.trim().replace(/[*\\s]/g,'');
+                                    if (lblTxt !== 'Brand' && lblTxt !== 'แบรนด์') continue;
+                                    const sel = item.querySelector('[class*="eds-selector"]');
+                                    if (!sel) continue;
+                                    // EDS selector の表示テキストを直接読む（最も確実）
+                                    const ph = sel.querySelector('[class*="placeholder"]');
+                                    const phTxt = ph ? ph.textContent.trim() : '';
+                                    const rawTxt = sel.textContent.trim();
+                                    if (rawTxt && rawTxt !== phTxt && rawTxt !== 'Please select' && rawTxt !== 'โปรดเลือก') {
+                                        currentBrand = rawTxt;
+                                    }
+                                    break;
+                                }
+                                // 方法2: フォールバック — TreeWalker で "Brand" ラベルを探す
+                                if (currentBrand === null) {
+                                    const brandEl = findTextNode('Brand', 'License');
+                                    if (brandEl) {
+                                        let c = brandEl;
+                                        for (let i = 0; i < 10; i++) {
+                                            if (!c) break;
+                                            const sel = c.querySelector('[class*="eds-selector"]');
+                                            if (sel) {
+                                                const ph = sel.querySelector('[class*="placeholder"]');
+                                                const phTxt = ph ? ph.textContent.trim() : '';
+                                                const rawTxt = sel.textContent.trim();
+                                                if (rawTxt && rawTxt !== phTxt && rawTxt !== 'Please select') {
+                                                    currentBrand = rawTxt;
+                                                }
+                                                break;
+                                            }
+                                            c = c.parentElement;
+                                        }
+                                    }
+                                }
+
+                                // Brand License ラベルを探す (TreeWalker)
+                                const licEl = findTextNode('Brand License', null);
+                                if (!licEl) return {brand: currentBrand, licenseHandled: 'no-label'};
+
+                                // Brand License の EDS selector を探す
+                                let lc = licEl;
+                                for (let i = 0; i < 10; i++) {
+                                    if (!lc) break;
+                                    const sel = lc.querySelector('[class*="eds-selector"]');
+                                    if (sel) {
+                                        const ph = sel.querySelector('[class*="placeholder"]');
+                                        const isUnset = ph && ph.offsetParent !== null;
+                                        if (!isUnset) {
+                                            return {brand: currentBrand, licenseHandled: 'already-set'};
+                                        }
+                                        sel.scrollIntoView({block: 'center'});
+                                        sel.click();
+                                        return {brand: currentBrand, licenseHandled: 'clicked'};
+                                    }
+                                    lc = lc.parentElement;
+                                }
+                                return {brand: currentBrand, licenseHandled: 'selector-not-found'};
+                            }
+                        """)
+                        logger.info(f"  Brand確認: brand={brand_license_result.get('brand')}, license={brand_license_result.get('licenseHandled')}")
+
+                        if brand_license_result.get('licenseHandled') == 'clicked':
+                            _human_wait(0.8, 1.2)
+                            # Brand License ドロップダウンが開いた → 最初の選択肢を選ぶ
+                            lic_opt = self._page.evaluate("""
+                                () => {
+                                    const isVis = (el) => {
+                                        const r = el.getBoundingClientRect();
+                                        return r.width > 0 && r.height > 0;
+                                    };
+                                    const opts = [...document.querySelectorAll(
+                                        '[class*="eds-select__options"] [class*="option"], ' +
+                                        '[class*="eds-option"]:not([class*="option-add"]), ' +
+                                        '[class*="popover"] li'
+                                    )].filter(el => isVis(el)
+                                        && !el.closest('[class*="form-item"]'));
+                                    if (opts.length > 0) {
+                                        opts[0].click();
+                                        return opts[0].textContent.trim().slice(0, 60);
+                                    }
+                                    return null;
+                                }
+                            """)
+                            if lic_opt:
+                                logger.info(f"  Brand License選択: '{lic_opt}'")
+                            else:
+                                self._page.keyboard.press("Escape")
+                                logger.info("  Brand License: 選択肢なし → Escape")
+                                # ── Brand License必須判定 ──────────────────────────────
+                                # Brand が特定ブランド（例: ACDelco, Nation Edutainment）に
+                                # 強制設定され、かつ選択肢がない場合のみスキップ。
+                                # Brand=None/unknown は「No Brand」選択後の確認UIの可能性が高い
+                                # → その場合は続行してサーバーバリデーションに委ねる
+                                _cur_brand = brand_license_result.get('brand') or ''
+                                _no_brand_vals = ('', 'unknown', 'No Brand', 'ไม่มีแบรนด์', 'None')
+                                if _cur_brand not in _no_brand_vals:
+                                    # ブランドが特定ブランドに強制設定 → ライセンス必須 → スキップ
+                                    logger.error(
+                                        f"  ❌ ブランドライセンス必須カテゴリ: Brand='{_cur_brand}' "
+                                        f"→ ブランド登録なしで出品不可 → スキップ"
+                                    )
+                                    update_status(
+                                        mw_id, 'error',
+                                        error_msg=f'brand_license_required:{_cur_brand[:30]}'
+                                    )
+                                    return None
+                                else:
+                                    # Brand=None/No Brand → Brand License確認UIの可能性
+                                    # Escapeして続行（サーバーバリデーションに委ねる）
+                                    logger.info(
+                                        f"  Brand License: Brand='{_cur_brand}' → 続行 "
+                                        f"（サーバー検証に委ねる）"
+                                    )
+                    except Exception as e:
+                        logger.debug(f"  Brand License処理エラー（続行）: {e}")
                 else:
                     logger.warning("  ⚠️ Basic Info タブが見つかりません")
             except Exception as e:
@@ -972,18 +1406,526 @@ class ShopeeBrowser:
 
             _human_wait(0.8, 1.2)
 
+            # ── Specification タブ（属性）────────────
+            try:
+                spec_tab = self._page.get_by_text("Specification", exact=True).first
+                if spec_tab.count():
+                    # Brand選択フェーズで既にSpecificationタブをアクティブ化済みの場合は
+                    # 再クリックを避ける。再クリックするとVue.jsがBrandを初期値(≠No Brand)にリセットする
+                    if not _spec_tab_activated_for_brand:
+                        spec_tab.click()
+                        _human_wait(1.5, 2.5)
+                    else:
+                        logger.info("  Specタブ: Brand選択フェーズで既にアクティブ化済み → 再クリックスキップ（Brand保護）")
+                        _human_wait(0.3, 0.5)
+                    self._screenshot(f"debug_{mw_id}_specification")
+
+                    # 可視の入力フィールドを診断
+                    spec_info = self._page.evaluate("""
+                        () => {
+                            const inputs = [...document.querySelectorAll('input')]
+                                .filter(i => i.offsetParent !== null && !i.readOnly && !i.disabled
+                                            && i.type !== 'radio' && i.type !== 'checkbox');
+                            const selectors = [...document.querySelectorAll('[class*="eds-selector"]')]
+                                .filter(el => el.offsetParent !== null);
+                            return {
+                                inputCount: inputs.length,
+                                selectorCount: selectors.length,
+                                firstInputPh: inputs[0]?.placeholder || '',
+                                firstInputVal: inputs[0]?.value || '',
+                            };
+                        }
+                    """)
+                    logger.info(f"  Specification状態: {spec_info}")
+
+                    # テキスト入力欄を汎用値で埋める（必須属性の可能性）
+                    # 制限を 20 に拡大: TIS No./Website などカテゴリ固有必須フィールドも対象
+                    # "Show more" がある場合はスクロールして展開する
+                    try:
+                        show_more = self._page.get_by_text("Show more", exact=False).first
+                        if show_more.count() and show_more.is_visible():
+                            show_more.click()
+                            _human_wait(0.5, 1.0)
+                    except Exception:
+                        pass
+                    filled_count = self._page.evaluate("""
+                        () => {
+                            const setter = Object.getOwnPropertyDescriptor(
+                                HTMLInputElement.prototype, 'value').set;
+                            // 対象: eds-input, number input, text input, 汎用class付きinput
+                            // (TIS No./Input Voltage 等は type="number", TIS website は type="text")
+                            const inputs = [...document.querySelectorAll(
+                                'input.eds-input__input, input[type="number"], input[type="text"], ' +
+                                'input:not([type])[class]'
+                            )].filter(i => i.offsetParent !== null && !i.readOnly && !i.disabled
+                                        && i.type !== 'radio' && i.type !== 'checkbox'
+                                        && !i.value);
+                            // ラベルを取得して TIS/URL/number フィールドを判別
+                            const getLabel = (inp) => {
+                                let el = inp.parentElement;
+                                for (let i = 0; i < 8; i++) {
+                                    if (!el) break;
+                                    const lbl = el.querySelector(
+                                        'label, [class*="label"], [class*="form-item__label"]'
+                                    );
+                                    if (lbl && lbl !== inp) return lbl.textContent.toLowerCase();
+                                    el = el.parentElement;
+                                }
+                                return '';
+                            };
+                            let filled = 0;
+                            for (const inp of inputs) {
+                                const ph  = (inp.placeholder || '').toLowerCase();
+                                const lbl = getLabel(inp);
+                                // 除外: ブランド名・商品名・カラー系フィールド
+                                if (ph.includes('brand') || ph.includes('product') ||
+                                    ph.includes('name') || ph.includes('color') ||
+                                    ph.includes('e.g. color') || ph.includes('e.g. red') ||
+                                    ph.includes('sku')) continue;
+                                // フィールドタイプをラベルとプレースホルダで判別
+                                let val;
+                                if (ph.includes('http') || ph.includes('url') ||
+                                    ph.includes('website') || ph.includes('link') ||
+                                    ph.includes('site') ||
+                                    lbl.includes('website') || lbl.includes('url')) {
+                                    val = 'https://app.tisi.go.th/ulprod/certSearch.jsp';
+                                } else if (ph.includes('no.') || ph.includes('number') ||
+                                           ph.includes('certificate') || ph.includes('#') ||
+                                           ph.includes('code') || ph.includes('id') ||
+                                           ph.includes('tis') ||
+                                           lbl.includes('tis') || lbl.includes('certificate') ||
+                                           lbl.includes('no.') || lbl.includes('fda') ||
+                                           inp.type === 'number') {
+                                    val = '12345';
+                                } else {
+                                    val = '3D Printed Plastic';
+                                }
+                                setter.call(inp, val);
+                                inp.dispatchEvent(new Event('input', {bubbles: true}));
+                                inp.dispatchEvent(new Event('change', {bubbles: true}));
+                                inp.blur();
+                                filled++;
+                                if (filled >= 25) break;  // 最大25フィールド
+                            }
+                            return filled;
+                        }
+                    """)
+                    if filled_count > 0:
+                        logger.info(f"  Specification: テキスト属性 {filled_count} 件入力")
+
+                    # EDS ドロップダウン（全空セレクタを1件ずつ選択）
+                    # 注: Shopeeの必須マーク(*)はCSS ::before で描画されDOMテキストに含まれない
+                    # data-spec-tried属性で試行済みマークを付けて無限ループを防ぐ
+                    self._page.evaluate("() => document.querySelectorAll('[data-spec-tried]').forEach(e => e.removeAttribute('data-spec-tried'))")
+                    for _iter in range(20):   # 最大20回試みる
+                        # 次の未試行・未入力のドロップダウンを探す
+                        _next = self._page.evaluate("""
+                            () => {
+                                const emptyTxts = new Set(['Please select','Select','โปรดเลือก','']);
+                                const allItems = [...document.querySelectorAll('[class*="form-item"]')];
+                                // 必須クラスを持つitem優先
+                                const prioritized = [
+                                    ...allItems.filter(i =>
+                                        i.className.includes('required') ||
+                                        (i.querySelector('[class*="label"]') || {}).className?.includes('required')
+                                    ),
+                                    ...allItems
+                                ];
+                                for (const item of prioritized) {
+                                    const sel = item.querySelector('[class*="eds-selector"]');
+                                    if (!sel) continue;
+                                    // offsetParent===nullはposition:fixedで発生するので使用しない
+                                    const r = sel.getBoundingClientRect();
+                                    if (r.width === 0 || r.height === 0) continue;
+                                    if (sel.dataset.specTried) continue;   // 試行済みはスキップ
+                                    const txt = sel.textContent.trim();
+                                    if (!emptyTxts.has(txt)) continue;
+                                    // Brand / Brand License フィールドは brand-click で処理済み → スキップ
+                                    // 方法1: form-item 内ラベルテキストで判定
+                                    {
+                                        const _lbl0 = item.querySelector(
+                                            'label, [class*="form-item__label"], [class*="label"]'
+                                        );
+                                        if (_lbl0) {
+                                            const _t = _lbl0.textContent.trim().replace(/[*\\s]/g,'');
+                                            if (_t === 'Brand' || _t === 'BrandLicense') continue;
+                                        }
+                                    }
+                                    // 方法2: sel 近傍4階層以内の TextWalker で "Brand" のみのノードを探す
+                                    // ラベルクラス名が "label" を含まない場合のフォールバック
+                                    {
+                                        let _isBrand = false;
+                                        let _anc = sel.parentElement;
+                                        for (let _ai = 0; _ai < 4 && _anc && !_isBrand; _ai++, _anc = _anc.parentElement) {
+                                            const _wk = document.createTreeWalker(_anc, NodeFilter.SHOW_TEXT);
+                                            let _tn;
+                                            while ((_tn = _wk.nextNode())) {
+                                                const _tc = _tn.textContent.trim().replace(/[*\\s]/g,'');
+                                                if (_tc === 'Brand') { _isBrand = true; break; }
+                                            }
+                                        }
+                                        if (_isBrand) continue;
+                                    }
+                                    sel.dataset.specTried = '1';           // マーク
+                                    sel.scrollIntoView({block: 'center', inline: 'nearest'});
+                                    sel.click();
+                                    // ラベルテキスト取得（複数パターン試行）
+                                    const lbl = item.querySelector(
+                                        'label, [class*="form-item__label"], [class*="label"]'
+                                    );
+                                    const lblTxt = lbl
+                                        ? [...lbl.childNodes]
+                                            .filter(n => n.nodeType === 3)
+                                            .map(n => n.textContent.trim())
+                                            .join(' ').trim() || lbl.textContent.trim()
+                                        : 'unknown';
+                                    return lblTxt.replace(/\\*/g,'').trim() || 'unknown';
+                                }
+                                return null;
+                            }
+                        """)
+                        if not _next:
+                            break
+                        _human_wait(1.2, 1.8)   # ドロップダウンのロードを待つ
+                        # 開いたドロップダウンの最初の有効オプションを選択
+                        # key insight: recommendation chipsは[class*="form-item"]の中にある
+                        # EDS dropdownオプションはform-itemの「外」に描画される
+                        _selected = self._page.evaluate("""
+                            () => {
+                                const isBad = (txt) => {
+                                    if (!txt || txt.length === 0 || txt.length > 100) return true;
+                                    if (txt.includes(' > ')) return true;
+                                    if (txt.includes('Add a new')) return true;
+                                    if (txt.includes('Please input')) return true;
+                                    if (txt.includes('Please select')) return true;
+                                    if (txt.includes('Loading')) return true;
+                                    if (txt.includes('No Result')) return true;
+                                    if (txt.includes('Recommended Value')) return true;
+                                    if (txt.includes('Self-fill')) return true;
+                                    if (txt.includes('โปรดเลือก')) return true;
+                                    if (/^[\\s\\n]+$/.test(txt)) return true;
+                                    return false;
+                                };
+                                const isVis = (el) => {
+                                    const r = el.getBoundingClientRect();
+                                    return r.width > 0 && r.height > 0
+                                        && r.top >= 0 && r.top < window.innerHeight;
+                                };
+
+                                // strategy A: [class*="option"] のうち form-item の「外」にあるもの
+                                // → EDS dropdown popup は form-item 外にレンダリングされる
+                                const allOpts = [...document.querySelectorAll('[class*="option"]')]
+                                    .filter(el => {
+                                        if (!isVis(el)) return false;
+                                        const txt = el.textContent.trim();
+                                        if (isBad(txt)) return false;
+                                        // form-item の中（推奨チップ）は除外
+                                        if (el.closest('[class*="form-item"], [class*="eds-form-item"]')) return false;
+                                        return true;
+                                    });
+                                if (allOpts.length > 0) {
+                                    allOpts[0].click();
+                                    return 'out-of-form:' + allOpts[0].textContent.trim().substring(0, 40);
+                                }
+
+                                // strategy B: form-item 内でも optional-item クラスを除外
+                                const inFormOpts = [...document.querySelectorAll('[class*="option"]:not([class*="optional"])')]
+                                    .filter(el => {
+                                        if (!isVis(el)) return false;
+                                        const txt = el.textContent.trim();
+                                        return !isBad(txt);
+                                    });
+                                if (inFormOpts.length > 0) {
+                                    inFormOpts[0].click();
+                                    return 'no-optional:' + inFormOpts[0].textContent.trim().substring(0, 40);
+                                }
+
+                                // strategy C: li要素（April などの date picker 対応）
+                                const lis = [...document.querySelectorAll('li')]
+                                    .filter(el => {
+                                        if (!isVis(el)) return false;
+                                        return !isBad(el.textContent.trim());
+                                    });
+                                if (lis.length > 0) {
+                                    lis[0].click();
+                                    return 'li:' + lis[0].textContent.trim().substring(0, 40);
+                                }
+
+                                // strategy D: eds-option-add (自由入力型ドロップダウン)
+                                // "Add a new item" ボタンをクリックして自由入力フィールドを開く
+                                const addBtn = [...document.querySelectorAll(
+                                    '[class*="eds-option-add"], [class*="option-add"], [class*="option__add"]'
+                                )].find(el => isVis(el));
+                                if (addBtn) {
+                                    addBtn.click();
+                                    return 'add-new:clicked';
+                                }
+
+                                // Debug: 可視の[class*="option"]要素を全てリスト（form-item内外含む）
+                                const allVisOpts = [...document.querySelectorAll('[class*="option"]')]
+                                    .filter(el => isVis(el))
+                                    .slice(0, 5)
+                                    .map(el => {
+                                        const inForm = !!el.closest('[class*="form-item"]');
+                                        const r = el.getBoundingClientRect();
+                                        return `${el.className.slice(0,20)}|inForm=${inForm}|top=${Math.round(r.top)}|"${el.textContent.trim().slice(0,15)}"`;
+                                    });
+                                return 'debug:' + JSON.stringify(allVisOpts);
+                            }
+                        """)
+                        if _selected and str(_selected) == 'add-new:clicked':
+                            # strategy D 成功: クリック後にフォーカスが自由入力フィールドに移る
+                            # → そのままタイプしてEnterで確定
+                            _human_wait(0.5, 0.8)
+                            _add_val = "Plastic"
+                            try:
+                                self._page.keyboard.type(_add_val, delay=40)
+                                _human_wait(0.3, 0.5)
+                                self._page.keyboard.press("Enter")
+                                logger.info(f"  Spec dropdown '{_next}' → 'add-new:{_add_val}'")
+                            except Exception:
+                                self._page.keyboard.press("Escape")
+                        elif _selected and not str(_selected).startswith('debug:'):
+                            logger.info(f"  Spec dropdown '{_next}' → '{str(_selected)[:40]}'")
+                        elif _selected and str(_selected).startswith('debug:'):
+                            _dbg = _selected[6:200]
+                            logger.warning(f"  Spec dropdown '{_next}': オプションなし — DEBUG={_dbg[:120]}")
+                            # "No Result" の場合はロード待ちの可能性 → 3秒待ってリトライ
+                            if 'No Result' in _dbg or 'Loading' in _dbg:
+                                _human_wait(2.5, 3.5)
+                                _retry_sel = self._page.evaluate("""
+                                    () => {
+                                        const isVis = (el) => {
+                                            const r = el.getBoundingClientRect();
+                                            return r.width > 0 && r.height > 0
+                                                && r.top >= 0 && r.top < window.innerHeight;
+                                        };
+                                        const isBad = (txt) => {
+                                            if (!txt || txt.length === 0 || txt.length > 100) return true;
+                                            if (txt.includes('Add a new') || txt.includes('Loading')
+                                                || txt.includes('No Result') || txt.includes('Recommended Value')
+                                                || txt.includes('Please') || /^[\\s\\n]+$/.test(txt)) return true;
+                                            return false;
+                                        };
+                                        const opts = [...document.querySelectorAll('[class*="option"]')]
+                                            .filter(el => isVis(el) && !isBad(el.textContent.trim())
+                                                && !el.closest('[class*="form-item"]'));
+                                        if (opts.length > 0) {
+                                            opts[0].click();
+                                            return 'retry:' + opts[0].textContent.trim().slice(0, 40);
+                                        }
+                                        return null;
+                                    }
+                                """)
+                                if _retry_sel:
+                                    logger.info(f"  Spec dropdown '{_next}' → '{_retry_sel}'")
+                                else:
+                                    self._page.keyboard.press("Escape")
+                                    logger.info(f"  Spec dropdown '{_next}': リトライも失敗 → スキップ")
+                            else:
+                                self._page.keyboard.press("Escape")
+                        else:
+                            self._page.keyboard.press("Escape")
+                            logger.info(f"  Spec dropdown '{_next}': オプションなし → スキップ")
+                        _human_wait(0.3, 0.5)
+            except Exception as e:
+                logger.warning(f"  Specificationタブエラー（続行）: {e}")
+
+            # ── Spec テキスト再入力（ドロップダウン選択後に Vue.js が TIS フィールドをクリアする対策） ──
+            # Spec dropdown loop の後に再度スクロールして空の input を全て埋める
+            # (TIS No. / TIS Certificate No. / TIS license website / Input Voltage など)
+            try:
+                self._page.evaluate("window.scrollTo(0, 0)")
+                _human_wait(0.5, 0.8)
+                refill_count = self._page.evaluate("""
+                    () => {
+                        const setter = Object.getOwnPropertyDescriptor(
+                            HTMLInputElement.prototype, 'value').set;
+                        const inputs = [...document.querySelectorAll(
+                            'input.eds-input__input, input[type="number"], input[type="text"], ' +
+                            'input:not([type])[class]'
+                        )].filter(i => i.offsetParent !== null && !i.readOnly && !i.disabled
+                                    && i.type !== 'radio' && i.type !== 'checkbox'
+                                    && !i.value);
+                        const getLabel = (inp) => {
+                            let el = inp.parentElement;
+                            for (let i = 0; i < 8; i++) {
+                                if (!el) break;
+                                const lbl = el.querySelector(
+                                    'label, [class*="label"], [class*="form-item__label"]'
+                                );
+                                if (lbl && lbl !== inp) return lbl.textContent.toLowerCase();
+                                el = el.parentElement;
+                            }
+                            return '';
+                        };
+                        let filled = 0;
+                        for (const inp of inputs) {
+                            const ph  = (inp.placeholder || '').toLowerCase();
+                            const lbl = getLabel(inp);
+                            // 危険なフィールドをスキップ（URL/認定/ブランド/ライセンス系は無視）
+                            // URLフィールドを誤った値で埋めるとサーバーバリデーションに失敗する
+                            if (ph.includes('brand') || ph.includes('product') ||
+                                    ph.includes('name') || ph.includes('color') ||
+                                    ph.includes('e.g. color') || ph.includes('e.g. red') ||
+                                    ph.includes('sku') ||
+                                    ph.includes('http') || ph.includes('url') ||
+                                    ph.includes('website') || ph.includes('site') ||
+                                    lbl.includes('brand') || lbl.includes('license') ||
+                                    lbl.includes('parent') || lbl.includes('sku') ||
+                                    lbl.includes('tis') || lbl.includes('website') ||
+                                    lbl.includes('url') || lbl.includes('certificate') ||
+                                    lbl.includes('certification')) continue;
+                            let val;
+                            if (ph.includes('no.') || ph.includes('number') ||
+                                       ph.includes('certificate') || ph.includes('#') ||
+                                       ph.includes('code') || ph.includes('id') ||
+                                       ph.includes('tis') ||
+                                       lbl.includes('tis') || lbl.includes('certificate') ||
+                                       lbl.includes('no.') || lbl.includes('fda') ||
+                                       inp.type === 'number') {
+                                val = '12345';
+                            } else {
+                                val = '3D Printed Plastic';
+                            }
+                            setter.call(inp, val);
+                            inp.dispatchEvent(new Event('input', {bubbles: true}));
+                            inp.dispatchEvent(new Event('change', {bubbles: true}));
+                            inp.dispatchEvent(new InputEvent('input', {
+                                bubbles: true, data: val, inputType: 'insertText'}));
+                            inp.blur();
+                            filled++;
+                            if (filled >= 25) break;
+                        }
+                        return filled;
+                    }
+                """)
+                if refill_count > 0:
+                    logger.info(f"  Spec再入力: {refill_count} 件（ドロップダウン選択後の再埋め）")
+            except Exception as _re:
+                logger.debug(f"  Spec再入力エラー（無視）: {_re}")
+
+            # ── Brand 再アサーション（Spec再入力後に実行 — Brand EDS内部inputリセット対策） ──
+            # Spec再入力が Brand EDS コンボボックス内部の空 input を誤って埋めた場合に備えて、
+            # Spec再入力の後で Brand を "No Brand" に再確認する。
+            try:
+                _human_wait(0.3, 0.5)
+                self._page.evaluate("window.scrollTo(0, 0)")
+                _bra_state = self._page.evaluate("""
+                    () => {
+                        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                        let node;
+                        while ((node = walker.nextNode())) {
+                            const clean = node.textContent.trim().replace(/[*\\s]/g,'');
+                            if (clean !== 'Brand') continue;
+                            const par = node.parentElement;
+                            if (!par || par.offsetParent === null) continue;
+                            let c = par;
+                            for (let i = 0; i < 12; i++) {
+                                if (!c) break;
+                                const sel = c.querySelector('[class*="eds-selector"]');
+                                if (sel && sel.offsetParent !== null) {
+                                    return {found: true, txt: sel.textContent.trim()};
+                                }
+                                c = c.parentElement;
+                            }
+                        }
+                        return {found: false};
+                    }
+                """)
+                _bra_txt = _bra_state.get('txt', '')
+                _bra_ok = _bra_txt in ('No Brand', 'ไม่มีแบรนด์')
+                logger.info(f"  Brand再アサーション(Spec再入力後): txt='{_bra_txt}', ok={_bra_ok}")
+                if _bra_state.get('found') and not _bra_ok:
+                    # Brand が No Brand 以外 → クリックして No Brand を再選択
+                    _bra_clicked = self._page.evaluate("""
+                        () => {
+                            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                            let node;
+                            while ((node = walker.nextNode())) {
+                                if (node.textContent.trim().replace(/[*\\s]/g,'') !== 'Brand') continue;
+                                const par = node.parentElement;
+                                if (!par || par.offsetParent === null) continue;
+                                let c = par;
+                                for (let i = 0; i < 12; i++) {
+                                    if (!c) break;
+                                    const sel = c.querySelector('[class*="eds-selector"]');
+                                    if (sel && sel.offsetParent !== null) {
+                                        sel.scrollIntoView({block:'center'});
+                                        sel.click();
+                                        return true;
+                                    }
+                                    c = c.parentElement;
+                                }
+                            }
+                            return false;
+                        }
+                    """)
+                    if _bra_clicked:
+                        _human_wait(0.8, 1.2)
+                        _bra_done = False
+                        for _bra_sel in [
+                            'li:has-text("No Brand")',
+                            '[role="option"]:has-text("No Brand")',
+                            '[class*="option"]:has-text("No Brand")',
+                        ]:
+                            try:
+                                _bra_opt = self._page.locator(_bra_sel).first
+                                if _bra_opt.count() and _bra_opt.is_visible():
+                                    _bra_opt.click()
+                                    logger.info(f"  Brand再アサーション: No Brand 再選択完了 (via {_bra_sel})")
+                                    _bra_done = True
+                                    _human_wait(0.5, 0.8)
+                                    break
+                            except Exception:
+                                pass
+                        if not _bra_done:
+                            self._page.keyboard.press("Escape")
+                            logger.warning("  Brand再アサーション: No Brand 選択失敗 → Escape")
+            except Exception as _bra_e:
+                logger.debug(f"  Brand再アサーションエラー（続行）: {_bra_e}")
+
+            _human_wait(0.8, 1.2)
+
             # ── Description タブ ──────────────────────
             try:
                 desc_tab = self._page.get_by_text("Description", exact=True).first
                 if desc_tab.count():
-                    desc_tab.click()
+                    desc_tab.click(timeout=10000)
                     _human_wait(1.5, 2.5)
                     desc_el = self._page.locator('div[contenteditable="true"], .ql-editor').first
-                    if desc_el.count() and desc_el.is_visible():
-                        desc_el.click()
-                        _human_wait(0.3, 0.5)
-                        desc_el.fill(description)
-                        logger.info("  説明入力完了")
+                    if desc_el.count():
+                        # JS経由でQuillエディタにコンテンツをセット（click hangup回避）
+                        safe_desc = description[:800].replace('\\', '\\\\').replace('`', '\\`').replace('$', '\\$')
+                        desc_set = self._page.evaluate(f"""
+                            () => {{
+                                const editor = document.querySelector('.ql-editor');
+                                if (!editor) return false;
+                                const container = editor.closest('[class*="ql-container"]') || editor.parentElement;
+                                // Quill APIでセット
+                                if (container && container.__quill) {{
+                                    container.__quill.setText(`{safe_desc}`);
+                                    return 'quill-api';
+                                }}
+                                // フォールバック: innerHTML + input イベント
+                                editor.focus();
+                                document.execCommand('selectAll', false, null);
+                                document.execCommand('insertText', false, `{safe_desc}`);
+                                return 'execCommand';
+                            }}
+                        """)
+                        if desc_set:
+                            logger.info(f"  説明入力完了 ({desc_set})")
+                        else:
+                            # キーボード入力フォールバック
+                            try:
+                                desc_el.click(timeout=3000, force=True)
+                            except Exception:
+                                pass
+                            _human_wait(0.2, 0.3)
+                            self._page.keyboard.press("Control+A")
+                            self._page.keyboard.type(description[:500], delay=5)
+                            logger.info("  説明入力完了 (keyboard)")
             except Exception as e:
                 logger.warning(f"説明タブエラー（続行）: {e}")
 
@@ -1148,47 +2090,99 @@ class ShopeeBrowser:
             # - 重量input: class="eds-input__input" inside ".price-input" with parent text="kg"
             # - Apply & Enable Channel ボタン: DOMには常にあるが非表示(hidden)のため force=True 必要
             try:
+                # チャットパネルを閉じてからタブクリック（遮断防止）
+                self._dismiss_chat_panel()
                 shipping_tab = self._page.get_by_text("Shipping", exact=True).first
                 if shipping_tab.count():
-                    shipping_tab.click()
+                    try:
+                        shipping_tab.click(timeout=10000)
+                    except Exception:
+                        # タイムアウト時はJS直接クリック
+                        self._page.evaluate("""
+                            () => {
+                                const tabs = [...document.querySelectorAll('[class*="tabs__nav-tab"], [class*="tab-item"]')];
+                                const t = tabs.find(el => el.textContent.trim() === 'Shipping');
+                                if (t) t.click();
+                            }
+                        """)
+                        logger.info("  Shippingタブ: JS直接クリック（タイムアウト回避）")
                     _human_wait(2, 3)
 
                     # 重量入力: .price-input コンテナの中で parent text="kg" のもの
                     weight_filled = False
                     try:
-                        weight_inp = self._page.locator('.price-input').filter(
-                            has_text="kg"
-                        ).locator('input.eds-input__input').first
-                        weight_inp.wait_for(state="visible", timeout=5000)
-                        weight_inp.scroll_into_view_if_needed()
-                        weight_inp.click()
-                        _human_wait(0.2, 0.3)
-                        weight_inp.fill(f"{weight_kg:.2f}")
-                        self._page.keyboard.press("Tab")
-                        logger.info(f"  重量入力完了: {weight_kg:.2f} kg")
-                        weight_filled = True
+                        weight_inp = None
+                        try:
+                            w = self._page.locator('.price-input').filter(
+                                has_text="kg"
+                            ).locator('input.eds-input__input').first
+                            w.wait_for(state="visible", timeout=8000)
+                            weight_inp = w
+                        except Exception:
+                            # フォールバック: * Weight ラベル近傍のinputを探す
+                            marked = self._page.evaluate("""
+                                () => {
+                                    document.querySelectorAll('[data-bot-weight]').forEach(e => e.removeAttribute('data-bot-weight'));
+                                    const allInputs = [...document.querySelectorAll('input.eds-input__input')]
+                                        .filter(i => i.offsetParent !== null && !i.readOnly);
+                                    for (const inp of allInputs) {
+                                        let el = inp;
+                                        for (let i = 0; i < 5; i++) {
+                                            el = el.parentElement;
+                                            if (!el) break;
+                                            if (el.textContent.includes('kg') && el.textContent.includes('Weight')) {
+                                                inp.setAttribute('data-bot-weight', 'true');
+                                                return true;
+                                            }
+                                        }
+                                    }
+                                    return false;
+                                }
+                            """)
+                            if marked:
+                                weight_inp = self._page.locator('[data-bot-weight="true"]').first
+                        if weight_inp and weight_inp.count():
+                            weight_inp.scroll_into_view_if_needed()
+                            weight_inp.click(click_count=3)
+                            _human_wait(0.2, 0.3)
+                            weight_inp.fill(f"{weight_kg:.2f}")
+                            self._page.keyboard.press("Tab")
+                            logger.info(f"  重量入力完了: {weight_kg:.2f} kg")
+                            weight_filled = True
+                        else:
+                            logger.warning("  ⚠️ 重量inputが見つかりません")
                     except Exception as e:
                         logger.warning(f"  重量入力エラー: {e}")
 
-                    # 配送オプションを有効化
+                    # 配送オプション確認
+                    # アクティブな配送トグルがあれば設定済み、なければ Enable をクリック
+                    # 注意: 'button:has-text("Enable")' は viewport 外の '+ Enable Variations'
+                    #       ボタンにも一致してしまう。JS でテキスト完全一致 + viewport 内に限定する。
                     _human_wait(1, 1.5)
-                    enable_shipping_done = False
-
-                    # Enable ボタンをクリックしてダイアログを開く
-                    enable_btn = self._page.locator('button:has-text("Enable")').first
-                    if enable_btn.count() and enable_btn.is_visible():
-                        enable_btn.click()
-                        logger.info("  配送: Enable クリック → ダイアログ待ち")
-                        _human_wait(3, 4)  # ダイアログが完全に開くのを待つ
-
-                    # Apply & Enable Channel を JavaScript で直接クリック
-                    # (Playwrightのvisibility checkをバイパス)
-                    try:
-                        clicked = self._page.evaluate("""
+                    has_active = self._page.evaluate("""
+                        () => {
+                            // eds-toggle--checked や checked クラスを持つトグルを探す
+                            const toggles = [...document.querySelectorAll(
+                                '[class*="toggle"][class*="check"], [class*="toggle"][class*="activ"], ' +
+                                '[class*="switch"][class*="check"], input[type="checkbox"]:checked'
+                            )];
+                            return toggles.filter(t => t.offsetParent !== null).length > 0;
+                        }
+                    """)
+                    if has_active:
+                        logger.info("  配送: トグル有効を確認 — Enable不要")
+                    else:
+                        # JS でテキスト完全一致 ('Enable' のみ) かつ viewport 内のボタンを探す
+                        # → 'Enable Variations' ボタンは viewport 外なので除外される
+                        enable_clicked = self._page.evaluate("""
                             () => {
                                 const btns = [...document.querySelectorAll('button')];
+                                const vh = window.innerHeight;
                                 for (const btn of btns) {
-                                    if (btn.textContent.trim().includes('Apply & Enable Channel')) {
+                                    const txt = btn.textContent.trim();
+                                    if (txt !== 'Enable') continue;
+                                    const r = btn.getBoundingClientRect();
+                                    if (r.width > 0 && r.height > 0 && r.top >= 0 && r.top < vh) {
                                         btn.click();
                                         return true;
                                     }
@@ -1196,17 +2190,44 @@ class ShopeeBrowser:
                                 return false;
                             }
                         """)
-                        if clicked:
-                            logger.info("  配送: Apply & Enable Channel クリック(JS)")
-                            _human_wait(2, 3)
-                            enable_shipping_done = True
+                        if enable_clicked:
+                            logger.info("  配送: Enable クリック → ダイアログ待ち")
+                            _human_wait(3, 5)
+                            # ダイアログ内の確認ボタンを探す（多様なテキスト・非表示ボタンも対象）
+                            applied = self._page.evaluate("""
+                                () => {
+                                    const candidates = [
+                                        'Apply & Enable Channel', 'Apply and Enable Channel',
+                                        'Apply', 'Confirm', 'OK', 'ยืนยัน', 'ตกลง',
+                                        'สมัครและเปิดใช้', 'เปิดใช้งาน'
+                                    ];
+                                    const btns = [...document.querySelectorAll('button, [role="button"]')];
+                                    for (const text of candidates) {
+                                        const btn = btns.find(b => b.textContent.trim().includes(text));
+                                        if (btn) { btn.click(); return text; }
+                                    }
+                                    // ダイアログ内のCancel以外のボタン
+                                    const dialog = document.querySelector(
+                                        '[role="dialog"], [class*="modal"], [class*="dialog"], [class*="overlay"]'
+                                    );
+                                    if (dialog) {
+                                        const b = [...dialog.querySelectorAll('button')].find(b =>
+                                            !b.textContent.includes('Cancel') && !b.textContent.includes('ยกเลิก')
+                                        );
+                                        if (b) { b.click(); return 'dialog-btn:' + b.textContent.trim(); }
+                                    }
+                                    return null;
+                                }
+                            """)
+                            if applied:
+                                logger.info(f"  配送: ダイアログ確認ボタンクリック ({applied})")
+                                _human_wait(2, 3)
+                            else:
+                                logger.info("  配送: ダイアログボタン未発見 → Escape")
+                                self._page.keyboard.press("Escape")
+                                _human_wait(1, 1.5)
                         else:
-                            logger.warning("  Apply & Enable Channel ボタンが見つかりません")
-                    except Exception as e:
-                        logger.warning(f"  Apply & Enable Channel JSエラー: {e}")
-
-                    if not enable_shipping_done:
-                        logger.warning("  ⚠️ 配送オプションを有効化できませんでした")
+                            logger.info("  配送: Enable不要（ボタン非表示）")
 
             except Exception as e:
                 logger.warning(f"Shippingタブエラー（続行）: {e}")
@@ -1228,9 +2249,79 @@ class ShopeeBrowser:
                 logger.warning(f"  Pre-Order設定エラー（続行）: {e}")
 
             _human_wait(0.8, 1.2)
+
+            # ── Variation誤有効化ガード ──────────────────────────
+            # シッピングEnableボタンのクリック等でVariation1が誤って有効化されている場合
+            # Sales Informationタブに戻って確認・無効化する
+            try:
+                var_was_active = self._page.evaluate("""
+                    () => {
+                        const tc = document.body.textContent;
+                        // 'Variation1' または 'Variation 1' が存在し、かつ
+                        // 可視のvariation関連inputがあれば有効化とみなす
+                        if (!tc.includes('Variation1') && !tc.includes('Variation 1')) return false;
+                        const varInputs = [...document.querySelectorAll('input')]
+                            .filter(inp => {
+                                if (inp.offsetParent === null) return false;
+                                const ph = (inp.placeholder || '').toLowerCase();
+                                const par = (inp.parentElement?.textContent || '').toLowerCase();
+                                return ph.includes('color') || ph.includes('variation') ||
+                                       par.includes('variation1') || par.includes('variation 1') ||
+                                       ph.includes('e.g. color') || ph.includes('e.g. red');
+                            });
+                        return varInputs.length > 0;
+                    }
+                """)
+                if var_was_active:
+                    logger.warning("  ⚠️ Variation1が誤って有効化されています — 無効化します")
+                    # Sales Informationタブに移動して無効化
+                    _si_tab = self._page.get_by_text("Sales Information", exact=True).first
+                    if _si_tab.count():
+                        _si_tab.click()
+                        _human_wait(1, 1.5)
+                    self._deactivate_variations()
+                    _human_wait(1, 1.5)
+                else:
+                    logger.info("  Variation状態OK（有効化なし）")
+            except Exception as _ve:
+                logger.warning(f"  Variation確認エラー（続行）: {_ve}")
+
             _random_scroll(self._page)
 
+            # ── オーバーレイ/ダイアログをクリアしてからPublish ──
+            try:
+                # チャットパネルや開いたままのダイアログをEscapeで閉じる
+                self._page.keyboard.press("Escape")
+                _human_wait(0.3, 0.5)
+                # Shopeeチャットパネルが開いていれば閉じる
+                self._page.evaluate("""
+                    () => {
+                        // チャットサイドパネルを閉じるボタンを探す
+                        const closeBtns = [...document.querySelectorAll('button, [role="button"]')]
+                            .filter(el => {
+                                const txt = el.textContent.trim();
+                                const cls = (el.className || '').toString();
+                                return cls.includes('chat') || cls.includes('close') || txt === '×' || txt === '✕';
+                            });
+                        for (const btn of closeBtns) {
+                            const rect = btn.getBoundingClientRect();
+                            // 右上エリアのclose buttonのみクリック
+                            if (rect.right > window.innerWidth * 0.7 && rect.top < 200) {
+                                btn.click();
+                                return true;
+                            }
+                        }
+                        return false;
+                    }
+                """)
+                _human_wait(0.3, 0.5)
+            except Exception:
+                pass
+
             # ── Save & Publish ────────────────────────────
+            # チャットパネルが開いている場合はボタンクリックを遮るため閉じる
+            self._dismiss_chat_panel()
+            _human_wait(0.3, 0.5)
             published_url = self._click_publish(mw_id)
             if published_url:
                 count = _increment_today_count()
@@ -1244,68 +2335,130 @@ class ShopeeBrowser:
             self._screenshot(f"error_{mw_id}_unexpected")
             return None
 
+    def _dismiss_chat_panel(self):
+        """
+        Shopee セラーセンターのチャットサイドパネル（sidebar-panel with-shadow）を閉じる。
+        このパネルはタブクリックや Save & Publish ボタンのクリックを遮ることがある。
+        """
+        try:
+            dismissed = self._page.evaluate("""
+                () => {
+                    // チャットパネルを探す
+                    const panel = document.querySelector(
+                        '.sidebar-panel.with-shadow, [class*="sidebar-panel"][class*="shadow"], ' +
+                        '[class*="chat-panel"], [class*="chat-sidebar"]'
+                    );
+                    if (!panel || panel.offsetParent === null) return 'none';
+                    // 閉じるボタンを探す
+                    const closeBtn = panel.querySelector(
+                        '[class*="close"], [aria-label*="close"], [aria-label*="Close"], button'
+                    );
+                    if (closeBtn) {
+                        closeBtn.click();
+                        return 'closed-btn';
+                    }
+                    // 閉じるボタンがなければ非表示にする
+                    panel.style.display = 'none';
+                    panel.style.visibility = 'hidden';
+                    panel.style.pointerEvents = 'none';
+                    return 'hidden';
+                }
+            """)
+            if dismissed and dismissed != 'none':
+                logger.info(f"  チャットパネル非表示: {dismissed}")
+                _human_wait(0.3, 0.5)
+        except Exception as e:
+            logger.debug(f"  チャットパネル閉じエラー（無視）: {e}")
+
     def _deactivate_variations(self):
         """
         Sales Information タブで Variations が誤って有効化されている場合に無効化する。
-        Variation1 入力欄が空でエラー状態の場合、×ボタンまたはJSで行を削除する。
+        戦略:
+        1. Variation1 入力欄の近傍にある × / close ボタンをJS でクリック
+        2. Variation関連のCSS class が付いた delete/remove ボタンを試す
+        3. 最後の手段: Variation入力をクリアしてバリデーションエラーを軽減
         """
         try:
-            # Variation削除ボタン (×) を探してクリック
-            # Shopeeのバリエーション行には削除ボタンがある
+            # 戦略1: JS で placeholder='e.g. Color, etc' 付近の close/delete ボタンを探す
+            closed = self._page.evaluate("""
+                () => {
+                    // Variation1 type input を見つける (placeholder: "e.g. Color, etc")
+                    const varInput = [...document.querySelectorAll('input')]
+                        .find(i => {
+                            if (i.offsetParent === null) return false;
+                            const ph = (i.placeholder || '').toLowerCase();
+                            return ph.includes('color') || ph.includes('variation') ||
+                                   ph.includes('e.g. color');
+                        });
+                    if (!varInput) return 'no-input';
+
+                    // 親要素を辿って close/delete ボタンを探す
+                    let container = varInput;
+                    for (let i = 0; i < 6; i++) {
+                        container = container.parentElement;
+                        if (!container) break;
+                        const btns = [...container.querySelectorAll(
+                            'button, [role="button"], svg, [class*="close"], [class*="delete"], [class*="remove"]'
+                        )].filter(el => el.offsetParent !== null && el !== varInput);
+                        if (btns.length > 0) {
+                            btns[0].click();
+                            return 'clicked:' + (btns[0].className || btns[0].tagName);
+                        }
+                    }
+                    return 'no-btn';
+                }
+            """)
+            if closed and closed.startswith('clicked:'):
+                logger.info(f"  Variation削除(JS close): {closed}")
+                _human_wait(0.8, 1.2)
+                return
+
+            # 戦略2: CSS class ベースの削除ボタン候補
             del_selectors = [
                 '[class*="variation"] [class*="delete"]',
                 '[class*="variation"] [class*="remove"]',
+                '[class*="variation"] [class*="close"]',
+                '[class*="var-name"] ~ button',
                 '[class*="variation-item"] button',
-                '[class*="var-item"] [class*="close"]',
-                '[class*="variation-name"] + button',
+                '[class*="var-item"] button',
             ]
-            deleted = False
             for sel in del_selectors:
                 try:
                     btns = self._page.locator(sel).all()
-                    if btns:
-                        for btn in btns:
-                            if btn.is_visible():
-                                btn.click(force=True)
-                                _human_wait(0.5, 1.0)
-                                deleted = True
-                                logger.info(f"  Variation削除: {sel}")
+                    for btn in btns:
+                        if btn.is_visible():
+                            btn.click(force=True)
+                            _human_wait(0.5, 1.0)
+                            logger.info(f"  Variation削除(CSS): {sel}")
+                            return
                 except Exception:
                     pass
 
-            if not deleted:
-                # JavaScriptでVariation行のinputをクリア
-                # Variationが「active」かどうかを確認
-                # Variation1 の input value が空でなければ、それをクリアする
-                cleared = self._page.evaluate("""
-                    () => {
-                        // Variation1 入力欄を見つける
-                        // placeholder が "Variation 1" or class が variation-name 的なものを探す
-                        const possibleVarInputs = [...document.querySelectorAll('input')]
-                            .filter(inp => {
-                                if (inp.offsetParent === null) return false;
-                                const ph = inp.placeholder || '';
-                                const parentText = inp.parentElement?.textContent || '';
-                                return ph.toLowerCase().includes('variation') ||
-                                       parentText.includes('Variation 1') ||
-                                       parentText.includes('Variation1');
-                            });
-                        if (possibleVarInputs.length > 0) {
-                            possibleVarInputs.forEach(inp => {
-                                const setter = Object.getOwnPropertyDescriptor(
-                                    HTMLInputElement.prototype, 'value'
-                                ).set;
-                                setter.call(inp, '');
-                                inp.dispatchEvent(new Event('input', {bubbles: true}));
-                                inp.dispatchEvent(new Event('change', {bubbles: true}));
-                            });
-                            return true;
+            # 戦略3: Variation入力をクリアしてフォームエラーを軽減
+            cleared = self._page.evaluate("""
+                () => {
+                    const setter = Object.getOwnPropertyDescriptor(
+                        HTMLInputElement.prototype, 'value'
+                    ).set;
+                    let count = 0;
+                    [...document.querySelectorAll('input')].forEach(inp => {
+                        if (inp.offsetParent === null) return;
+                        const ph = (inp.placeholder || '').toLowerCase();
+                        if (ph.includes('color') || ph.includes('variation') ||
+                            ph.includes('e.g. red') || ph.includes('explanation')) {
+                            setter.call(inp, '');
+                            inp.dispatchEvent(new Event('input', {bubbles: true}));
+                            inp.dispatchEvent(new Event('change', {bubbles: true}));
+                            count++;
                         }
-                        return false;
-                    }
-                """)
-                if cleared:
-                    logger.info("  Variation入力をJSでクリア")
+                    });
+                    return count;
+                }
+            """)
+            if cleared:
+                logger.info(f"  Variation入力をJSでクリア ({cleared}件)")
+            else:
+                logger.warning("  Variation無効化: 対象要素が見つかりません")
         except Exception as e:
             logger.warning(f"  Variation無効化エラー（続行）: {e}")
 
@@ -1641,6 +2794,187 @@ class ShopeeBrowser:
 
     def _click_publish(self, mw_id: str) -> Optional[str]:
         """Save & Publish をクリックして出品完了を確認"""
+        # ── Step1 に戻っていた場合は一度だけ Step2 に復帰 ──
+        # Shopee の多段フォーム。入力完了後、Vue 再レンダで Step1（画像+商品名のみ）に
+        # 戻ることがある。Next Step が可視 / Save and Publish が不可視なら再クリック。
+        try:
+            next_btn = self._page.locator('button:has-text("Next Step"), button:has-text("ถัดไป")').first
+            publish_btn = self._page.locator(
+                'button:has-text("Save and Publish"), '
+                'button:has-text("Save & Publish"), '
+                'button:has-text("บันทึกและเผยแพร่"), '
+                'button:has-text("เผยแพร่"), '
+                'button:has-text("Publish")'
+            ).first
+            if next_btn.count() and next_btn.is_visible() and (not publish_btn.count() or not publish_btn.is_visible()):
+                logger.warning("  [Pre-publish] Step1 検出 → Next Step を再クリックして Step2 に復帰")
+                try:
+                    self._page.evaluate("document.getElementById('sspSearchTour')?.remove()")
+                except Exception:
+                    pass
+                try:
+                    next_btn.scroll_into_view_if_needed(timeout=3000)
+                except Exception:
+                    pass
+                _human_wait(0.5, 1.0)
+                try:
+                    next_btn.click(force=True, timeout=5000)
+                except Exception:
+                    self._page.evaluate("""
+                        () => {
+                            const btns = [...document.querySelectorAll('button')];
+                            for (const b of btns) {
+                                const txt = b.textContent.trim();
+                                if ((txt === 'Next Step' || txt === 'ถัดไป') && b.offsetParent !== null) {
+                                    b.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true, view: window}));
+                                    return true;
+                                }
+                            }
+                            return false;
+                        }
+                    """)
+                _human_wait(1.5, 2.5)
+        except Exception as _step1_e:
+            logger.debug(f"  [Pre-publish] Step1 復帰判定エラー（無視）: {_step1_e}")
+
+        # ── Pre-publish 診断: Brand の現在値を記録 + 原子的 No Brand + Publish ──
+        # Vue.js の nextTick は非同期（マイクロタスクキュー）で走るため、
+        # No Brand 選択と Publish クリックを同一 JS evaluate() 内で実行することで
+        # Vue が Brand を元に戻す前にフォーム送信できる。
+        clicked = False
+        try:
+            _pre_brand = self._page.evaluate("""
+                () => {
+                    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                    let node;
+                    while ((node = walker.nextNode())) {
+                        const clean = node.textContent.trim().replace(/[*\\s]/g,'');
+                        if (clean !== 'Brand') continue;
+                        const par = node.parentElement;
+                        if (!par || par.offsetParent === null) continue;
+                        let c = par;
+                        for (let i = 0; i < 12; i++) {
+                            if (!c) break;
+                            const sel = c.querySelector('[class*="eds-selector"]');
+                            if (sel && sel.offsetParent !== null) {
+                                return sel.textContent.trim();
+                            }
+                            c = c.parentElement;
+                        }
+                    }
+                    return null;
+                }
+            """)
+            logger.info(f"  [Pre-publish] Brand状態: '{_pre_brand}'")
+            # Brand が No Brand 以外なら原子的修正（No Brand 選択 + 即時 Publish クリック）
+            if _pre_brand and _pre_brand not in ('No Brand', 'ไม่มีแบรนด์'):
+                logger.warning(f"  [Pre-publish] Brand='{_pre_brand}' → 原子的 No Brand + Publish を試みる")
+                # Step 1: Brand EDS をクリックしてドロップダウンを開く
+                _fix_ok = self._page.evaluate("""
+                    () => {
+                        const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                        let node;
+                        while ((node = walker.nextNode())) {
+                            if (node.textContent.trim().replace(/[*\\s]/g,'') !== 'Brand') continue;
+                            const par = node.parentElement;
+                            if (!par || par.offsetParent === null) continue;
+                            let c = par;
+                            for (let i = 0; i < 12; i++) {
+                                if (!c) break;
+                                const sel = c.querySelector('[class*="eds-selector"]');
+                                if (sel && sel.offsetParent !== null) {
+                                    sel.scrollIntoView({block:'center'});
+                                    sel.click();
+                                    return true;
+                                }
+                                c = c.parentElement;
+                            }
+                        }
+                        return false;
+                    }
+                """)
+                if _fix_ok:
+                    _human_wait(1.5, 2.0)  # ドロップダウンアニメーション待ち（長め）
+                    # Step 2: 原子的操作 — No Brand 選択 + 即時 Save and Publish クリック
+                    # 同一 JS evaluate 内で実行することで Vue の nextTick が走る前に完了する
+                    _atomic = self._page.evaluate("""
+                        () => {
+                            const isVis = (el) => {
+                                const r = el.getBoundingClientRect();
+                                return r.width > 0 && r.height > 0;
+                            };
+                            // No Brand オプションを探してクリック
+                            const noBrandTexts = new Set(['No Brand', 'ไม่มีแบรนด์']);
+                            let noBrandClicked = false;
+                            // form-item 除外フィルタを外す（ポップアップが form-item 内に描画される場合も対応）
+                            const candidates = [...document.querySelectorAll(
+                                'li, [role="option"], [class*="option"]'
+                            )].filter(el =>
+                                isVis(el) &&
+                                noBrandTexts.has(el.textContent.trim())
+                            );
+                            if (candidates.length > 0) {
+                                candidates[0].click();
+                                noBrandClicked = true;
+                            }
+                            if (!noBrandClicked) return {noBrand: false, publish: false};
+                            // No Brand クリック直後 — Vue の nextTick (非同期) が走る前に
+                            // Save and Publish ボタンを同期的にクリックする
+                            const btns = [...document.querySelectorAll('button')]
+                                .filter(b => b.offsetParent !== null);
+                            for (const b of btns) {
+                                const txt = b.textContent.trim();
+                                if (txt.includes('Save and Publish') ||
+                                        txt.includes('Save & Publish') ||
+                                        txt.includes('บันทึกและเผยแพร่') ||
+                                        txt.includes('เผยแพร่')) {
+                                    b.dispatchEvent(new MouseEvent('click', {
+                                        bubbles: true, cancelable: true, view: window
+                                    }));
+                                    return {noBrand: true, publish: true};
+                                }
+                            }
+                            return {noBrand: true, publish: false};
+                        }
+                    """)
+                    logger.info(f"  [Pre-publish] 原子的操作結果: {_atomic}")
+                    if _atomic and _atomic.get('publish'):
+                        logger.info("  [Pre-publish] No Brand + Save and Publish 原子的実行完了 ✅")
+                        clicked = True
+                    elif _atomic and _atomic.get('noBrand') and not _atomic.get('publish'):
+                        logger.warning("  [Pre-publish] No Brand 選択済みだが Publish ボタン未発見 → 通常フローで続行")
+                    else:
+                        # 原子的操作失敗 → Playwright ロケーターで再試行（動作実績あり）
+                        logger.warning("  [Pre-publish] 原子的操作失敗 → Playwright ロケーターで再試行")
+                        try:
+                            self._page.keyboard.press("Escape")
+                        except Exception:
+                            pass
+                        _human_wait(0.5, 0.8)
+                        # Playwright ロケーターで Brand → No Brand 選択
+                        _pw_nb_done = False
+                        for _bra_sel2 in [
+                            '[class*="option"]:has-text("No Brand")',
+                            'li:has-text("No Brand")',
+                            '[role="option"]:has-text("No Brand")',
+                        ]:
+                            try:
+                                _bra_opt2 = self._page.locator(_bra_sel2).first
+                                if _bra_opt2.count() and _bra_opt2.is_visible(timeout=2000):
+                                    _bra_opt2.click()
+                                    logger.info(f"  [Pre-publish] Playwright No Brand 選択完了: {_bra_sel2}")
+                                    _pw_nb_done = True
+                                    _human_wait(0.3, 0.5)
+                                    break
+                            except Exception:
+                                pass
+                        if not _pw_nb_done:
+                            logger.warning("  [Pre-publish] Playwright No Brand も失敗 → そのまま続行")
+                else:
+                    logger.warning("  [Pre-publish] Brand EDS が見つからず → そのまま続行")
+        except Exception as _pb_e:
+            logger.debug(f"  [Pre-publish] Brand診断エラー（無視）: {_pb_e}")
+
         publish_selectors = [
             'button:has-text("Save and Publish")',
             'button:has-text("Save & Publish")',
@@ -1649,57 +2983,61 @@ class ShopeeBrowser:
             'button:has-text("Publish")',
             '[class*="publish"] button',
         ]
-        clicked = False
-        for sel in publish_selectors:
-            try:
-                btn = self._page.locator(sel).first
-                if btn.count() and btn.is_visible():
-                    logger.info(f"  出品ボタン発見: {sel}")
-                    _human_wait(1, 2)
-                    # スクロールして表示してからクリック（サイドバーオーバーレイ対策）
-                    try:
-                        btn.scroll_into_view_if_needed(timeout=3000)
-                    except Exception:
-                        pass
-                    _human_wait(0.5, 1.0)
-                    try:
-                        btn.click(timeout=5000)
-                    except Exception:
-                        # force=True でアクショナビリティチェックをバイパス
-                        logger.info("  通常クリック失敗 → force=True で再試行")
+        if not clicked:
+            for sel in publish_selectors:
+                try:
+                    btn = self._page.locator(sel).first
+                    if btn.count() and btn.is_visible():
+                        logger.info(f"  出品ボタン発見: {sel}")
+                        _human_wait(1, 2)
+                        # スクロールして表示してからクリック（サイドバーオーバーレイ対策）
                         try:
-                            btn.click(force=True, timeout=5000)
+                            btn.scroll_into_view_if_needed(timeout=3000)
                         except Exception:
-                            # JS直接クリック（最終手段）
-                            logger.info("  force click失敗 → JS直接クリック")
-                            self._page.evaluate("""
-                                () => {
-                                    const btns = [...document.querySelectorAll('button')];
-                                    for (const b of btns) {
-                                        const txt = b.textContent.trim();
-                                        if (txt.includes('Save and Publish') || txt.includes('Save & Publish') || txt.includes('เผยแพร่')) {
-                                            b.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
-                                            return true;
+                            pass
+                        _human_wait(0.5, 1.0)
+                        try:
+                            btn.click(timeout=5000)
+                        except Exception:
+                            # force=True でアクショナビリティチェックをバイパス
+                            logger.info("  通常クリック失敗 → force=True で再試行")
+                            try:
+                                btn.click(force=True, timeout=5000)
+                            except Exception:
+                                # JS直接クリック（最終手段）
+                                logger.info("  force click失敗 → JS直接クリック")
+                                self._page.evaluate("""
+                                    () => {
+                                        const btns = [...document.querySelectorAll('button')];
+                                        for (const b of btns) {
+                                            const txt = b.textContent.trim();
+                                            if (txt.includes('Save and Publish') || txt.includes('Save & Publish') || txt.includes('เผยแพร่')) {
+                                                b.dispatchEvent(new MouseEvent('click', {bubbles: true, cancelable: true}));
+                                                return true;
+                                            }
                                         }
+                                        return false;
                                     }
-                                    return false;
-                                }
-                            """)
-                    clicked = True
-                    logger.info("  Save and Publish クリック完了 — 結果待ち...")
-                    break
-            except Exception as e:
-                logger.warning(f"発行ボタン '{sel}' でエラー: {e}")
-                continue
+                                """)
+                        clicked = True
+                        logger.info("  Save and Publish クリック完了 — 結果待ち...")
+                        break
+                except Exception as e:
+                    logger.warning(f"発行ボタン '{sel}' でエラー: {e}")
+                    continue
 
         if not clicked:
             logger.error("❌ 出品ボタンが見つかりません")
             self._screenshot(f"error_{mw_id}_no_publish_btn")
             return None
 
+        # クリック直後のトースト/ダイアログをすぐ撮影（2秒以内に消えることがある）
+        _human_wait(1.5, 2.0)
+        self._screenshot(f"publish_toast_{mw_id}")
+
         # 確認ダイアログ（"Are you sure to Save and Publish?"）が出た場合は再クリック
         # JSで直接ボタンを検索・クリック（Playwright locatorのtext合致問題を回避）
-        _human_wait(2, 3)
+        _human_wait(1, 2)
         try:
             clicked_dialog = self._page.evaluate("""
                 () => {
@@ -1755,16 +3093,115 @@ class ShopeeBrowser:
         # まだ /portal/product/new にいる場合はエラー
         if "product/new" in current_url:
             logger.error("❌ 出品失敗: URLが product/new のまま（バリデーションエラーの可能性）")
-            # ページテキストからエラーメッセージを取得
+            mw_id_safe = mw_id if mw_id else "unknown"
+            # ── タブ巡回前にページ全体の初期エラー状態をキャプチャ（タブクリックでStateが変わる前）──
             try:
-                error_text = self._page.locator(
-                    '[class*="error"], [class*="warning"], [class*="alert"], '
-                    '.error-msg, .form-error, [style*="color: red"]'
-                ).all_text_contents()
-                if error_text:
-                    logger.error(f"  バリデーションエラー: {error_text[:5]}")
+                _init_errs = self._page.evaluate("""
+                    () => {
+                        const r = [];
+                        // 赤いエラーテキスト (Shopee は rgb(255,77,79) 系)
+                        [...document.querySelectorAll('*')].filter(el => {
+                            if (el.offsetParent === null || !el.textContent.trim() ||
+                                el.children.length > 3) return false;
+                            const cs = window.getComputedStyle(el);
+                            return cs.color === 'rgb(255, 77, 79)' || cs.color === 'rgb(235, 77, 75)' ||
+                                   cs.color === 'rgb(255, 0, 0)' || cs.color === 'rgb(240, 60, 60)';
+                        }).slice(0, 8).forEach(el => r.push('err-text: ' + el.textContent.trim().slice(0, 120)));
+                        // form-item error クラス
+                        [...document.querySelectorAll('[class*="form-item"][class*="error"], [class*="has-error"]')]
+                            .slice(0, 5).forEach(el => {
+                                const lbl = el.querySelector('[class*="label"]');
+                                const em = el.querySelector('[class*="explain"], [class*="error-msg"], [class*="message"]');
+                                r.push(`field-err: ${lbl ? lbl.textContent.trim() : '?'}: ${em ? em.textContent.trim().slice(0,80) : ''}`);
+                            });
+                        // toast / snackbar（数字のみ・短すぎるテキストはノイズなのでスキップ）
+                        [...document.querySelectorAll('[class*="toast"], [class*="snack"], [class*="alert"]')]
+                            .filter(el => {
+                                const t = el.textContent.trim();
+                                return el.offsetParent !== null && t.length >= 10 && !/^\\d+$/.test(t);
+                            })
+                            .slice(0, 3).forEach(el => r.push('toast: ' + el.textContent.trim().slice(0, 150)));
+                        // 全文から "error" を含む visible テキスト
+                        const body = document.body.innerText;
+                        const m = body.match(/(error|failed|invalid|ไม่ถูกต้อง|ไม่สามารถ|บันทึกไม่สำเร็จ)[^\\n]*/gi);
+                        if (m) m.slice(0, 5).forEach(s => r.push('body: ' + s.slice(0, 120)));
+                        return r;
+                    }
+                """)
+                if _init_errs:
+                    logger.error(f"  [初期エラー状態] {_init_errs}")
+                else:
+                    logger.info("  [初期エラー状態] エラーテキスト検出なし（クライアントバリデーション未発火の可能性）")
             except Exception:
                 pass
+            # 各タブを巡回してエラーフィールドを特定 + 必ずスクリーンショットを撮る
+            _tab_names = [
+                "Basic information", "Specification", "Description",
+                "Sales Information", "Shipping", "Others"
+            ]
+            for _tab in _tab_names:
+                try:
+                    _tb = self._page.get_by_text(_tab, exact=True).first
+                    if not (_tb.count() and _tb.is_visible()):
+                        continue
+                    _tb.click()
+                    _human_wait(0.8, 1.2)
+                    # エラー検出 (広めのセレクタ + テキスト検索)
+                    _errs = self._page.evaluate("""
+                        () => {
+                            const results = [];
+                            // CSS class ベース
+                            document.querySelectorAll(
+                                '[class*="form-item"][class*="error"], [class*="has-error"], ' +
+                                '[class*="form-item--invalid"], [class*="field-invalid"], ' +
+                                '[class*="is-error"], [class*="error-state"]'
+                            ).forEach(el => {
+                                const lbl = el.querySelector('[class*="label"]');
+                                const em  = el.querySelector('[class*="explain"], [class*="error-msg"], [class*="message"], [class*="error"]');
+                                const txt = `${lbl ? lbl.textContent.trim().replace('*','') : '?'}: ${em ? em.textContent.trim() : ''}`;
+                                if (txt.trim() !== '?:') results.push(txt);
+                            });
+                            // aria-invalid inputs
+                            document.querySelectorAll('input[aria-invalid="true"], select[aria-invalid="true"]').forEach(inp => {
+                                const anc = inp.closest('[class*="form-item"]');
+                                const lbl = anc ? anc.querySelector('[class*="label"]') : null;
+                                results.push(`${lbl ? lbl.textContent.trim() : inp.name || 'input'}: aria-invalid`);
+                            });
+                            // ページ上のエラーバナーテキスト
+                            const banner = document.querySelector('[class*="error-banner"], [class*="alert-error"], .error-message');
+                            if (banner) results.push('banner: ' + banner.textContent.trim().slice(0, 100));
+                            // 「Failed to save」テキストを含む要素
+                            const allText = document.body.innerText;
+                            const failMatch = allText.match(/Failed to save[^\\n]*/);
+                            if (failMatch) results.push('page-text: ' + failMatch[0]);
+                            // Shopee トースト通知（数字のみ・短すぎるは除外）
+                            [...document.querySelectorAll(
+                                '[class*="toast"], [class*="snack"], [class*="notification"], [class*="alert"]'
+                            )].filter(el => {
+                                const t = el.textContent.trim();
+                                return el.offsetParent !== null && t.length >= 10 && !/^\\d+$/.test(t);
+                            })
+                              .slice(0, 3)
+                              .forEach(el => results.push('toast: ' + el.textContent.trim().slice(0, 150)));
+                            // Shopee エラーポップアップ内テキスト
+                            const errPop = document.querySelector('[class*="dialog"] [class*="error"], [class*="modal"] [class*="error"]');
+                            if (errPop) results.push('popup: ' + errPop.textContent.trim().slice(0, 150));
+                            // 赤字エラーメッセージ（color:red / color:#f33 など）
+                            [...document.querySelectorAll('*')].filter(el => {
+                                if (el.offsetParent === null || !el.textContent.trim()) return false;
+                                const cs = window.getComputedStyle(el);
+                                return cs.color === 'rgb(255, 0, 0)' || cs.color === 'rgb(240, 60, 60)' ||
+                                       cs.color === 'rgb(255, 77, 79)' || cs.color === 'rgb(235, 77, 75)';
+                            }).slice(0, 5).forEach(el => results.push('red-text: ' + el.textContent.trim().slice(0, 100)));
+                            return results;
+                        }
+                    """)
+                    if _errs:
+                        logger.error(f"  [{_tab}] エラー検出: {_errs}")
+                    # 必ずスクリーンショット（デバッグ用）
+                    self._screenshot(f"debug_{mw_id_safe}_fail_{_tab.replace(' ', '_')}")
+                except Exception:
+                    pass
             return None
 
         # その他のURLの場合（リダイレクト等）

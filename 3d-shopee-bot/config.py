@@ -60,7 +60,7 @@ LISTING_SETTINGS = {
     "markup_rate": 3.5,             # 原価の3.5倍（Shopee手数料・送料・利益含む）
     "condition": "NEW",
     "language": "th",               # 出品言語（タイ語）
-    "include_english": True,        # 英語説明も追加するか
+    "include_english": False,       # 英語説明も追加するか（Shopee TH: 外国語禁止 [358D]）
 }
 
 # フィラメント原価（1グラムあたりのコスト、THB）
