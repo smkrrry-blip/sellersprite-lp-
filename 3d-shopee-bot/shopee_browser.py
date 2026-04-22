@@ -1457,7 +1457,8 @@ class ShopeeBrowser:
                 if spec_tab.count():
                     # Brand選択フェーズで既にSpecificationタブをアクティブ化済みの場合は
                     # 再クリックを避ける。再クリックするとVue.jsがBrandを初期値(≠No Brand)にリセットする
-                    if not _spec_tab_activated_for_brand:
+                    # ※ Brand 処理ブロックが早期例外で抜けた場合、変数が未定義のことがあるので保険
+                    if not locals().get('_spec_tab_activated_for_brand', False):
                         spec_tab.click()
                         _human_wait(1.5, 2.5)
                     else:
@@ -2153,51 +2154,11 @@ class ShopeeBrowser:
                         logger.info("  Shippingタブ: JS直接クリック（タイムアウト回避）")
                     _human_wait(2, 3)
 
-                    # 重量入力: .price-input コンテナの中で parent text="kg" のもの
-                    weight_filled = False
-                    try:
-                        weight_inp = None
-                        try:
-                            w = self._page.locator('.price-input').filter(
-                                has_text="kg"
-                            ).locator('input.eds-input__input').first
-                            w.wait_for(state="visible", timeout=8000)
-                            weight_inp = w
-                        except Exception:
-                            # フォールバック: * Weight ラベル近傍のinputを探す
-                            marked = self._page.evaluate("""
-                                () => {
-                                    document.querySelectorAll('[data-bot-weight]').forEach(e => e.removeAttribute('data-bot-weight'));
-                                    const allInputs = [...document.querySelectorAll('input.eds-input__input')]
-                                        .filter(i => i.offsetParent !== null && !i.readOnly);
-                                    for (const inp of allInputs) {
-                                        let el = inp;
-                                        for (let i = 0; i < 5; i++) {
-                                            el = el.parentElement;
-                                            if (!el) break;
-                                            if (el.textContent.includes('kg') && el.textContent.includes('Weight')) {
-                                                inp.setAttribute('data-bot-weight', 'true');
-                                                return true;
-                                            }
-                                        }
-                                    }
-                                    return false;
-                                }
-                            """)
-                            if marked:
-                                weight_inp = self._page.locator('[data-bot-weight="true"]').first
-                        if weight_inp and weight_inp.count():
-                            weight_inp.scroll_into_view_if_needed()
-                            weight_inp.click(click_count=3)
-                            _human_wait(0.2, 0.3)
-                            weight_inp.fill(f"{weight_kg:.2f}")
-                            self._page.keyboard.press("Tab")
-                            logger.info(f"  重量入力完了: {weight_kg:.2f} kg")
-                            weight_filled = True
-                        else:
-                            logger.warning("  ⚠️ 重量inputが見つかりません")
-                    except Exception as e:
-                        logger.warning(f"  重量入力エラー: {e}")
+                    # 重量入力 — 4戦略フォールバック (native setter + Vue proxy + keyboard)
+                    # Shipping タブクリック失敗時でも独立して動作する堅牢版
+                    weight_filled = self._fill_weight_robustly(weight_kg)
+                    if not weight_filled:
+                        logger.warning("  ⚠️ 重量入力に失敗しました（全戦略失敗）")
 
                     # 配送オプション確認
                     # アクティブな配送トグルがあれば設定済み、なければ Enable をクリック
@@ -2525,6 +2486,205 @@ class ShopeeBrowser:
                 return el.value === val;
             }
         """, [selector, value])
+
+    def _fill_weight_robustly(self, weight_kg: float) -> bool:
+        """Weight フィールドに kg値を入力。4戦略フォールバック。
+        Shipping タブ依存を排除し、Vue v-model の revert も native setter + Vue proxy で回避する。"""
+        page = self._page
+        if not page or page.is_closed():
+            logger.warning("  重量入力失敗: page が利用不可")
+            return False
+
+        expected = f"{weight_kg:.2f}"
+
+        def _norm(v: str) -> str:
+            try:
+                return f"{float(str(v).replace(',', '').strip()):.2f}"
+            except Exception:
+                return str(v).strip()
+
+        def _read(locator) -> str:
+            try:
+                return locator.input_value(timeout=1000).strip()
+            except Exception:
+                try:
+                    return locator.evaluate("el => (el.value || '').trim()")
+                except Exception:
+                    return ""
+
+        def _set_native(locator, value: str) -> bool:
+            try:
+                locator.evaluate(
+                    """(el, value) => {
+                        el.scrollIntoView({block: 'center', inline: 'nearest'});
+                        el.focus();
+                        const setter = Object.getOwnPropertyDescriptor(
+                            HTMLInputElement.prototype, 'value'
+                        )?.set;
+                        if (setter) { setter.call(el, value); } else { el.value = value; }
+                        el.dispatchEvent(new InputEvent('input', {
+                            bubbles: true, composed: true, inputType: 'insertText', data: value
+                        }));
+                        el.dispatchEvent(new Event('change', {bubbles: true}));
+                        el.dispatchEvent(new Event('blur', {bubbles: true}));
+                        if (typeof el.blur === 'function') el.blur();
+                    }""",
+                    value,
+                )
+                return True
+            except Exception as e:
+                logger.debug(f"  重量入力 native setter 失敗: {e}")
+                return False
+
+        def _verify(locator) -> bool:
+            actual = _read(locator)
+            ok = _norm(actual) == _norm(expected)
+            logger.info(f"  重量入力検証: expected={expected}, actual={actual!r}, ok={ok}")
+            return ok
+
+        def _try_locator(locator, strategy_name: str) -> bool:
+            try:
+                if locator.count() == 0:
+                    logger.info(f"  重量入力: {strategy_name} - 候補なし")
+                    return False
+                try: locator.wait_for(state="attached", timeout=2500)
+                except Exception: pass
+                try: locator.scroll_into_view_if_needed(timeout=1500)
+                except Exception: pass
+                try: locator.wait_for(state="visible", timeout=2500)
+                except Exception: pass
+                if not _set_native(locator, expected):
+                    logger.warning(f"  重量入力: {strategy_name} - native setter 失敗")
+                    return False
+                _human_wait(0.2, 0.4)
+                if _verify(locator):
+                    logger.info(f"  重量入力完了: {expected} kg ({strategy_name})")
+                    return True
+                logger.warning(f"  重量入力: {strategy_name} - 値不一致")
+                return False
+            except Exception as e:
+                logger.warning(f"  重量入力: {strategy_name} - 失敗: {e}")
+                return False
+
+        logger.info(f"  重量入力開始: {expected} kg")
+
+        # 戦略1: 直接セレクタ
+        try:
+            logger.info("  重量入力: 戦略1 `.price-input:has-text(\"kg\") input`")
+            direct = page.locator('.price-input:has-text("kg") input.eds-input__input').first
+            if _try_locator(direct, "strategy1-direct"):
+                return True
+        except Exception as e:
+            logger.warning(f"  重量入力: 戦略1 例外: {e}")
+
+        # 戦略2: Weight/ kg の近傍 input を DOM からマーキング
+        try:
+            logger.info("  重量入力: 戦略2 `Weight` 近傍 input の探索")
+            marked = page.evaluate(
+                """() => {
+                    document.querySelectorAll('[data-bot-weight]').forEach(e => e.removeAttribute('data-bot-weight'));
+                    const inputs = [...document.querySelectorAll('input.eds-input__input, input')]
+                        .filter(i => i.offsetParent !== null && !i.readOnly && !i.disabled);
+                    for (const inp of inputs) {
+                        let el = inp;
+                        for (let i = 0; i < 5; i++) {
+                            el = el.parentElement;
+                            if (!el) break;
+                            const text = (el.textContent || '');
+                            if (text.includes('Weight') && text.includes('kg')) {
+                                inp.setAttribute('data-bot-weight', 'true');
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }"""
+            )
+            if marked:
+                marked_loc = page.locator('[data-bot-weight="true"]').first
+                if _try_locator(marked_loc, "strategy2-nearby"):
+                    return True
+            else:
+                logger.info("  重量入力: 戦略2 - マッチなし")
+        except Exception as e:
+            logger.warning(f"  重量入力: 戦略2 例外: {e}")
+
+        # 戦略3: Vue 経由で modelValue / emit を触る
+        try:
+            logger.info("  重量入力: 戦略3 Vue 経由で値反映")
+            for idx, locator in enumerate([
+                page.locator('.price-input:has-text("kg") input.eds-input__input').first,
+                page.locator('[data-bot-weight="true"]').first,
+                page.locator('input.eds-input__input').first,
+            ], start=1):
+                try:
+                    if locator.count() == 0:
+                        continue
+                    locator.wait_for(state="attached", timeout=1500)
+                    result = locator.evaluate(
+                        """(el, value) => {
+                            const setter = Object.getOwnPropertyDescriptor(
+                                HTMLInputElement.prototype, 'value'
+                            )?.set;
+                            if (setter) setter.call(el, value); else el.value = value;
+                            el.dispatchEvent(new InputEvent('input', {
+                                bubbles: true, composed: true, inputType: 'insertText', data: value
+                            }));
+                            el.dispatchEvent(new Event('change', {bubbles: true}));
+                            el.dispatchEvent(new Event('blur', {bubbles: true}));
+                            if (typeof el.blur === 'function') el.blur();
+                            let vm = el.__vueParentComponent || el.__vue__;
+                            for (let depth = 0; vm && depth < 5; depth += 1, vm = vm.parent) {
+                                try { if (typeof vm.emit === 'function') vm.emit('update:modelValue', value); } catch (_) {}
+                                try { if (vm.proxy && 'modelValue' in vm.proxy) vm.proxy.modelValue = value; } catch (_) {}
+                                try { if (vm.props && 'modelValue' in vm.props) vm.props.modelValue = value; } catch (_) {}
+                            }
+                            return (el.value || '').trim();
+                        }""",
+                        expected,
+                    )
+                    logger.info(f"  重量入力: strategy3-vue{idx} result={result!r}")
+                    if _norm(result) == _norm(expected) and _verify(locator):
+                        logger.info(f"  重量入力完了: {expected} kg (strategy3-vue{idx})")
+                        return True
+                except Exception as e:
+                    logger.warning(f"  重量入力: strategy3-vue{idx} 失敗: {e}")
+        except Exception as e:
+            logger.warning(f"  重量入力: 戦略3 例外: {e}")
+
+        # 戦略4: keyboard で 1 文字ずつ入力
+        try:
+            logger.info("  重量入力: 戦略4 keyboard type")
+            fallback = None
+            for locator in [
+                page.locator('.price-input:has-text("kg") input.eds-input__input').first,
+                page.locator('[data-bot-weight="true"]').first,
+                page.locator('input.eds-input__input').first,
+            ]:
+                try:
+                    if locator.count() and locator.is_visible():
+                        fallback = locator
+                        break
+                except Exception:
+                    continue
+            if fallback is None:
+                logger.warning("  重量入力: strategy4 - visible input が見つからない")
+                return False
+            fallback.scroll_into_view_if_needed()
+            fallback.click(click_count=3)
+            _human_wait(0.1, 0.2)
+            page.keyboard.type(expected, delay=70)
+            page.keyboard.press("Tab")
+            _human_wait(0.3, 0.5)
+            if _verify(fallback):
+                logger.info(f"  重量入力完了: {expected} kg (strategy4-keyboard)")
+                return True
+            logger.warning("  重量入力: strategy4 - 値不一致")
+        except Exception as e:
+            logger.warning(f"  重量入力: 戦略4 失敗: {e}")
+
+        logger.warning(f"  重量入力失敗: {expected} kg")
+        return False
 
     def _fill_variation_pricing(self, price: float, stock: int) -> tuple[bool, bool]:
         """
