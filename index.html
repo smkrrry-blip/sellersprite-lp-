@@ -93,7 +93,7 @@
         ]
       },
       "datePublished": "2024-01-01",
-      "dateModified": "2026-04-19",
+      "dateModified": "2026-04-22",
       "url": "https://sellersprite.blog/",
       "image": "https://sellersprite.blog/images/ss-features.png"
     },
@@ -496,7 +496,7 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
         <div class="coupon-block">
           <span class="coupon-tag">30%OFF CODE</span>
           <span class="coupon-code">CJ9852</span>
-          <button class="copy-btn" id="heroBtn" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});copyCode('heroBtn')">コピー</button>
+          <button class="copy-btn" id="heroBtn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});copyCode('heroBtn')">コピー</button>
         </div>
         <p class="coupon-note">コードをコピーして、公式サイト登録画面で入力するだけ。30%OFFが即適用されます</p>
       </div>
@@ -859,7 +859,7 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
     <div class="cta-coupon">
       <span class="cl">30%OFF CODE</span>
       <span class="cc">CJ9852</span>
-      <button class="cb" id="ctaBtn" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});copyCode('ctaBtn')">コピー</button>
+      <button class="cb copy-btn" id="ctaBtn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});copyCode('ctaBtn')">コピー</button>
     </div>
   </div>
 
@@ -978,7 +978,7 @@ function toggleFaq(btn){
     <div class="exit-code-box">
       <span class="exit-code-label">30%OFF CODE</span>
       <span class="exit-code-text">CJ9852</span>
-      <button class="exit-copy-btn" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});exitCopy(this)">コピーする</button>
+      <button class="exit-copy-btn copy-btn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});exitCopy(this)">コピーする</button>
     </div>
     <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" class="exit-cta-btn">このまま30%OFFで登録する →</a>
     <p class="exit-footer">無料プランあり・いつでも解約OK</p>
@@ -1018,7 +1018,7 @@ function exitCopy(btn){
     <div class="sticky-code">
       <span class="sticky-label">30%OFF CODE</span>
       <span class="sticky-code-text">CJ9852</span>
-      <button class="sticky-copy-btn" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});stickyCopy(this)">コピー</button>
+      <button class="sticky-copy-btn copy-btn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});stickyCopy(this)">コピー</button>
     </div>
     <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" class="sticky-cta-btn">今すぐ30%OFFで登録する →</a>
   </div>
