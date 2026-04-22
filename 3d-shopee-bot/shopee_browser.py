@@ -693,9 +693,36 @@ class ShopeeBrowser:
                            "muslim", "hijab", "prayer", "baby >", "doll",
                            # ブランドライセンス必須カテゴリ（選択肢なし→必ず失敗）
                            "lighting", "vehicles", "motorcycle", "automotive",
-                           "statues & sculptures", "statues", "figurines"]
-            CAT_PREF = ["hobbies", "collectible", "tools", "sport", "electronics",
-                        "stationery", "home & living", "arts", "craft", "others", "diy"]
+                           "statues & sculptures", "statues", "figurines",
+                           # Run 36 で Brand License 必須になった危険カテゴリ
+                           "books", "careers", "self help", "religion",
+                           "clips, pins", "large household appliances",
+                           "console accessories", "gaming & consoles > others",
+                           "home appliances > large",
+                           # Run 37 で Brand License 必須と判明
+                           "stones & minerals", "vehicle models", "diecast",
+                           "pet furniture", "lanyards", "name tags",
+                           "collectible items > stones",
+                           "collectible items > vehicle"]
+            CAT_PREF = {
+                "tools": 3,
+                "diy": 3,
+                "hobbies": 3,
+                "collectible": 2,  # Run37で collectible 配下がBrand License必須多発 → 優先度低下
+                "arts": 3,
+                "craft": 3,
+                "sport": 1,
+                "home & living": 1,
+                "stationery": 1,
+                "electronics": 0,
+                "pets": -1,        # Pet Furniture が BL 必須
+                "others": -1,
+            }
+
+            def _cat_score(txt: str) -> tuple:
+                score = sum(weight for kw, weight in CAT_PREF.items() if kw in txt)
+                is_others = txt.rstrip().endswith(" > others") or txt.rstrip().endswith(" > อื่นๆ")
+                return score, is_others
 
             # ── Basic Info タブ（ブランド入力）────────
             # タブ名: "Basic information"（Shopee実際のラベル、小文字i）
@@ -745,14 +772,32 @@ class ShopeeBrowser:
 
                         best_idx = None
                         best_score = -1
+                        best_is_others = True
                         for r in reco_info:
                             txt = r['text'].lower()
                             if any(kw in txt for kw in CAT_BLOCKED):
                                 continue
-                            score = sum(1 for kw in CAT_PREF if kw in txt)
+                            score, is_others = _cat_score(txt)
+                            # Others は最後の手段。非 Others 候補がある限り優先しない。
+                            if best_idx is None:
+                                best_score = score
+                                best_idx = r['index']
+                                best_is_others = is_others
+                                continue
+                            if best_is_others and not is_others:
+                                best_score = score
+                                best_idx = r['index']
+                                best_is_others = is_others
+                                continue
+                            if is_others and not best_is_others:
+                                continue
                             if score > best_score:
                                 best_score = score
                                 best_idx = r['index']
+                                best_is_others = is_others
+                            elif score == best_score and not is_others and best_is_others:
+                                best_idx = r['index']
+                                best_is_others = is_others
 
                         _do_pencil = False  # 推奨カテゴリ失敗 or なし → pencil edit フォールバック
 

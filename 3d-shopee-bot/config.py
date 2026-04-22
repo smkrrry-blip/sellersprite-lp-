@@ -12,7 +12,7 @@ SHOPEE_SELLER_URL = "https://seller.shopee.co.th"
 BROWSER_SETTINGS = {
     "headless": False,            # 通常のChrome表示（True にするとヘッドレス）
     "slow_mo": 500,               # 操作間の基本遅延（ms）
-    "daily_limit": 50,            # 1日の最大出品数
+    "daily_limit": 50,            # 通常50
     "min_wait": 1.0,              # クリック間の最小待機（秒）
     "max_wait": 3.0,              # クリック間の最大待機（秒）
 }
