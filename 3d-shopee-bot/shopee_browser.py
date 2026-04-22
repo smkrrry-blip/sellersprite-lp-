@@ -685,6 +685,8 @@ class ShopeeBrowser:
             description = str(product.get("description_th") or "สินค้า 3D Printed คุณภาพสูง")[:3000]
             stock = LISTING_SETTINGS["default_stock"]
             weight_kg = max(0.1, (product.get("estimated_grams") or 100) / 1000)
+            # Pre-publish リカバリ経路でも参照できるよう self に退避
+            self._last_weight_kg = weight_kg
 
             # カテゴリ選択は Basic Info タブ内（レンダリング後）で実行するため
             # ここでは定数だけ定義しておく
@@ -1273,6 +1275,42 @@ class ShopeeBrowser:
                                         opt.click()
                                         logger.info(f"  ブランド選択: No Brand (via {opt_sel})")
                                         brand_filled = True
+                                        # Vue watcher リバート対策: click 直後に native setter で値を pin
+                                        # Pre-publish 側 (line 3187-) で実績ある手法を Primary にも適用
+                                        try:
+                                            _pin = self._page.evaluate("""
+                                                () => {
+                                                    const setNativeValue = (el, value) => {
+                                                        const proto = Object.getPrototypeOf(el);
+                                                        const desc = Object.getOwnPropertyDescriptor(proto, 'value')
+                                                            || Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value');
+                                                        if (!desc || !desc.set) return false;
+                                                        desc.set.call(el, value);
+                                                        el.dispatchEvent(new InputEvent('input', {
+                                                            bubbles: true, cancelable: true, composed: true,
+                                                            data: value, inputType: 'insertText'
+                                                        }));
+                                                        el.dispatchEvent(new Event('change', {bubbles: true, cancelable: true}));
+                                                        el.dispatchEvent(new FocusEvent('blur', {bubbles: true}));
+                                                        return true;
+                                                    };
+                                                    const items = [...document.querySelectorAll('[class*="form-item"]')];
+                                                    for (const item of items) {
+                                                        const lbl = item.querySelector('label, [class*="label"]');
+                                                        if (!lbl) continue;
+                                                        const t = lbl.textContent.trim().replace(/[*\\s]/g,'');
+                                                        if (t !== 'Brand' && t !== 'แบรนด์') continue;
+                                                        const inp = item.querySelector('input');
+                                                        if (inp && inp.offsetParent !== null) {
+                                                            return {ok: setNativeValue(inp, 'No Brand'), found: true};
+                                                        }
+                                                    }
+                                                    return {ok: false, found: false};
+                                                }
+                                            """)
+                                            logger.info(f"  Brand native setter pin: {_pin}")
+                                        except Exception as _pin_e:
+                                            logger.debug(f"  Brand native setter pin エラー（無視）: {_pin_e}")
                                         _human_wait(0.5, 1.0)
                                         break
                                 except Exception:
@@ -3100,6 +3138,55 @@ class ShopeeBrowser:
                 """)
                 if _fix_ok:
                     _human_wait(1.5, 2.0)  # ドロップダウンアニメーション待ち（長め）
+                    # Weight 充填保証: atomic Publish 前に Shipping tab へ移動して weight を入れ直す
+                    # 理由: Pre-publish 経路は Shipping tab を経由せずに起動することがあり、
+                    # その場合 server validation が `Weight Required` を返して失敗する
+                    try:
+                        _wkg = getattr(self, '_last_weight_kg', 0.1)
+                        logger.info(f"  [Pre-publish] Weight 事前充填: weight_kg={_wkg}")
+                        # Shipping タブへ切替（失敗しても Weight 入力自体は DOM から探索可能）
+                        try:
+                            self._dismiss_chat_panel()
+                        except Exception:
+                            pass
+                        try:
+                            _ship = self._page.get_by_text("Shipping", exact=True).first
+                            if _ship.count():
+                                try:
+                                    _ship.click(timeout=5000)
+                                except Exception:
+                                    self._page.evaluate("""
+                                        () => {
+                                            const tabs = [...document.querySelectorAll('[class*="tabs__nav-tab"], [class*="tab-item"]')];
+                                            const t = tabs.find(el => el.textContent.trim() === 'Shipping');
+                                            if (t) t.click();
+                                        }
+                                    """)
+                                _human_wait(1.0, 1.5)
+                        except Exception as _sh_e:
+                            logger.debug(f"  [Pre-publish] Shipping タブ切替エラー（続行）: {_sh_e}")
+                        # Weight 入力
+                        _wres = self._fill_weight_robustly(_wkg)
+                        logger.info(f"  [Pre-publish] Weight 充填結果: {_wres}")
+                        # Basic information タブへ戻す（atomic は Brand ドロップダウン前提）
+                        try:
+                            _basic = self._page.get_by_text("Basic information", exact=True).first
+                            if _basic.count():
+                                try:
+                                    _basic.click(timeout=5000)
+                                except Exception:
+                                    self._page.evaluate("""
+                                        () => {
+                                            const tabs = [...document.querySelectorAll('[class*="tabs__nav-tab"], [class*="tab-item"]')];
+                                            const t = tabs.find(el => el.textContent.trim().startsWith('Basic'));
+                                            if (t) t.click();
+                                        }
+                                    """)
+                                _human_wait(0.8, 1.2)
+                        except Exception as _bi_e:
+                            logger.debug(f"  [Pre-publish] Basic info タブ復帰エラー（無視）: {_bi_e}")
+                    except Exception as _we_e:
+                        logger.debug(f"  [Pre-publish] Weight 事前充填エラー（無視）: {_we_e}")
                     # Step 2: 原子的操作 — No Brand 選択 + 即時 Save and Publish クリック
                     # 同一 JS evaluate 内で実行することで Vue の nextTick が走る前に完了する
                     _atomic = self._page.evaluate("""
