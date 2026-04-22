@@ -1463,16 +1463,17 @@ class ShopeeBrowser:
                                 _cur_brand = brand_license_result.get('brand') or ''
                                 _no_brand_vals = ('', 'unknown', 'No Brand', 'ไม่มีแบรนด์', 'None')
                                 if _cur_brand not in _no_brand_vals:
-                                    # ブランドが特定ブランドに強制設定 → ライセンス必須 → スキップ
-                                    logger.error(
-                                        f"  ❌ ブランドライセンス必須カテゴリ: Brand='{_cur_brand}' "
-                                        f"→ ブランド登録なしで出品不可 → スキップ"
+                                    # Brand が特定ブランドに再設定されている。
+                                    # 原因候補 (a) Vue watcher が No Brand クリックをリバート
+                                    #          (b) 真のカテゴリ BL（Shopee サーバー規約）
+                                    # 早期スキップせず Pre-publish atomic に委ねる:
+                                    # - atomic は同一 JS evaluate 内で No Brand 選択 + Publish クリック
+                                    #   するため Vue nextTick が走る前にフォーム送信できる
+                                    # - 真の BL なら Publish 時に Shopee サーバーが弾く → 別パスで記録
+                                    logger.warning(
+                                        f"  ⚠️ Brand='{_cur_brand}' (No Brand クリック後) → "
+                                        f"Pre-publish atomic に委ねる（early skip 回避）"
                                     )
-                                    update_status(
-                                        mw_id, 'error',
-                                        error_msg=f'brand_license_required:{_cur_brand[:30]}'
-                                    )
-                                    return None
                                 else:
                                     # Brand=None/No Brand → Brand License確認UIの可能性
                                     # Escapeして続行（サーバーバリデーションに委ねる）
