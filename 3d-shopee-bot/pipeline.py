@@ -57,7 +57,9 @@ def run_full_pipeline(dry_run: bool = False):
     init_db()
 
     # ネット切断エラーは自動リセット（毎回実行、私の介入不要）
-    conn = __import__('sqlite3').connect(str(__import__('pathlib').Path(__file__).parent / 'data' / 'products.db'))
+    # NOTE: db.get_conn() を使用して正しい DB パス（~/3d-shopee-bot/data/products.db）を取得
+    from db import get_conn as _get_conn
+    conn = _get_conn()
     net_errors = conn.execute(
         "SELECT COUNT(*) FROM products WHERE status='error' AND ("
         "  error_msg LIKE '%ERR_INTERNET%' OR error_msg LIKE '%ERR_NETWORK%'"
