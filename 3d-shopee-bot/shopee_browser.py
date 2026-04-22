@@ -3192,29 +3192,41 @@ class ShopeeBrowser:
                                 const r = el.getBoundingClientRect();
                                 return r.width > 0 && r.height > 0;
                             };
-                            // No Brand オプションを探してクリック
-                            // 部分一致: Shopee UIで "No Brand (ไม่มีแบรนด์)" 結合表示にも対応
+                            // Shopee EDS は mousedown で v-model をコミットする実装が多い。
+                            // click 単独では selection が反映されないケースがある。
+                            // 対策: mouseover → mousedown → mouseup → click のフルシーケンスを発火。
+                            const fire = (el, type) => {
+                                el.dispatchEvent(new MouseEvent(type, {
+                                    bubbles: true, cancelable: true, view: window, button: 0
+                                }));
+                            };
+                            const fullClick = (el) => {
+                                fire(el, 'mouseover');
+                                fire(el, 'mousedown');
+                                fire(el, 'mouseup');
+                                fire(el, 'click');
+                            };
                             const hasNoBrandText = (t) => {
                                 const s = (t || '').trim().toLowerCase();
                                 return s.includes('no brand') || s.includes('ไม่มีแบรนด์');
                             };
                             let noBrandClicked = false;
-                            // form-item 除外フィルタを外す（ポップアップが form-item 内に描画される場合も対応）
                             const candidates = [...document.querySelectorAll(
                                 'li, [role="option"], [class*="option"]'
                             )].filter(el =>
                                 isVis(el) &&
                                 hasNoBrandText(el.textContent) &&
-                                el.textContent.trim().length < 40  // 長文誤爆防止
+                                el.textContent.trim().length < 40
                             );
                             if (candidates.length > 0) {
                                 candidates[0].scrollIntoView({block:'center'});
-                                candidates[0].click();
+                                fullClick(candidates[0]);
                                 noBrandClicked = true;
                             }
-                            if (!noBrandClicked) return {noBrand: false, publish: false};
-                            // No Brand クリック直後 — Vue の nextTick (非同期) が走る前に
-                            // Save and Publish ボタンを同期的にクリックする
+                            if (!noBrandClicked) return {noBrand: false, publish: false, reason: 'no_option'};
+                            // Publish ボタンを探索。disabled 状態なら push せず bail-out する。
+                            // disabled ボタンへの click dispatch は no-op で、URL 遷移もしない。
+                            // bail-out で呼び出し側が通常フローにフォールバックできる。
                             const btns = [...document.querySelectorAll('button')]
                                 .filter(b => b.offsetParent !== null);
                             for (const b of btns) {
@@ -3223,13 +3235,18 @@ class ShopeeBrowser:
                                         txt.includes('Save & Publish') ||
                                         txt.includes('บันทึกและเผยแพร่') ||
                                         txt.includes('เผยแพร่')) {
-                                    b.dispatchEvent(new MouseEvent('click', {
-                                        bubbles: true, cancelable: true, view: window
-                                    }));
+                                    const isDisabled = b.disabled ||
+                                        b.hasAttribute('disabled') ||
+                                        b.className.includes('disabled') ||
+                                        b.getAttribute('aria-disabled') === 'true';
+                                    if (isDisabled) {
+                                        return {noBrand: true, publish: false, reason: 'button_disabled'};
+                                    }
+                                    fullClick(b);
                                     return {noBrand: true, publish: true};
                                 }
                             }
-                            return {noBrand: true, publish: false};
+                            return {noBrand: true, publish: false, reason: 'no_button'};
                         }
                     """)
                     logger.info(f"  [Pre-publish] 原子的操作結果: {_atomic}")
