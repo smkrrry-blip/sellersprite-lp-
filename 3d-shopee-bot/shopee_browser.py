@@ -3184,92 +3184,87 @@ class ShopeeBrowser:
                 """)
                 if _fix_ok:
                     _human_wait(1.5, 2.0)  # ドロップダウンアニメーション待ち（長め）
-                    # Step 2: 原子的操作 — No Brand 選択 + Publishボタンenabled待機 + クリック
-                    # Fix 5: No Brand click 直後は Vue が validation 走らせるため button disabled。
-                    # async 関数にして await + setTimeout で Vue の nextTick/watcher を回してから
-                    # button enabled 状態をポーリング（最大3秒）してクリック。
-                    _atomic = self._page.evaluate("""
-                        async () => {
-                            const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-                            const isVis = (el) => {
-                                const r = el.getBoundingClientRect();
-                                return r.width > 0 && r.height > 0;
-                            };
-                            const fire = (el, type) => {
-                                el.dispatchEvent(new MouseEvent(type, {
-                                    bubbles: true, cancelable: true, view: window, button: 0
-                                }));
-                            };
-                            const fullClick = (el) => {
-                                fire(el, 'mouseover');
-                                fire(el, 'mousedown');
-                                fire(el, 'mouseup');
-                                fire(el, 'click');
-                            };
-                            const hasNoBrandText = (t) => {
-                                const s = (t || '').trim().toLowerCase();
-                                return s.includes('no brand') || s.includes('ไม่มีแบรนด์');
-                            };
-                            const findPublishBtn = () => {
-                                const btns = [...document.querySelectorAll('button')]
-                                    .filter(b => b.offsetParent !== null);
-                                for (const b of btns) {
-                                    const txt = b.textContent.trim();
-                                    if (txt.includes('Save and Publish') ||
-                                            txt.includes('Save & Publish') ||
-                                            txt.includes('บันทึกและเผยแพร่') ||
-                                            txt.includes('เผยแพร่')) {
-                                        return b;
-                                    }
-                                }
-                                return null;
-                            };
-                            const diagDisabled = (b) => {
-                                const reasons = [];
-                                if (!b) return 'no_button';
-                                if (b.disabled) reasons.push('disabled-prop');
-                                if (b.hasAttribute('disabled')) reasons.push('disabled-attr');
-                                if (b.className.includes('disabled')) reasons.push('disabled-class');
-                                if (b.getAttribute('aria-disabled') === 'true') reasons.push('aria-disabled');
-                                return reasons.length > 0 ? reasons.join(',') : 'enabled';
-                            };
-                            const isEnabled = (b) => diagDisabled(b) === 'enabled';
+                    # Fix 6: No Brand click を Playwright real click に切替
+                    # 背景: JS dispatchEvent は isTrusted=false で Shopee Vue が synthetic event を
+                    # 拒否し、v-model が commit されない。結果 button.disabled が解除されない。
+                    # Playwright の locator.click() は OS-level mouse event (isTrusted=true) を
+                    # 発火するため Vue が正しく commit する。
+                    _nb_clicked_via_pw = False
+                    for _nb_sel in [
+                        '[class*="option"]:has-text("No Brand")',
+                        'li:has-text("No Brand")',
+                        '[role="option"]:has-text("No Brand")',
+                        '[class*="option"]:has-text("ไม่มีแบรนด์")',
+                    ]:
+                        try:
+                            _nb_opt = self._page.locator(_nb_sel).first
+                            if _nb_opt.count() and _nb_opt.is_visible(timeout=2000):
+                                _nb_opt.scroll_into_view_if_needed(timeout=1500)
+                                _nb_opt.click(timeout=3000)
+                                logger.info(f"  [Pre-publish/Fix6] No Brand Playwright click: {_nb_sel}")
+                                _nb_clicked_via_pw = True
+                                break
+                        except Exception as _nb_e:
+                            logger.debug(f"  [Pre-publish/Fix6] No Brand click fail {_nb_sel}: {_nb_e}")
 
-                            // === Phase 1: No Brand 選択 ===
-                            let noBrandClicked = false;
-                            const candidates = [...document.querySelectorAll(
-                                'li, [role="option"], [class*="option"]'
-                            )].filter(el =>
-                                isVis(el) &&
-                                hasNoBrandText(el.textContent) &&
-                                el.textContent.trim().length < 40
-                            );
-                            if (candidates.length > 0) {
-                                candidates[0].scrollIntoView({block:'center'});
-                                fullClick(candidates[0]);
-                                noBrandClicked = true;
-                            }
-                            if (!noBrandClicked) return {noBrand: false, publish: false, reason: 'no_option'};
-
-                            // === Phase 2: Vue nextTick と validation を走らせる ===
-                            // 100ms 間隔で最大 30 回（計 3 秒）ポーリング。
-                            // enabled になった瞬間に click する。
-                            let btn = null;
-                            let lastState = 'init';
-                            for (let i = 0; i < 30; i++) {
-                                await sleep(100);
-                                btn = findPublishBtn();
-                                lastState = diagDisabled(btn);
-                                if (lastState === 'enabled') break;
-                            }
-                            if (!btn) return {noBrand: true, publish: false, reason: 'no_button'};
-                            if (lastState !== 'enabled') {
-                                return {noBrand: true, publish: false, reason: 'button_disabled', disabled_by: lastState};
-                            }
-                            fullClick(btn);
-                            return {noBrand: true, publish: true, wait_ms: 'variable'};
-                        }
-                    """)
+                    # === Publish ボタン enable 待ち（Python side ポーリング） ===
+                    # Playwright click が Vue に commit を走らせるので、validation が
+                    # 通れば button.disabled が外れる。最大 5 秒（200ms × 25）待機。
+                    _atomic = None
+                    if _nb_clicked_via_pw:
+                        _pub_sel = (
+                            'button:has-text("Save and Publish"), '
+                            'button:has-text("Save & Publish"), '
+                            'button:has-text("บันทึกและเผยแพร่"), '
+                            'button:has-text("เผยแพร่")'
+                        )
+                        _btn_enabled = False
+                        _last_disabled_by = 'init'
+                        for _poll_i in range(25):
+                            try:
+                                _diag = self._page.evaluate(f"""
+                                    () => {{
+                                        const btns = [...document.querySelectorAll('button')]
+                                            .filter(b => b.offsetParent !== null);
+                                        let btn = null;
+                                        for (const b of btns) {{
+                                            const t = b.textContent.trim();
+                                            if (t.includes('Save and Publish') ||
+                                                t.includes('Save & Publish') ||
+                                                t.includes('บันทึกและเผยแพร่') ||
+                                                t.includes('เผยแพร่')) {{
+                                                btn = b; break;
+                                            }}
+                                        }}
+                                        if (!btn) return 'no_button';
+                                        const reasons = [];
+                                        if (btn.disabled) reasons.push('disabled-prop');
+                                        if (btn.hasAttribute('disabled')) reasons.push('disabled-attr');
+                                        if (btn.className.includes('disabled')) reasons.push('disabled-class');
+                                        if (btn.getAttribute('aria-disabled') === 'true') reasons.push('aria-disabled');
+                                        return reasons.length > 0 ? reasons.join(',') : 'enabled';
+                                    }}
+                                """)
+                                _last_disabled_by = _diag
+                                if _diag == 'enabled':
+                                    _btn_enabled = True
+                                    break
+                            except Exception:
+                                pass
+                            self._page.wait_for_timeout(200)
+                        if _btn_enabled:
+                            # Playwright で Publish を real click
+                            try:
+                                self._page.locator(_pub_sel).first.click(timeout=3000)
+                                _atomic = {'noBrand': True, 'publish': True, 'via': 'Fix6-pw-real-click'}
+                            except Exception as _pc_e:
+                                logger.warning(f"  [Pre-publish/Fix6] Publish click 失敗: {_pc_e}")
+                                _atomic = {'noBrand': True, 'publish': False, 'reason': 'pw_click_fail'}
+                        else:
+                            _atomic = {'noBrand': True, 'publish': False, 'reason': 'button_disabled',
+                                       'disabled_by': _last_disabled_by}
+                    else:
+                        _atomic = {'noBrand': False, 'publish': False, 'reason': 'no_option'}
                     logger.info(f"  [Pre-publish] 原子的操作結果: {_atomic}")
                     if _atomic and _atomic.get('publish'):
                         logger.info("  [Pre-publish] No Brand + Save and Publish 原子的実行完了 ✅")
@@ -3277,30 +3272,14 @@ class ShopeeBrowser:
                     elif _atomic and _atomic.get('noBrand') and not _atomic.get('publish'):
                         logger.warning("  [Pre-publish] No Brand 選択済みだが Publish ボタン未発見 → 通常フローで続行")
                     else:
-                        # 原子的操作失敗 → Playwright ロケーターで再試行（動作実績あり）
-                        logger.warning("  [Pre-publish] 原子的操作失敗 → Playwright ロケーターで再試行")
+                        # No Brand option も見つからなかった → 従来のフォールバック
+                        logger.warning("  [Pre-publish] No Brand option 見当たらず → native setter フォールバック")
                         try:
                             self._page.keyboard.press("Escape")
                         except Exception:
                             pass
                         _human_wait(0.5, 0.8)
-                        # Playwright ロケーターで Brand → No Brand 選択
                         _pw_nb_done = False
-                        for _bra_sel2 in [
-                            '[class*="option"]:has-text("No Brand")',
-                            'li:has-text("No Brand")',
-                            '[role="option"]:has-text("No Brand")',
-                        ]:
-                            try:
-                                _bra_opt2 = self._page.locator(_bra_sel2).first
-                                if _bra_opt2.count() and _bra_opt2.is_visible(timeout=2000):
-                                    _bra_opt2.click()
-                                    logger.info(f"  [Pre-publish] Playwright No Brand 選択完了: {_bra_sel2}")
-                                    _pw_nb_done = True
-                                    _human_wait(0.3, 0.5)
-                                    break
-                            except Exception:
-                                pass
                         if not _pw_nb_done:
                             logger.warning("  [Pre-publish] Playwright No Brand も失敗 → native setter で再試行")
                             # 第3段フォールバック: native setter + input/change dispatch
