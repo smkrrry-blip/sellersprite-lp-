@@ -3263,6 +3263,55 @@ class ShopeeBrowser:
                         else:
                             _atomic = {'noBrand': True, 'publish': False, 'reason': 'button_disabled',
                                        'disabled_by': _last_disabled_by}
+                            # Fix 7: button_disabled 時、どのフィールドが validation 失敗か全dump
+                            try:
+                                _fdiag = self._page.evaluate("""
+                                    () => {
+                                        const findInputNear = (labelText) => {
+                                            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                                            let node;
+                                            while ((node = walker.nextNode())) {
+                                                if (node.textContent.trim().replace(/[*\\s]/g,'') !== labelText) continue;
+                                                const par = node.parentElement;
+                                                if (!par || par.offsetParent === null) continue;
+                                                let c = par;
+                                                for (let i = 0; i < 8; i++) {
+                                                    if (!c) break;
+                                                    const inp = c.querySelector('input, textarea');
+                                                    if (inp) return inp.value;
+                                                    const sel = c.querySelector('[class*="eds-selector"]');
+                                                    if (sel && sel.textContent.trim().length < 60) return sel.textContent.trim();
+                                                    c = c.parentElement;
+                                                }
+                                            }
+                                            return null;
+                                        };
+                                        return {
+                                            brand: findInputNear('Brand'),
+                                            weight: findInputNear('Weight'),
+                                            category: findInputNear('Category'),
+                                            errFields: [...document.querySelectorAll('[class*="is-error"], [class*="has-error"]')]
+                                                .filter(el => el.offsetParent !== null)
+                                                .slice(0, 20)
+                                                .map(el => (el.textContent || '').slice(0, 120).replace(/\\s+/g,' ').trim()),
+                                            errMsgs: [...document.querySelectorAll(
+                                                '[class*="form-item__error"], [class*="error-tip"], ' +
+                                                '[class*="error-msg"], [class*="eds-form-item__error"]'
+                                            )]
+                                                .filter(el => el.offsetParent !== null)
+                                                .slice(0, 20)
+                                                .map(el => (el.textContent || '').trim())
+                                                .filter(t => t),
+                                            requiredEmptyStars: [...document.querySelectorAll('[class*="required"], [class*="is-required"]')]
+                                                .filter(el => el.offsetParent !== null)
+                                                .slice(0, 15)
+                                                .map(el => (el.textContent || '').slice(0, 80).replace(/\\s+/g,' ').trim())
+                                        };
+                                    }
+                                """)
+                                logger.warning(f"  [Pre-publish/Fix7] 🔬 field diagnostic: {_fdiag}")
+                            except Exception as _fd_e:
+                                logger.debug(f"  [Pre-publish/Fix7] diagnostic fail: {_fd_e}")
                     else:
                         _atomic = {'noBrand': False, 'publish': False, 'reason': 'no_option'}
                     logger.info(f"  [Pre-publish] 原子的操作結果: {_atomic}")
