@@ -1568,18 +1568,20 @@ class ShopeeBrowser:
                                     ph.includes('name') || ph.includes('color') ||
                                     ph.includes('e.g. color') || ph.includes('e.g. red') ||
                                     ph.includes('sku')) continue;
-                                // フィールドタイプをラベルとプレースホルダで判別
-                                let val;
+                                // Fix10: URL/TIS/証明書/ライセンス系フィールドは空白のまま
+                                // 3D印刷品はTIS認証不要のため入力してはいけない（入力すると "invalid" エラーになる）
+                                // プレースホルダ: "if the product does not require TISI license, do not input this attribute"
                                 if (ph.includes('http') || ph.includes('url') ||
                                     ph.includes('website') || ph.includes('link') ||
-                                    ph.includes('site') ||
-                                    lbl.includes('website') || lbl.includes('url')) {
-                                    val = 'https://app.tisi.go.th/ulprod/certSearch.jsp';
-                                } else if (ph.includes('no.') || ph.includes('number') ||
+                                    ph.includes('site') || ph.includes('tis') ||
+                                    lbl.includes('website') || lbl.includes('url') ||
+                                    lbl.includes('tis') || lbl.includes('certificate') ||
+                                    lbl.includes('certification') || lbl.includes('license')) continue;
+                                // フィールドタイプをラベルとプレースホルダで判別
+                                let val;
+                                if (ph.includes('no.') || ph.includes('number') ||
                                            ph.includes('certificate') || ph.includes('#') ||
                                            ph.includes('code') || ph.includes('id') ||
-                                           ph.includes('tis') ||
-                                           lbl.includes('tis') || lbl.includes('certificate') ||
                                            lbl.includes('no.') || lbl.includes('fda') ||
                                            inp.type === 'number') {
                                     val = '12345';
