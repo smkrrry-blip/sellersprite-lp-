@@ -188,6 +188,7 @@ class ShopeeBrowser:
                     self._page = self._context.new_page()
                     logger.info(f"✅ CDP接続成功 (port {CDP_PORT}) — 新規タブ作成")
                 self._using_cdp = True
+                self._setup_brand_api_intercept()
                 return
             except Exception as e:
                 logger.warning(f"CDP接続失敗 ({e}) — 通常起動にフォールバック")
@@ -218,7 +219,51 @@ class ShopeeBrowser:
         self._page.add_init_script(
             "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
         )
+        self._setup_brand_api_intercept()
         logger.info("✅ ブラウザ起動完了")
+
+    def _setup_brand_api_intercept(self):
+        """Fix11: ブランド自動割当APIをインターセプトして阻止する。
+        Shopeeはカテゴリ選択・タイトル入力・画像解析後にブランド推奨APIを叩き、
+        Vue の brand フィールドを強制上書きする。これをルートレベルでabortする。
+        セッション開始時に1回だけ呼ぶ（route は page.unroute まで持続）。
+        """
+        import re as _re
+        # Shopee ブランド推奨・スマートフィル・属性推奨 API パターン
+        # /api/v4/product/get_recommend_attributes, /api/v4/product/get_category_recommend,
+        # /api/v4/product/smart_fill_attribute 等を包括的にカバー
+        _brand_pattern = _re.compile(
+            r'.*/(recommend_attribute|brand_recommend|get_brand|recommend_brand|'
+            r'brand_check|brand_verify|smart_fill|fill_attribute|'
+            r'get_category_attribute|attribute_recommend).*',
+            _re.IGNORECASE
+        )
+
+        def _brand_intercept(route):
+            url = route.request.url
+            logger.info(f"  [Fix11] Brand/Attribute API blocked: {url[:100]}")
+            try:
+                route.abort()
+            except Exception:
+                pass
+
+        try:
+            self._page.route(_brand_pattern, _brand_intercept)
+            logger.info("[Fix11] ブランド自動割当API インターセプト設定完了")
+        except Exception as _e:
+            logger.debug(f"[Fix11] Brand API intercept 設定エラー（続行）: {_e}")
+
+        # 全API呼び出しをDEBUGログ（ブランド関連URLを特定するため）
+        # /api/ を含むリクエストを全て記録してどのエンドポイントがブランドを設定するか追跡
+        def _api_logger(req):
+            url = req.url
+            if '/api/' in url and ('brand' in url.lower() or 'recommend' in url.lower()
+                                   or 'attribute' in url.lower() or 'fill' in url.lower()):
+                logger.debug(f"  [APIlog] {req.method} {url[:150]}")
+        try:
+            self._page.on("request", _api_logger)
+        except Exception:
+            pass
 
     def stop(self):
         """ブラウザを終了。自動起動した Chrome は終了、手動起動はそのまま。"""
@@ -717,18 +762,39 @@ class ShopeeBrowser:
                            "collectible items > stones",
                            "collectible items > vehicle",
                            # Fix9: ブランド自動割当カテゴリ（No Brand クリックが Vue にリバートされる）
-                           "camping", "knives", "survival kits", "outdoor recreation equipments"]
+                           "camping", "knives", "survival kits", "outdoor recreation equipments",
+                           # Run 36/37 確認: Shopee がブランドを強制するカテゴリ（early skip 有効）
+                           # 3D Printers → Eazy Toner 強制（3Dプリンター本体のカテゴリ、3D印刷品はここじゃない）
+                           "printers & scanners", "3d printers",
+                           # Computers & Accessories → Thai tech ブランド強制
+                           # ただし > Others は例外として許容（score で競わせる）
+                           "computers & accessories > peripherals",
+                           "computers & accessories > laptops",
+                           "computers & accessories > tablets",
+                           "computers & accessories > networking",
+                           # Home Appliances → Lotus/Thai brands 強制
+                           "small household appliances",  # Run 37 で Lotus 強制を確認
+                           "home appliances",
+                           # 教育・文具系 → Thai education brands 強制
+                           "educational toys",
+                           "school & office equipment",
+                           # Collectible 強制ブランド（Huangdo/Domon等）
+                           "collectible items > others",  # Run 36/37 で Huangdo/Domon 強制を確認
+                           "collectible items",  # 配下全体がBL必須多発（Run 37確認）
+                           ]
             CAT_PREF = {
                 "tools": 3,
-                "diy": 3,
-                "hobbies": 3,
-                "collectible": 2,  # Run37で collectible 配下がBrand License必須多発 → 優先度低下
+                "diy": 4,          # DIYは最優先（No Brand 許可が多い）
+                "hobbies": 2,      # Run36で collectible系の BL 多発 → 下げ
+                "collectible": 1,  # Run37で collectible 配下がBrand License必須多発 → 優先度低下
                 "arts": 3,
                 "craft": 3,
-                "sport": 1,
-                "home & living": 1,
+                "sport": 2,
+                "home & living": 2,  # 安全な汎用カテゴリ → 優先度上げ
+                "home decor": 3,
                 "stationery": 1,
-                "electronics": 0,
+                "electronics": -1, # Thai tech brands が多い → 下げ
+                "computers": -2,   # Computers全般 → Thai brands 強制が多い → 大幅下げ
                 "pets": -1,        # Pet Furniture が BL 必須
                 # Fix9: Others を正の値に変更（ブランド自動割当を避けるため積極選択）
                 # 理由: 特定カテゴリ選択後に Vue がブランドを強制割当し No Brand クリックを無効化する
@@ -1056,13 +1122,17 @@ class ShopeeBrowser:
                                                             break
                                     else:
                                         # フォールバック: 固定候補リスト
+                                        # 優先順位: DIY > Art & Craft > Hobby Supplies > Collectible Items
+                                        # 理由: Collectible Items は Domon/Huangdo ブランド強制が多い
                                         for level, candidates in [
                                             (1, ["งานอดิเรก", "Hobbies & Collections", "Hobbies",
                                                  "งานอดิเรกและของสะสม", "Home & Living",
                                                  "บ้านและชีวิตประจำวัน", "Tools", "Sports"]),
-                                            (2, ["Collectible Items", "Collectible", "Hobby Supplies",
+                                            (2, ["DIY", "DIY & Craft Supplies", "Art & Craft",
+                                                 "Arts & Crafts", "Hobby Supplies",
                                                  "Gardening", "Garden Supplies", "Kitchen & Dining",
-                                                 "Home Decor", "DIY", "ของสะสม"]),
+                                                 "Home Decor",
+                                                 "Collectible Items", "Collectible", "ของสะสม"]),
                                             (3, ["Others", "อื่นๆ"]),
                                         ]:
                                             level_clicked = False
@@ -1457,24 +1527,25 @@ class ShopeeBrowser:
                                 self._page.keyboard.press("Escape")
                                 logger.info("  Brand License: 選択肢なし → Escape")
                                 # ── Brand License必須判定 ──────────────────────────────
-                                # Brand が特定ブランド（例: ACDelco, Nation Edutainment）に
-                                # 強制設定され、かつ選択肢がない場合のみスキップ。
-                                # Brand=None/unknown は「No Brand」選択後の確認UIの可能性が高い
-                                # → その場合は続行してサーバーバリデーションに委ねる
+                                # Brand が特定ブランドに強制設定され、選択肢がない場合はスキップ。
+                                # Run 36 で確認: Playwright isTrusted=true クリックでも Vue が
+                                # 強制ブランドを維持し、Shopee サーバーがライセンス不備で弾く。
+                                # Pre-publish atomic に委ねても改善しないため早期スキップに戻す。
                                 _cur_brand = brand_license_result.get('brand') or ''
-                                _no_brand_vals = ('', 'unknown', 'No Brand', 'ไม่มีแบรนด์', 'None')
+                                _no_brand_vals = ('', 'unknown', 'No Brand', 'No brand',
+                                                  'ไม่มีแบรนด์', 'None')
                                 if _cur_brand not in _no_brand_vals:
-                                    # Brand が特定ブランドに再設定されている。
-                                    # 原因候補 (a) Vue watcher が No Brand クリックをリバート
-                                    #          (b) 真のカテゴリ BL（Shopee サーバー規約）
-                                    # 早期スキップせず Pre-publish atomic に委ねる:
-                                    # - atomic は同一 JS evaluate 内で No Brand 選択 + Publish クリック
-                                    #   するため Vue nextTick が走る前にフォーム送信できる
-                                    # - 真の BL なら Publish 時に Shopee サーバーが弾く → 別パスで記録
-                                    logger.warning(
-                                        f"  ⚠️ Brand='{_cur_brand}' (No Brand クリック後) → "
-                                        f"Pre-publish atomic に委ねる（early skip 回避）"
+                                    # Brand が特定ブランドに強制 + ライセンス選択肢なし
+                                    # → Shopee のサーバー側ブランド規約。どうやっても出品不可。
+                                    logger.error(
+                                        f"  ❌ Brand license 必須: Brand='{_cur_brand}' "
+                                        f"→ ライセンス登録なし → スキップ"
                                     )
+                                    update_status(
+                                        mw_id, 'error',
+                                        error_msg=f'brand_license_required:{_cur_brand[:40]}'
+                                    )
+                                    return None
                                 else:
                                     # Brand=None/No Brand → Brand License確認UIの可能性
                                     # Escapeして続行（サーバーバリデーションに委ねる）
