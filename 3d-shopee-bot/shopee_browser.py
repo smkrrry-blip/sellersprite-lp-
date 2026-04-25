@@ -715,7 +715,9 @@ class ShopeeBrowser:
                            "stones & minerals", "vehicle models", "diecast",
                            "pet furniture", "lanyards", "name tags",
                            "collectible items > stones",
-                           "collectible items > vehicle"]
+                           "collectible items > vehicle",
+                           # Fix9: ブランド自動割当カテゴリ（No Brand クリックが Vue にリバートされる）
+                           "camping", "knives", "survival kits", "outdoor recreation equipments"]
             CAT_PREF = {
                 "tools": 3,
                 "diy": 3,
@@ -728,7 +730,9 @@ class ShopeeBrowser:
                 "stationery": 1,
                 "electronics": 0,
                 "pets": -1,        # Pet Furniture が BL 必須
-                "others": -1,
+                # Fix9: Others を正の値に変更（ブランド自動割当を避けるため積極選択）
+                # 理由: 特定カテゴリ選択後に Vue がブランドを強制割当し No Brand クリックを無効化する
+                "others": 2,
             }
 
             def _cat_score(txt: str) -> tuple:
@@ -784,30 +788,17 @@ class ShopeeBrowser:
 
                         best_idx = None
                         best_score = -1
-                        best_is_others = True
+                        best_is_others = False
                         for r in reco_info:
                             txt = r['text'].lower()
                             if any(kw in txt for kw in CAT_BLOCKED):
                                 continue
                             score, is_others = _cat_score(txt)
-                            # Others は最後の手段。非 Others 候補がある限り優先しない。
-                            if best_idx is None:
+                            # Fix9: スコア純粋比較（Others優先ロジック廃止）
+                            # 理由: 特定カテゴリが Vue ブランド自動割当を引き起こすため
+                            #       others=2 スコアを付与し、スコアで公平に競わせる
+                            if best_idx is None or score > best_score:
                                 best_score = score
-                                best_idx = r['index']
-                                best_is_others = is_others
-                                continue
-                            if best_is_others and not is_others:
-                                best_score = score
-                                best_idx = r['index']
-                                best_is_others = is_others
-                                continue
-                            if is_others and not best_is_others:
-                                continue
-                            if score > best_score:
-                                best_score = score
-                                best_idx = r['index']
-                                best_is_others = is_others
-                            elif score == best_score and not is_others and best_is_others:
                                 best_idx = r['index']
                                 best_is_others = is_others
 
