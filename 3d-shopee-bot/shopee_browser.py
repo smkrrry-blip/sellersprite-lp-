@@ -175,9 +175,19 @@ class ShopeeBrowser:
             try:
                 self._browser = self._playwright.chromium.connect_over_cdp(CDP_URL)
                 self._context = self._browser.contexts[0]
-                self._page = self._context.new_page()
+                # Fix8: 既存ページを再利用（new_page()はSSLキャッシュなしで失敗する）
+                existing_pages = self._context.pages
+                shopee_pages = [p for p in existing_pages if "shopee" in p.url]
+                if shopee_pages:
+                    self._page = shopee_pages[0]
+                    logger.info(f"✅ CDP接続成功 (port {CDP_PORT}) — 既存Shopeeタブ再利用: {self._page.url[:60]}")
+                elif existing_pages:
+                    self._page = existing_pages[0]
+                    logger.info(f"✅ CDP接続成功 (port {CDP_PORT}) — 既存タブ再利用: {self._page.url[:60]}")
+                else:
+                    self._page = self._context.new_page()
+                    logger.info(f"✅ CDP接続成功 (port {CDP_PORT}) — 新規タブ作成")
                 self._using_cdp = True
-                logger.info(f"✅ CDP接続成功 (port {CDP_PORT})")
                 return
             except Exception as e:
                 logger.warning(f"CDP接続失敗 ({e}) — 通常起動にフォールバック")
