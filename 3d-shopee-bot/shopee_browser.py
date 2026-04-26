@@ -6,6 +6,7 @@ import json
 import logging
 import os
 import random
+import re
 import shutil
 import subprocess
 import tempfile
@@ -106,6 +107,113 @@ def _notify_captcha():
         pass
 
 
+def _inject_no_brand_recursive(obj: dict, depth: int = 0) -> None:
+    """Fix17: API レスポンスに No Brand エントリを注入し、全ブランドの is_mandatory を 0 に設定。
+    モジュールレベル関数としてクラス名参照を回避。
+    """
+    if not obj or depth > 8 or not isinstance(obj, dict):
+        return
+    brand_keys = ('brand_list', 'brands', 'brandList', 'brand_options',
+                  'data', 'result', 'response')
+    for key in brand_keys:
+        val = obj.get(key)
+        if not isinstance(val, list) or not val:
+            if isinstance(val, dict):
+                _inject_no_brand_recursive(val, depth + 1)
+            continue
+        first = val[0] if val else {}
+        if not isinstance(first, dict):
+            continue
+        is_brand_arr = ('brand_id' in first or 'brand_name' in first or 'brandId' in first)
+        if is_brand_arr:
+            # すべてのブランドの is_mandatory / isMandatory を 0 に設定（ACONATIC 強制解除）
+            for b in val:
+                if isinstance(b, dict):
+                    for mf in ('is_mandatory', 'isMandatory', 'mandatory'):
+                        if mf in b:
+                            b[mf] = 0
+            has_nb = any(
+                b.get('brand_id') == 0 or b.get('brandId') == 0 or
+                'no brand' in str(b.get('brand_name', b.get('name', ''))).lower()
+                for b in val if isinstance(b, dict)
+            )
+            if not has_nb:
+                nb = {k: (0 if isinstance(v, (int, float)) else '') for k, v in first.items()}
+                nb.update({
+                    'brand_id': 0, 'brandId': 0,
+                    'brand_name': 'No Brand', 'name': 'No Brand',
+                    'display_name': 'No Brand', 'brandName': 'No Brand',
+                    'require_license': 0, 'requireLicense': 0,
+                    'is_mandatory': 0, 'isMandatory': 0,
+                    'status': 1,
+                })
+                val.insert(0, nb)
+                logger.info(f"[Fix17] No Brand 注入 + is_mandatory=0: key={key}, total={len(val)}")
+        else:
+            for item in val:
+                if isinstance(item, dict):
+                    _inject_no_brand_recursive(item, depth + 1)
+    # Recurse into non-brand-key nested dicts
+    for key, val in obj.items():
+        if key not in brand_keys and isinstance(val, dict):
+            _inject_no_brand_recursive(val, depth + 1)
+
+
+def _inject_brand_attribute_optional(obj: dict, depth: int = 0) -> None:
+    """Fix17: get_recommend_attribute / get_content_filling_suggestion レスポンスを改変。
+    - attributes / attribute_list の Brand属性を optional (is_mandatory=0) に変更
+    - brand, brand_id, default_brand 等のトップレベルフィールドをクリア
+    - content_fill_suggestion の brand フィールドをクリア
+    """
+    if not obj or depth > 8 or not isinstance(obj, dict):
+        return
+
+    # トップレベルの brand/mandatory 系フィールドをゼロ化
+    for key in list(obj.keys()):
+        kl = key.lower()
+        if any(x in kl for x in ('brand_id', 'brand_name', 'default_brand',
+                                   'mandatory_brand', 'recommend_brand')):
+            v = obj[key]
+            if isinstance(v, int):
+                obj[key] = 0
+            elif isinstance(v, str) and v:
+                obj[key] = ''
+            elif isinstance(v, dict):
+                obj[key] = {}
+        if 'is_mandatory' in kl or 'ismandatory' in kl:
+            if isinstance(obj[key], (int, float, bool)):
+                obj[key] = 0
+
+    # attributes 配列を検索してBrand属性を optional に
+    for attr_key in ('attributes', 'attribute_list', 'attributeList', 'attrs',
+                     'data', 'result', 'response'):
+        val = obj.get(attr_key)
+        if isinstance(val, list):
+            for item in val:
+                if not isinstance(item, dict):
+                    continue
+                name = str(item.get('name', item.get('attribute_name',
+                           item.get('attributeName', '')))).lower()
+                if 'brand' in name:
+                    # Brand属性を optional に
+                    for mf in ('is_mandatory', 'isMandatory', 'mandatory', 'required'):
+                        if mf in item:
+                            item[mf] = 0
+                    # デフォルト値をクリア
+                    for df in ('default_value', 'defaultValue', 'value',
+                               'recommended_value', 'recommendedValue',
+                               'recommend_value_id', 'value_id', 'valueId'):
+                        if df in item:
+                            v = item[df]
+                            item[df] = 0 if isinstance(v, (int, float)) else ([] if isinstance(v, list) else '')
+                    logger.info(f"[Fix17] Brand属性 optional化: name={name}")
+                else:
+                    # 再帰
+                    _inject_brand_attribute_optional(item, depth + 1)
+        elif isinstance(val, dict):
+            _inject_brand_attribute_optional(val, depth + 1)
+
+
 class ShopeeBrowser:
     """Playwright を使って Shopee セラーセンターを操作するクラス"""
 
@@ -188,6 +296,17 @@ class ShopeeBrowser:
                     self._page = self._context.new_page()
                     logger.info(f"✅ CDP接続成功 (port {CDP_PORT}) — 新規タブ作成")
                 self._using_cdp = True
+                # Fix17: SW登録ブロック + page.route() 設置（Fix15より確実な手法）
+                try:
+                    self._context.add_init_script(self._FIX17_SW_BLOCK_JS)
+                    logger.info("[Fix17] SW.register() ブロック init_script を context に設置")
+                except Exception as _is_e:
+                    logger.warning(f"[Fix17] init_script設置失敗: {_is_e}")
+                # 既存 SW を今すぐ unregister（現在のタブに効果）
+                self._unregister_service_workers()
+                # page.route() でブランドAPIをインターセプト
+                self._setup_fix17_route()
+                # Fix15 JS interceptor も belt-and-suspenders で維持
                 self._setup_brand_api_intercept()
                 return
             except Exception as e:
@@ -219,51 +338,504 @@ class ShopeeBrowser:
         self._page.add_init_script(
             "Object.defineProperty(navigator, 'webdriver', {get: () => undefined})"
         )
+        # Fix17: SW登録ブロック
+        try:
+            self._context.add_init_script(self._FIX17_SW_BLOCK_JS)
+            logger.info("[Fix17] SW.register() ブロック init_script を context に設置")
+        except Exception as _is_e:
+            logger.warning(f"[Fix17] init_script設置失敗: {_is_e}")
+        self._setup_fix17_route()
         self._setup_brand_api_intercept()
         logger.info("✅ ブラウザ起動完了")
 
+    # ── Fix15 brand JS interceptor ─────────────────────────────────────────
+    _FIX15_JS = r"""
+(function() {
+    if (window.__fix15Installed) return 'already';
+    window.__fix15Installed = true;
+
+    const KEYWORDS = ['brand', 'recommend', 'category_attribute', 'fill_suggest',
+                      'attribute', 'get_brand', 'brand_list',
+                      'check_mpsku',   // Fix19: MPSKU catalog matching → clears forced brand
+                      'mpsku_for_edit' // Fix19: same
+                      ];
+
+    function isBrandUrl(url) {
+        const u = String(url).toLowerCase();
+        return KEYWORDS.some(k => u.includes(k));
+    }
+
+    // Fix19: スカラー mandatory_brand_id / default_brand_id をゼロ化
+    function zeroMandatoryBrandScalars(obj, depth) {
+        if (!obj || depth > 8 || typeof obj !== 'object' || Array.isArray(obj)) return;
+        for (const k of Object.keys(obj)) {
+            const kl = k.toLowerCase();
+            if (['mandatory_brand_id','mandatory_brand','default_brand_id','default_brand',
+                 'required_brand_id','required_brand','mpsku_brand_id','brand_id_mandatory',
+                 'mpsku_info','has_mpsku'].some(p => kl.includes(p.replace('_','')))) {
+                const v = obj[k];
+                if (typeof v === 'number') obj[k] = 0;
+                else if (typeof v === 'string' && v) obj[k] = '';
+                else if (typeof v === 'boolean') obj[k] = false;
+                else if (v && typeof v === 'object') {
+                    // For mpsku_info sub-object, zero out brand fields
+                    for (const bk of Object.keys(v)) {
+                        if (bk.toLowerCase().includes('brand')) {
+                            if (typeof v[bk] === 'number') v[bk] = 0;
+                            else if (typeof v[bk] === 'string') v[bk] = '';
+                        }
+                    }
+                    if ('has_mpsku' in v) v.has_mpsku = false;
+                }
+                console.warn('[Fix19] Zeroed mandatory brand scalar:', k, '->', obj[k]);
+            }
+            if (obj[k] && typeof obj[k] === 'object' && !Array.isArray(obj[k])) {
+                zeroMandatoryBrandScalars(obj[k], depth + 1);
+            }
+        }
+    }
+
+    function injectNoBrand(obj, depth) {
+        if (!obj || depth > 8) return obj;
+        if (typeof obj !== 'object') return obj;
+        if (Array.isArray(obj)) {
+            for (let i = 0; i < obj.length; i++) obj[i] = injectNoBrand(obj[i], depth + 1);
+            return obj;
+        }
+        zeroMandatoryBrandScalars(obj, 0);  // Fix19: zero mandatory scalars first
+        for (const key of ['brand_list', 'brands', 'brandList', 'brand_options',
+                           'data', 'result', 'response']) {
+            if (!obj[key]) continue;
+            if (Array.isArray(obj[key])) {
+                const arr = obj[key];
+                // brand-like array: items with brand_id or brand_name
+                const isBrandArr = arr.length > 0 && arr[0] &&
+                    ('brand_id' in arr[0] || 'brand_name' in arr[0] || 'brandId' in arr[0]);
+                if (isBrandArr) {
+                    // すべてのブランドの is_mandatory を 0 に（ACONATIC 強制解除）
+                    for (const b of arr) {
+                        if (b && typeof b === 'object') {
+                            if ('is_mandatory' in b) b.is_mandatory = 0;
+                            if ('isMandatory' in b) b.isMandatory = 0;
+                            if ('mandatory' in b) b.mandatory = 0;
+                        }
+                    }
+                    const hasNB = arr.some(b =>
+                        b.brand_id === 0 || b.brandId === 0 ||
+                        String(b.brand_name || b.name || '').toLowerCase().includes('no brand')
+                    );
+                    if (!hasNB) {
+                        const s = arr[0] || {};
+                        const nb = {};
+                        for (const k in s) nb[k] = (typeof s[k] === 'number' ? 0 : '');
+                        Object.assign(nb, {
+                            brand_id: 0, brandId: 0,
+                            brand_name: 'No Brand', name: 'No Brand',
+                            display_name: 'No Brand', brandName: 'No Brand',
+                            require_license: 0, requireLicense: 0,
+                            is_mandatory: 0, isMandatory: 0,
+                            status: 1,
+                        });
+                        arr.unshift(nb);
+                        console.warn('[Fix15] No Brand 注入 + is_mandatory=0:', key, JSON.stringify(nb));
+                    }
+                } else {
+                    for (let i = 0; i < arr.length; i++) arr[i] = injectNoBrand(arr[i], depth + 1);
+                }
+            } else {
+                obj[key] = injectNoBrand(obj[key], depth + 1);
+            }
+        }
+        return obj;
+    }
+
+    // ── Fix19: POST リクエスト brand_id 強制ゼロ化 ────────────────────────
+    function patchPostBody(bodyStr) {
+        try {
+            const obj = JSON.parse(bodyStr);
+            let patched = false;
+            const patchObj = (o) => {
+                if (!o || typeof o !== 'object') return;
+                for (const k of ['brand_id', 'brandId']) {
+                    if (k in o && typeof o[k] === 'number' && o[k] !== 0) {
+                        console.warn('[Fix19] POST ' + k + '=' + o[k] + ' → 0');
+                        o[k] = 0; patched = true;
+                    }
+                }
+                for (const k of ['brand_license_id', 'brandLicenseId', 'license_id']) {
+                    if (k in o) { delete o[k]; patched = true; }
+                }
+                // ネスト1段
+                for (const nested of ['item_info', 'product_info', 'data', 'item', 'product']) {
+                    if (o[nested] && typeof o[nested] === 'object') patchObj(o[nested]);
+                }
+            };
+            patchObj(obj);
+            return patched ? JSON.stringify(obj) : null;
+        } catch(e) { return null; }
+    }
+
+    // ── fetch override ────────────────────────────────────────────────────
+    const _origFetch = window.fetch;
+    window.fetch = async function(input, init) {
+        const url = (input instanceof Request) ? input.url : String(input);
+        const method = (init && init.method) ? String(init.method).toUpperCase() : 'GET';
+
+        // Fix19: POST ボディの brand_id を 0 に強制
+        if (method === 'POST' && init && init.body && typeof init.body === 'string') {
+            const patched = patchPostBody(init.body);
+            if (patched) {
+                console.warn('[Fix19] fetch POST body patched:', url.substring(0, 100));
+                init = Object.assign({}, init, {body: patched});
+            }
+        }
+
+        const resp = await _origFetch(input, init);
+        if (!isBrandUrl(url)) return resp;
+        try {
+            const ct = resp.headers.get('content-type') || '';
+            if (!ct.includes('json')) return resp;
+            const text = await resp.clone().text();
+            const body = JSON.parse(text);
+            injectNoBrand(body, 0);
+            return new Response(JSON.stringify(body), {
+                status: resp.status, statusText: resp.statusText, headers: resp.headers
+            });
+        } catch(e) { return resp; }
+    };
+
+    // ── XHR override ──────────────────────────────────────────────────────
+    const _origOpen = XMLHttpRequest.prototype.open;
+    const _origSend = XMLHttpRequest.prototype.send;
+
+    XMLHttpRequest.prototype.open = function(m, url) {
+        this.__fix15url = String(url || '');
+        this.__fix15method = String(m || 'GET').toUpperCase();
+        return _origOpen.apply(this, arguments);
+    };
+    XMLHttpRequest.prototype.send = function(body) {
+        // Fix19: XHR POST ボディの brand_id を 0 に強制
+        if (this.__fix15method === 'POST' && body && typeof body === 'string') {
+            const patched = patchPostBody(body);
+            if (patched) {
+                console.warn('[Fix19] XHR POST body patched:', this.__fix15url.substring(0, 100));
+                body = patched;
+            }
+        }
+        if (this.__fix15url && isBrandUrl(this.__fix15url)) {
+            const xhr = this;
+            xhr.addEventListener('readystatechange', function() {
+                if (xhr.readyState === 4 && !xhr.__fix15patched) {
+                    xhr.__fix15patched = true;
+                    try {
+                        const ct = xhr.getResponseHeader('content-type') || '';
+                        if (!ct.includes('json')) return;
+                        const resp = JSON.parse(xhr.responseText);
+                        injectNoBrand(resp, 0);
+                        const p = JSON.stringify(resp);
+                        Object.defineProperty(xhr, 'responseText',
+                            { get: () => p, configurable: true });
+                        Object.defineProperty(xhr, 'response',
+                            { get: () => p, configurable: true });
+                    } catch(e) {}
+                }
+            }, true);
+        }
+        return _origSend.call(this, body);
+    };
+
+    console.log('[Fix15+Fix19] brand/submit interceptor installed ✓');
+    return 'installed';
+})()
+"""
+
     def _setup_brand_api_intercept(self):
-        """Fix11: ブランド自動割当APIをインターセプトして阻止する。
-        Shopeeはカテゴリ選択・タイトル入力・画像解析後にブランド推奨APIを叩き、
-        Vue の brand フィールドを強制上書きする。これをルートレベルでabortする。
-        セッション開始時に1回だけ呼ぶ（route は page.unroute まで持続）。
+        """Fix15: ページ内 JS fetch/XHR インターセプト（Fix14 Playwright route の代替）
+
+        CDP既存タブでは page.route() が機能しないため、
+        page.evaluate() で JS を直接注入してブランドAPIレスポンスを改変する。
+
+        注入タイミング: start() 時点（接続直後）
+        効果: カテゴリ変更時にブランドAPIが返す brand_list に "No Brand" を追加し、
+              Vue が mandatory brand を強制しても "No Brand" が選択肢として残る。
         """
-        import re as _re
-        # Shopee ブランド推奨・スマートフィル・属性推奨 API パターン
-        # /api/v4/product/get_recommend_attributes, /api/v4/product/get_category_recommend,
-        # /api/v4/product/smart_fill_attribute 等を包括的にカバー
-        _brand_pattern = _re.compile(
-            r'.*/(recommend_attribute|brand_recommend|get_brand|recommend_brand|'
-            r'brand_check|brand_verify|smart_fill|fill_attribute|'
-            r'get_category_attribute|attribute_recommend).*',
-            _re.IGNORECASE
-        )
-
-        def _brand_intercept(route):
-            url = route.request.url
-            logger.info(f"  [Fix11] Brand/Attribute API blocked: {url[:100]}")
-            try:
-                route.abort()
-            except Exception:
-                pass
-
         try:
-            self._page.route(_brand_pattern, _brand_intercept)
-            logger.info("[Fix11] ブランド自動割当API インターセプト設定完了")
-        except Exception as _e:
-            logger.debug(f"[Fix11] Brand API intercept 設定エラー（続行）: {_e}")
+            result = self._page.evaluate(self._FIX15_JS)
+            logger.info(f"[Fix15] ブランドJS interceptor 注入: {result}")
+        except Exception as _se:
+            logger.warning(f"[Fix15] JS注入失敗: {_se}")
 
-        # 全API呼び出しをDEBUGログ（ブランド関連URLを特定するため）
-        # /api/ を含むリクエストを全て記録してどのエンドポイントがブランドを設定するか追跡
-        def _api_logger(req):
-            url = req.url
-            if '/api/' in url and ('brand' in url.lower() or 'recommend' in url.lower()
-                                   or 'attribute' in url.lower() or 'fill' in url.lower()):
-                logger.debug(f"  [APIlog] {req.method} {url[:150]}")
+    def _reinstall_brand_intercept(self):
+        """Fix15: カテゴリ選択後など要所で再インストール（SPA遷移対応）"""
         try:
-            self._page.on("request", _api_logger)
+            result = self._page.evaluate(self._FIX15_JS)
+            logger.debug(f"[Fix15] 再インストール: {result}")
         except Exception:
             pass
+
+    # ── Fix17: Service Worker ブロック + page.route() ブランドAPIインターセプト ─────
+    _FIX17_SW_BLOCK_JS = """
+(function() {
+    if (window.__fix17SwBlocked) return;
+    window.__fix17SwBlocked = true;
+    if (navigator.serviceWorker) {
+        const _origReg = navigator.serviceWorker.register.bind(navigator.serviceWorker);
+        navigator.serviceWorker.register = async function(scriptURL, options) {
+            console.log('[Fix17] navigator.serviceWorker.register BLOCKED:', scriptURL);
+            // Return a fake registration object
+            return {
+                scope: '/',
+                updateViaCache: 'none',
+                active: null, installing: null, waiting: null,
+                addEventListener: () => {}, removeEventListener: () => {},
+                dispatchEvent: () => false,
+                unregister: async () => true,
+                update: async () => undefined,
+                onupdatefound: null,
+            };
+        };
+        console.log('[Fix17] SW.register() hook installed ✓');
+    }
+})();
+"""
+
+    @staticmethod
+    def _py_inject_no_brand(obj: dict, depth: int = 0) -> None:
+        """Fix17: API レスポンス dict に "No Brand" エントリを注入し、全ブランドの is_mandatory を 0 に設定"""
+        if not obj or depth > 8 or not isinstance(obj, dict):
+            return
+        # Use module-level helper to avoid class-name lookup issues in @staticmethod
+        _inject_no_brand_recursive(obj, depth)
+
+    def _unregister_service_workers(self) -> None:
+        """Fix17: 現在のページで登録済みのService Workerを全てunregister"""
+        try:
+            n = self._page.evaluate("""
+                async () => {
+                    if (!navigator.serviceWorker) return 0;
+                    const regs = await navigator.serviceWorker.getRegistrations();
+                    await Promise.all(regs.map(r => r.unregister()));
+                    return regs.length;
+                }
+            """)
+            if n > 0:
+                logger.info(f"[Fix17] Service Worker unregistered: {n}件")
+            else:
+                logger.debug("[Fix17] Service Worker: 登録なし（既にクリーン）")
+        except Exception as _ue:
+            logger.warning(f"[Fix17] SW unregister失敗: {_ue}")
+
+    @staticmethod
+    def _modify_brand_list(body: dict) -> None:
+        """Fix18: get_brand_list レスポンスを改変。
+        - brand_list 配列の全ブランドを is_mandatory=0 に
+        - No Brand (brand_id=0) を先頭に注入
+        - mandatory_brand_id / default_brand_id をクリア
+        """
+        # brand_list が data.brand_list にある場合 (最も一般的な構造)
+        _inject_no_brand_recursive(body)
+
+        # トップレベルおよびdataのmandatory_brand_id/default_brand_idをゼロ化
+        for _obj in [body, body.get('data', {}), body.get('result', {})]:
+            if not isinstance(_obj, dict):
+                continue
+            for _k in list(_obj.keys()):
+                if any(x in _k.lower() for x in ('mandatory_brand', 'default_brand',
+                                                   'required_brand', 'recommend_brand_id')):
+                    _v = _obj[_k]
+                    _obj[_k] = 0 if isinstance(_v, (int, float)) else ''
+
+    @staticmethod
+    def _modify_attribute_tree(body: dict) -> None:
+        """Fix18: get_attribute_tree レスポンスを改変。
+        - attr_name に 'brand' を含む属性の mandatory / default_value をクリア
+        - brand_id / brand_name 等のフィールドをゼロ化
+        """
+        _inject_no_brand_recursive(body)
+
+        # 再帰的に attribute 配列を探して brand 属性を optional 化
+        def _fix_attrs(node, depth=0):
+            if not node or depth > 10 or not isinstance(node, dict):
+                return
+            for _ak in ('attributes', 'attribute_list', 'attributeList', 'attrs',
+                        'attr_list', 'data', 'result', 'response', 'children'):
+                _val = node.get(_ak)
+                if isinstance(_val, list):
+                    for _item in _val:
+                        if not isinstance(_item, dict):
+                            continue
+                        _name = str(_item.get('attr_name', _item.get('name',
+                                    _item.get('attribute_name', '')))).lower()
+                        if 'brand' in _name:
+                            # brand属性を optional に
+                            for _mf in ('is_mandatory', 'isMandatory', 'mandatory',
+                                        'required', 'is_required'):
+                                if _mf in _item:
+                                    _item[_mf] = 0
+                            # デフォルト値・推奨値をクリア
+                            for _df in ('default_value', 'defaultValue', 'value',
+                                        'recommended_value', 'recommend_value_id',
+                                        'value_id', 'valueId', 'pre_selected_value_id'):
+                                if _df in _item:
+                                    _v = _item[_df]
+                                    _item[_df] = (0 if isinstance(_v, (int, float))
+                                                  else ([] if isinstance(_v, list) else ''))
+                            # brandIdが直接フィールドにある場合もクリア
+                            for _bf in ('brand_id', 'brandId', 'brand_name', 'brandName'):
+                                if _bf in _item:
+                                    _v = _item[_bf]
+                                    _item[_bf] = 0 if isinstance(_v, (int, float)) else ''
+                            logger.info(f"[Fix18] attribute_tree brand属性 optional化: {_name}")
+                        else:
+                            _fix_attrs(_item, depth + 1)
+                elif isinstance(_val, dict):
+                    _fix_attrs(_val, depth + 1)
+            for _k, _v in node.items():
+                if _k not in ('attributes', 'attribute_list', 'attributeList', 'attrs',
+                              'attr_list', 'data', 'result', 'response', 'children'):
+                    if isinstance(_v, dict):
+                        _fix_attrs(_v, depth + 1)
+
+        _fix_attrs(body)
+
+    def _setup_fix17_route(self) -> None:
+        """Fix17+Fix18: page.route() でブランドAPI群をインターセプトし No Brand を注入。
+        対象: get_recommend_brand, get_recommend_attribute, get_content_filling_suggestion,
+              get_brand_list (Fix18), get_attribute_tree (Fix18)
+        """
+
+        def _make_diag_handler(label: str, mutate: bool = True,
+                               extra_mutator=None):
+            """指定ラベルのDIAGハンドラを生成。mutate=Trueなら注入も行う。"""
+            def _handler(route, request):
+                try:
+                    response = route.fetch()
+                    try:
+                        body = response.json()
+                    except Exception:
+                        route.fulfill(
+                            status=response.status,
+                            headers=dict(response.headers),
+                            body=response.body(),
+                        )
+                        return
+                    # DIAG: 生レスポンスをダンプ（brand強制フィールド特定用）
+                    logger.info(f"[Fix17-DIAG:{label}] {json.dumps(body, ensure_ascii=False)[:5000]}")
+                    if mutate:
+                        _inject_no_brand_recursive(body)
+                        _inject_brand_attribute_optional(body)
+                    if extra_mutator:
+                        extra_mutator(body)
+                    hdrs = {
+                        k: v for k, v in response.headers.items()
+                        if k.lower() not in ('content-encoding', 'content-length', 'transfer-encoding')
+                    }
+                    route.fulfill(
+                        status=response.status,
+                        headers=hdrs,
+                        body=json.dumps(body, ensure_ascii=False).encode('utf-8'),
+                        content_type='application/json; charset=utf-8',
+                    )
+                    logger.info(f"[Fix17] ✅ 改変成功 [{label}]: {request.url[:100]}")
+                except Exception as _re:
+                    logger.warning(f"[Fix17] handler失敗[{label}] → continue: {_re}")
+                    try:
+                        route.continue_()
+                    except Exception:
+                        pass
+            return _handler
+
+        try:
+            _targets = [
+                # Fix17 originals
+                ("**/get_recommend_brand**",           "rec_brand",    True,  None),
+                ("**/get_recommend_attribute**",        "rec_attr",     True,  None),
+                ("**/get_content_filling_suggestion**", "content_fill", True,  None),
+                # Fix18: the real brand-setting APIs
+                ("**/get_brand_list**",     "brand_list",   True,
+                 ShopeeBrowser._modify_brand_list),
+                ("**/get_attribute_tree**", "attr_tree",    True,
+                 ShopeeBrowser._modify_attribute_tree),
+                # Fix19b: MPSKU catalog matching API — DIAGのみ(mutate=False)で構造確認
+                # 構造確認後に _modify_mpsku として mutate を追加予定
+                ("**/check_mpsku_for_edit**", "mpsku_check", False, None),
+                ("**/get_brand_license_list**", "brand_lic",  False, None),
+            ]
+            for _pat, _lbl, _mut, _extra in _targets:
+                try:
+                    self._page.unroute(_pat)
+                except Exception:
+                    pass
+                self._page.route(_pat, _make_diag_handler(_lbl, _mut, _extra))
+            logger.info("[Fix17+Fix18] page.route() ブランドAPI interceptor 設置 ✓")
+
+            # Fix19: 商品出品API の POST ボディを傍受して brand_id=0 に強制
+            def _fix19_submit_handler(route, request):
+                if request.method != 'POST':
+                    try:
+                        route.continue_()
+                    except Exception:
+                        pass
+                    return
+                try:
+                    raw = request.post_data or ''
+                    body = json.loads(raw) if raw else {}
+                    patched = False
+                    def _patch_obj(o):
+                        nonlocal patched
+                        if not isinstance(o, dict):
+                            return
+                        for k in ('brand_id', 'brandId'):
+                            if k in o and isinstance(o[k], int) and o[k] != 0:
+                                logger.info(f"[Fix19] POST submit {k}={o[k]} → 0")
+                                o[k] = 0
+                                patched = True
+                        for k in ('brand_license_id', 'brandLicenseId', 'license_id'):
+                            if k in o:
+                                del o[k]
+                                patched = True
+                        for nested in ('item_info', 'product_info', 'data', 'item', 'product'):
+                            if nested in o and isinstance(o[nested], dict):
+                                _patch_obj(o[nested])
+                    _patch_obj(body)
+                    if patched:
+                        response = route.fetch(post_data=json.dumps(body))
+                    else:
+                        response = route.fetch()
+                    route.fulfill(response=response)
+                    # Fix21: レスポンスの code/message を記録してサーバー側バリデーション確認
+                    try:
+                        _resp_body = response.json()
+                        _code = _resp_body.get('code', _resp_body.get('error', '?'))
+                        _msg  = str(_resp_body.get('message', _resp_body.get('msg', '')))[:120]
+                        logger.info(f"[Fix19] submit intercept: patched={patched} code={_code} msg={_msg} url={request.url[:80]}")
+                    except Exception:
+                        logger.info(f"[Fix19] submit intercept: patched={patched} url={request.url[:80]}")
+                except Exception as _fe:
+                    logger.warning(f"[Fix19] submit handler失敗: {_fe}")
+                    try:
+                        route.continue_()
+                    except Exception:
+                        pass
+
+            for _submit_pat in [
+                '**/api/v3/product/add_product**',
+                '**/api/v3/product/save_product**',
+                '**/api/v3/listing-upload/submit**',
+                '**/api/v3/listing-upload/save**',
+            ]:
+                try:
+                    self._page.unroute(_submit_pat)
+                except Exception:
+                    pass
+                try:
+                    self._page.route(_submit_pat, _fix19_submit_handler)
+                    logger.info(f"[Fix19] submit route 設置: {_submit_pat}")
+                except Exception as _sr:
+                    logger.warning(f"[Fix19] submit route 設置失敗 {_submit_pat}: {_sr}")
+
+        except Exception as _re:
+            logger.warning(f"[Fix17] page.route()設置失敗: {_re}")
 
     def stop(self):
         """ブラウザを終了。自動起動した Chrome は終了、手動起動はそのまま。"""
@@ -595,6 +1167,12 @@ class ShopeeBrowser:
                 raise
             _human_wait(2, 3)
 
+            # Fix15+Fix17: /product/new ナビゲーション後（JS状態クリア）に再インジェクト
+            # page.goto() は全ページリロード → Fix15 window.fetch override が失われる → 再設定
+            # Fix17 page.route() はそのまま維持されるが SW が再登録されている可能性あり
+            self._unregister_service_workers()
+            self._setup_brand_api_intercept()
+
             # /product/new がログインにリダイレクトされた場合: リロード前に再ログイン
             if "login" in self._page.url:
                 logger.info("セッション切れ (/product/new) — 再ログイン")
@@ -636,6 +1214,11 @@ class ShopeeBrowser:
             except Exception:
                 pass
             _human_wait(3, 5)
+
+            # Fix17: リロード後に残存SWをunregister（init_scriptでブロック済みだが belt-and-suspenders）
+            self._unregister_service_workers()
+            # Fix17: page.route() を再設置（page.goto/reload でクリアされた場合に備える）
+            self._setup_fix17_route()
 
             logger.info(f"  URL: {self._page.url}")
 
@@ -749,7 +1332,10 @@ class ShopeeBrowser:
                            "wellness", "adult", "pharmaceutical", "health >",
                            "muslim", "hijab", "prayer", "baby >", "doll",
                            # ブランドライセンス必須カテゴリ（選択肢なし→必ず失敗）
-                           "lighting", "vehicles", "motorcycle", "automotive",
+                           # NOTE: "lighting" は "home & living > lighting" だけブロック
+                           #   "cameras & drones > camera accessories > lighting" は安全（Apr16確認済）
+                           "home & living > lighting",
+                           "vehicles", "motorcycle", "automotive",
                            "statues & sculptures", "statues", "figurines",
                            # Run 36 で Brand License 必須になった危険カテゴリ
                            "books", "careers", "self help", "religion",
@@ -779,14 +1365,31 @@ class ShopeeBrowser:
                            "educational toys",
                            "school & office equipment",
                            # Collectible 強制ブランド（Huangdo/Domon等）
+                           # Fix17: idol collectibles も Huangdo 強制と確認 (run53 Brand確認で判明)
+                           "idol collectibles",           # Huangdo 強制 → ブロック (run53確認)
                            "collectible items > others",  # Run 36/37 で Huangdo/Domon 強制を確認
-                           "collectible items",  # 配下全体がBL必須多発（Run 37確認）
+                           "collectible items > statues",
+                           "collectible items > sport",  # Run 37 で Huangdo 強制確認
+                           # Fix17: USB/Mobile 系は ACONATIC 強制 → ブロック
+                           "usb & mobile lights",         # ACONATIC 強制 (run50/52/53確認)
+                           "mobile & gadgets > accessories > usb",  # 上記と同グループ
+                           # Run 37 で Brand License 必須と判明（新規追加）
+                           "souvenirs",        # Hobbies & Collections > Souvenirs → ดอกหญ้าวิชาการ 強制
+                           "men bags",         # Men Bags → Dapper 強制
+                           "pet clothing",     # Pets > Pet Clothing → AG-SCIENCE 強制
+                           "pet accessories",  # Pets > Pet Accessories → AG-SCIENCE 強制
+                           "litter & toilet",  # Pets > Litter & Toilet → AG-SCIENCE 強制
                            ]
             CAT_PREF = {
+                # === Apr16 確認済み安全カテゴリ（最優先） ===
+                # "idol collectibles": 5,  # Fix17: Huangdo 強制と判明 → CAT_BLOCKED に移動
+                "camera accessories": 4,  # Cameras & Drones > Camera Accessories > Lighting → 安全確認済
+                "photography & printing": 4,  # Tickets, Vouchers & Services > Services → 安全確認済
+                # === 一般的に安全なカテゴリ ===
                 "tools": 3,
                 "diy": 4,          # DIYは最優先（No Brand 許可が多い）
                 "hobbies": 2,      # Run36で collectible系の BL 多発 → 下げ
-                "collectible": 1,  # Run37で collectible 配下がBrand License必須多発 → 優先度低下
+                "collectible": 2,  # idol collectibles は安全→ 少し上げ（危険な sub-cat はブロック済）
                 "arts": 3,
                 "craft": 3,
                 "sport": 2,
@@ -795,7 +1398,7 @@ class ShopeeBrowser:
                 "stationery": 1,
                 "electronics": -1, # Thai tech brands が多い → 下げ
                 "computers": -2,   # Computers全般 → Thai brands 強制が多い → 大幅下げ
-                "pets": -1,        # Pet Furniture が BL 必須
+                "pets": -3,        # Run37確認: Pets全般 AG-SCIENCE 強制 → 大幅下げ
                 # Fix9: Others を正の値に変更（ブランド自動割当を避けるため積極選択）
                 # 理由: 特定カテゴリ選択後に Vue がブランドを強制割当し No Brand クリックを無効化する
                 "others": 2,
@@ -825,167 +1428,184 @@ class ShopeeBrowser:
                     # ── カテゴリ選択（Basic Info タブ内、レンダリング後）────────────────
                     # ※ Recommended Categories は input[type="radio"] ではなくカスタム要素
                     #   sparkle-icon (<i class*="sparkle">) を起点に category パス要素を探す
+                    # Fix17: TOCTOU修正 — スコアリングとマーキングを1回のevaluateで行う
                     try:
-                        reco_info = self._page.evaluate("""
-                            () => {
+                        import json as _json
+                        _cat_blocked_js = _json.dumps(CAT_BLOCKED)
+                        _cat_pref_js = _json.dumps(CAT_PREF)
+                        # 1回のevaluateでスコアリング+マーキングを原子的に実行 (TOCTOU修正)
+                        cat_select_result = self._page.evaluate(f"""
+                            () => {{
+                                const CAT_BLOCKED = {_cat_blocked_js};
+                                const CAT_PREF    = {_cat_pref_js};
+
+                                function catScore(txt) {{
+                                    let s = 0;
+                                    for (const [kw, w] of Object.entries(CAT_PREF)) {{
+                                        if (txt.includes(kw)) s += w;
+                                    }}
+                                    return s;
+                                }}
+
                                 // sparkle icon を起点に Recommended Categories セクションを特定
                                 const sparkle = document.querySelector('[class*="sparkle"]');
-                                if (!sparkle) return [];
-                                // sparkle の祖先を辿り、" > " を含む leaf 要素のあるコンテナを見つける
+                                if (!sparkle) return {{items: [], marked: null}};
                                 let container = sparkle.parentElement;
                                 for (let lvl = 0; lvl < 8 && container && container !== document.body;
-                                     lvl++, container = container.parentElement) {
-                                    const items = [];
-                                    for (const el of container.querySelectorAll('*')) {
+                                     lvl++, container = container.parentElement) {{
+                                    const elems = [];
+                                    for (const el of container.querySelectorAll('*')) {{
                                         if (el === sparkle || el.contains(sparkle)) continue;
                                         if (el.children.length > 2) continue;
                                         const txt = el.textContent.trim();
                                         if (!txt.includes(' > ') || txt.length > 150) continue;
                                         const rect = el.getBoundingClientRect();
                                         if (!rect || rect.width < 50 || rect.height < 8) continue;
-                                        items.push({ index: items.length, text: txt });
-                                    }
-                                    if (items.length > 0) return items;
-                                }
-                                return [];
-                            }
-                        """)
-                        logger.info(f"  推奨カテゴリ一覧: {[(r['index'], r['text'][:60]) for r in reco_info]}")
+                                        elems.push({{el, txt}});
+                                    }}
+                                    if (elems.length === 0) continue;
 
-                        best_idx = None
-                        best_score = -1
-                        best_is_others = False
-                        for r in reco_info:
-                            txt = r['text'].lower()
-                            if any(kw in txt for kw in CAT_BLOCKED):
-                                continue
-                            score, is_others = _cat_score(txt)
-                            # Fix9: スコア純粋比較（Others優先ロジック廃止）
-                            # 理由: 特定カテゴリが Vue ブランド自動割当を引き起こすため
-                            #       others=2 スコアを付与し、スコアで公平に競わせる
-                            if best_idx is None or score > best_score:
-                                best_score = score
-                                best_idx = r['index']
-                                best_is_others = is_others
+                                    // 同一テキストの重複を除去（同じカテゴリが2個出ることがある）
+                                    const seen = new Set();
+                                    const unique = [];
+                                    for (const item of elems) {{
+                                        const key = item.txt.toLowerCase().trim();
+                                        if (!seen.has(key)) {{ seen.add(key); unique.push(item); }}
+                                    }}
+
+                                    // スコアリング（ブロックリストチェック + 優先度）
+                                    let bestEl = null, bestTxt = '', bestScore = -Infinity;
+                                    const itemsInfo = [];
+                                    for (const {{el, txt}} of unique) {{
+                                        const tl = txt.toLowerCase();
+                                        const blocked = CAT_BLOCKED.some(kw => tl.includes(kw));
+                                        const score = blocked ? -9999 : catScore(tl);
+                                        itemsInfo.push({{text: txt, score, blocked}});
+                                        if (score > bestScore) {{
+                                            bestScore = score;
+                                            bestEl = el;
+                                            bestTxt = txt;
+                                        }}
+                                    }}
+
+                                    // 最良カテゴリをマーク（Playwright クリック用）
+                                    document.querySelectorAll('[data-cat-sel]').forEach(
+                                        e => e.removeAttribute('data-cat-sel'));
+                                    if (bestEl && bestScore > -9999) {{
+                                        const row = bestEl.closest('li, [class*="item"], [class*="row"]')
+                                                    || bestEl.parentElement;
+                                        row.setAttribute('data-cat-sel', 'target');
+                                    }}
+                                    return {{items: itemsInfo, marked: bestScore > -9999 ? bestTxt : null}};
+                                }}
+                                return {{items: [], marked: null}};
+                            }}
+                        """)
+                        reco_info = cat_select_result.get('items', [])
+                        mark_result = cat_select_result.get('marked')
+                        logger.info(f"  推奨カテゴリ一覧: {[(r['text'][:60], r['score']) for r in reco_info]}")
 
                         _do_pencil = False  # 推奨カテゴリ失敗 or なし → pencil edit フォールバック
 
-                        if best_idx is not None:
-                            # 安全な推奨カテゴリ → data属性でマークしてPlaywrightクリック
-                            mark_result = self._page.evaluate(f"""
-                                () => {{
-                                    document.querySelectorAll('[data-cat-sel]').forEach(e => e.removeAttribute('data-cat-sel'));
-                                    const sparkle = document.querySelector('[class*="sparkle"]');
-                                    if (!sparkle) return null;
-                                    let container = sparkle.parentElement;
-                                    for (let lvl = 0; lvl < 8 && container && container !== document.body;
-                                         lvl++, container = container.parentElement) {{
-                                        const items = [];
-                                        for (const el of container.querySelectorAll('*')) {{
-                                            if (el === sparkle || el.contains(sparkle)) continue;
-                                            if (el.children.length > 2) continue;
-                                            const txt = el.textContent.trim();
-                                            if (!txt.includes(' > ') || txt.length > 150) continue;
-                                            const rect = el.getBoundingClientRect();
-                                            if (!rect || rect.width < 50 || rect.height < 8) continue;
-                                            items.push(el);
-                                        }}
-                                        if (items.length > 0) {{
-                                            const el = items[{best_idx}];
-                                            if (!el) return null;
-                                            // 行全体をマーク（Playwrightクリック用）
-                                            const row = el.closest('li, [class*="item"], [class*="row"]')
-                                                        || el.parentElement;
-                                            row.setAttribute('data-cat-sel', 'target');
-                                            return el.textContent.trim().substring(0, 80);
-                                        }}
-                                    }}
-                                    return null;
-                                }}
-                            """)
-                            if mark_result:
-                                # Playwrightのクリック（実際のマウスイベント、Reactに確実に届く）
-                                try:
-                                    self._page.locator('[data-cat-sel="target"]').first.click(timeout=5000)
-                                except Exception:
-                                    # フォールバック: dispatchEvent
-                                    self._page.evaluate("""
-                                        () => {
-                                            const el = document.querySelector('[data-cat-sel="target"]');
-                                            if (el) el.dispatchEvent(new MouseEvent('click', {bubbles:true,cancelable:true,view:window}));
-                                        }
-                                    """)
-                                logger.info(f"  ✅ 推奨カテゴリ選択: {mark_result}")
-                                # Enter キーでカテゴリ選択を確定させる（Vueが単一クリックだけでは未コミットの場合）
-                                try:
-                                    _human_wait(0.3, 0.5)
-                                    self._page.keyboard.press("Enter")
-                                except Exception:
-                                    pass
-                            _human_wait(3.0, 4.0)  # Vue 再描画 + カテゴリ確定待ち（長めに）
-                            # ── カテゴリ変更確認ダイアログを処理 ──────────────────────
-                            # "Changing category will clear product info" → Confirm が必要
-                            _cat_confirmed = False
-                            for _cconf_sel in [
-                                'button:has-text("Confirm")',
-                                'button:has-text("ยืนยัน")',
-                                '[role="dialog"] button:last-child',
-                                '[class*="modal"] button:last-child',
-                            ]:
-                                try:
-                                    _cconf = self._page.locator(_cconf_sel).first
-                                    if _cconf.count() and _cconf.is_visible():
-                                        _cconf.click()
-                                        logger.info(f"  カテゴリ確認ダイアログ: Confirm クリック ({_cconf_sel})")
-                                        _cat_confirmed = True
-                                        _human_wait(1.5, 2.0)
-                                        break
-                                except Exception:
-                                    pass
-                            if _cat_confirmed:
-                                _human_wait(1.0, 1.5)  # ダイアログ消去 + Vue 再描画待ち
-                            # カテゴリ選択確認（eds-selectors が増えるか形式が変わるか）
-                            cat_ok = self._page.evaluate("""
-                                () => {
-                                    const eds = [...document.querySelectorAll('[class*="eds-selector"]')]
-                                        .filter(e => e.offsetParent !== null);
-                                    // カテゴリが選択されると Brand selector が出る(totalEds>0)
-                                    // または "Please set category" が消える
-                                    const catPlaceholder = document.querySelector('[placeholder*="category"], [placeholder*="Category"]');
-                                    const catText = [...document.querySelectorAll('[class*="category"] [class*="value"], [class*="category-path"]')]
-                                        .find(e => e.textContent.trim().includes('>'));
-                                    return eds.length > 0 || catText !== undefined;
-                                }
-                            """)
-                            if not cat_ok:
-                                logger.warning("  ⚠️ カテゴリ未選択（フォーム未更新） → 再クリック試行")
-                                # セカンド試行: 直接 JS click
+                        if mark_result:
+                            # Playwrightのクリック（実際のマウスイベント、Reactに確実に届く）
+                            try:
+                                self._page.locator('[data-cat-sel="target"]').first.click(timeout=5000)
+                            except Exception:
+                                # フォールバック: dispatchEvent
                                 self._page.evaluate("""
                                     () => {
                                         const el = document.querySelector('[data-cat-sel="target"]');
-                                        if (el) {
-                                            el.dispatchEvent(new MouseEvent('mousedown', {bubbles:true,cancelable:true,view:window}));
-                                            el.dispatchEvent(new MouseEvent('mouseup',   {bubbles:true,cancelable:true,view:window}));
-                                            el.dispatchEvent(new MouseEvent('click',     {bubbles:true,cancelable:true,view:window}));
-                                        }
+                                        if (el) el.dispatchEvent(new MouseEvent('click', {bubbles:true,cancelable:true,view:window}));
                                     }
                                 """)
-                                _human_wait(2.0, 3.0)
-                                # 2回目確認 — まだ未コミットならpencil editへ
-                                _cat_ok_r2 = self._page.evaluate("""
-                                    () => {
-                                        const eds = [...document.querySelectorAll('[class*="eds-selector"]')]
-                                            .filter(e => e.offsetParent !== null);
-                                        const catText = [...document.querySelectorAll(
-                                            '[class*="category"] [class*="value"], [class*="category-path"]'
-                                        )].find(e => e.textContent.trim().includes('>'));
-                                        return eds.length > 0 || catText !== undefined;
+                            logger.info(f"  ✅ 推奨カテゴリ選択: {mark_result}")
+                            # Enter キーでカテゴリ選択を確定させる（Vueが単一クリックだけでは未コミットの場合）
+                            try:
+                                _human_wait(0.3, 0.5)
+                                self._page.keyboard.press("Enter")
+                            except Exception:
+                                pass
+                        # === DIAG: カテゴリ確定直後からネットワーク監視開始 ===
+                        _diag_responses = []
+                        def _diag_on_resp(resp):
+                            u = resp.url
+                            if any(kw in u.lower() for kw in
+                                   ['brand', 'recommend', 'category', 'attribute',
+                                    'fill', 'suggest', 'product', 'api/v']):
+                                _diag_responses.append(u)
+                        try:
+                            self._page.on('response', _diag_on_resp)
+                        except Exception:
+                            pass
+                        # === END DIAG SETUP ===
+                        _human_wait(3.0, 4.0)  # Vue 再描画 + カテゴリ確定待ち（長めに）
+                        # Fix15: カテゴリ確定後にブランドAPIインターセプトを再インストール
+                        # （SPA ページ遷移でスクリプトが失われる場合への対策）
+                        self._reinstall_brand_intercept()
+                        # ── カテゴリ変更確認ダイアログを処理 ──────────────────────
+                        # "Changing category will clear product info" → Confirm が必要
+                        _cat_confirmed = False
+                        for _cconf_sel in [
+                            'button:has-text("Confirm")',
+                            'button:has-text("ยืนยัน")',
+                            '[role="dialog"] button:last-child',
+                            '[class*="modal"] button:last-child',
+                        ]:
+                            try:
+                                _cconf = self._page.locator(_cconf_sel).first
+                                if _cconf.count() and _cconf.is_visible():
+                                    _cconf.click()
+                                    logger.info(f"  カテゴリ確認ダイアログ: Confirm クリック ({_cconf_sel})")
+                                    _cat_confirmed = True
+                                    _human_wait(1.5, 2.0)
+                                    break
+                            except Exception:
+                                pass
+                        if _cat_confirmed:
+                            _human_wait(1.0, 1.5)  # ダイアログ消去 + Vue 再描画待ち
+                        # カテゴリ選択確認（eds-selectors が増えるか形式が変わるか）
+                        cat_ok = self._page.evaluate("""
+                            () => {
+                                const eds = [...document.querySelectorAll('[class*="eds-selector"]')]
+                                    .filter(e => e.offsetParent !== null);
+                                // カテゴリが選択されると Brand selector が出る(totalEds>0)
+                                // または "Please set category" が消える
+                                const catPlaceholder = document.querySelector('[placeholder*="category"], [placeholder*="Category"]');
+                                const catText = [...document.querySelectorAll('[class*="category"] [class*="value"], [class*="category-path"]')]
+                                    .find(e => e.textContent.trim().includes('>'));
+                                return eds.length > 0 || catText !== undefined;
+                            }
+                        """)
+                        if not cat_ok:
+                            logger.warning("  ⚠️ カテゴリ未選択（フォーム未更新） → 再クリック試行")
+                            # セカンド試行: 直接 JS click
+                            self._page.evaluate("""
+                                () => {
+                                    const el = document.querySelector('[data-cat-sel="target"]');
+                                    if (el) {
+                                        el.dispatchEvent(new MouseEvent('mousedown', {bubbles:true,cancelable:true,view:window}));
+                                        el.dispatchEvent(new MouseEvent('mouseup',   {bubbles:true,cancelable:true,view:window}));
+                                        el.dispatchEvent(new MouseEvent('click',     {bubbles:true,cancelable:true,view:window}));
                                     }
-                                """)
-                                if not _cat_ok_r2:
-                                    logger.warning("  ⚠️ 推奨カテゴリ2回試行でも未コミット → pencil edit フォールバック")
-                                    _do_pencil = True
-                        else:
+                                }
+                            """)
+                            _human_wait(2.0, 3.0)
+                            # 2回目確認 — まだ未コミットならpencil editへ
+                            _cat_ok_r2 = self._page.evaluate("""
+                                () => {
+                                    const eds = [...document.querySelectorAll('[class*="eds-selector"]')]
+                                        .filter(e => e.offsetParent !== null);
+                                    const catText = [...document.querySelectorAll(
+                                        '[class*="category"] [class*="value"], [class*="category-path"]'
+                                    )].find(e => e.textContent.trim().includes('>'));
+                                    return eds.length > 0 || catText !== undefined;
+                                }
+                            """)
+                            if not _cat_ok_r2:
+                                logger.warning("  ⚠️ 推奨カテゴリ2回試行でも未コミット → pencil edit フォールバック")
+                                _do_pencil = True
+                        if not mark_result:
                             # 全推奨がブロック or 推奨なし → pencil edit
                             _do_pencil = True
                             logger.info("  推奨カテゴリに安全なものなし → pencil edit で変更")
@@ -1122,37 +1742,111 @@ class ShopeeBrowser:
                                                             break
                                     else:
                                         # フォールバック: 固定候補リスト
-                                        # 優先順位: DIY > Art & Craft > Hobby Supplies > Collectible Items
-                                        # 理由: Collectible Items は Domon/Huangdo ブランド強制が多い
+                                        # Fix17 (run54): 優先順位を Home & Living > Home Decor に変更
+                                        # 理由: Idol Collectibles/Collectible Items は Huangdo 強制 (run53確認)
+                                        #       Hobbies 系は全て Huangdo/Domon 強制のためスキップ
+                                        # 安全な経路: Home & Living > Home Decor (> Others)
+                                        _l2_selected_txt = None
                                         for level, candidates in [
-                                            (1, ["งานอดิเรก", "Hobbies & Collections", "Hobbies",
-                                                 "งานอดิเรกและของสะสม", "Home & Living",
-                                                 "บ้านและชีวิตประจำวัน", "Tools", "Sports"]),
-                                            (2, ["DIY", "DIY & Craft Supplies", "Art & Craft",
-                                                 "Arts & Crafts", "Hobby Supplies",
-                                                 "Gardening", "Garden Supplies", "Kitchen & Dining",
-                                                 "Home Decor",
-                                                 "Collectible Items", "Collectible", "ของสะสม"]),
-                                            (3, ["Others", "อื่นๆ"]),
+                                            (1, ["Cameras & Drones",           # 最優先: Camera Accessories > Lighting = Apr16確認済み安全
+                                                 "กล้องและโดรน",                # Thai: Cameras & Drones
+                                                 "Home & Living",              # 次善: Decoration 試みる (Home & Livingは全般Oonew強制)
+                                                 "บ้านและชีวิตประจำวัน",
+                                                 "Tools",
+                                                 "Sports",
+                                                 "งานอดิเรก", "Hobbies & Collections", "Hobbies",
+                                                 "งานอดิเรกและของสะสม"]),
+                                            (2, ["Camera Accessories",         # Cameras & Drones > Camera Accessories (安全)
+                                                 "Accessories",                 # 別名かも
+                                                 "Photography Accessories",
+                                                 "Decoration",                 # Home & Living > Decoration
+                                                 "Tools & Home Improvement",
+                                                 "Kitchenware",
+                                                 "Bedding",
+                                                 "DIY", "DIY & Craft Supplies",
+                                                 "Art & Craft", "Arts & Crafts",
+                                                 "Hobby Supplies",
+                                                 # Gardening → brand=Oonew 強制 (run55確認)
+                                                 "Gardening", "Garden Supplies",
+                                                 ]),
+                                            (3, ["Lighting",                   # Camera Accessories > Lighting = Apr16確認済み安全
+                                                 "Others",                     # その他の安全フォールバック
+                                                 "Decorative Accents",
+                                                 "Wall Art & Decor",
+                                                 "Cookware",
+                                                 ]),
                                         ]:
                                             level_clicked = False
                                             for txt in candidates:
                                                 if level_clicked:
                                                     break
                                                 if level == 3:
-                                                    for nth in range(1, 6):
-                                                        try:
-                                                            self._page.get_by_text(txt, exact=True).nth(nth).click(timeout=2000)
-                                                            logger.info(f"  カテゴリツリー L{level}: {txt} [nth={nth}]")
+                                                    # L3 診断: スクリーンショット + 全リスト出力
+                                                    try:
+                                                        _diag_ss = f"/Users/shoichionizuka/sellersprite-lp-/3d-shopee-bot/errors/diag_L3_{int(time.time())}.png"
+                                                        self._page.screenshot(path=_diag_ss)
+                                                        logger.info(f"  [DIAG] L3スクリーンショット: {_diag_ss}")
+                                                        _all_li = self._page.evaluate("""
+                                                            () => {
+                                                                const all = Array.from(document.querySelectorAll('li'));
+                                                                return all.map(el => ({
+                                                                    txt: el.innerText?.trim()?.substring(0,60),
+                                                                    cls: el.className?.substring(0,60),
+                                                                    vis: el.offsetParent !== null
+                                                                })).filter(x => x.txt && x.vis).slice(0, 40);
+                                                            }
+                                                        """)
+                                                        logger.info(f"  [DIAG] 可視 li: {[x['txt'] for x in _all_li[:20]]}")
+                                                    except Exception as _de:
+                                                        logger.debug(f"  [DIAG] エラー: {_de}")
+                                                    # JS で "Idol Collectibles" を探してクリック（スクロールも試みる）
+                                                    try:
+                                                        _js_clicked = self._page.evaluate("""
+                                                            (searchTxt) => {
+                                                                // モーダル内の全 li を検索
+                                                                const candidates = Array.from(document.querySelectorAll('li, [role="option"]'));
+                                                                for (const el of candidates) {
+                                                                    const t = el.innerText?.trim();
+                                                                    if (t === searchTxt) {
+                                                                        el.scrollIntoView({block:'center'});
+                                                                        el.click();
+                                                                        return {ok: true, txt: t};
+                                                                    }
+                                                                }
+                                                                // 部分一致も試す
+                                                                for (const el of candidates) {
+                                                                    const t = el.innerText?.trim();
+                                                                    if (t && t.toLowerCase().includes('idol')) {
+                                                                        el.scrollIntoView({block:'center'});
+                                                                        el.click();
+                                                                        return {ok: true, txt: t, partial: true};
+                                                                    }
+                                                                }
+                                                                return {ok: false};
+                                                            }
+                                                        """, txt)
+                                                        if _js_clicked.get("ok"):
+                                                            logger.info(f"  カテゴリツリー L{level}: {txt} [JS click, partial={_js_clicked.get('partial')}]")
                                                             level_clicked = True
-                                                            break
-                                                        except Exception:
-                                                            pass
+                                                            _human_wait(0.5, 1.0)
+                                                    except Exception:
+                                                        pass
+                                                    if not level_clicked:
+                                                        for nth in range(1, 6):
+                                                            try:
+                                                                self._page.get_by_text(txt, exact=True).nth(nth).click(timeout=2000)
+                                                                logger.info(f"  カテゴリツリー L{level}: {txt} [nth={nth}]")
+                                                                level_clicked = True
+                                                                break
+                                                            except Exception:
+                                                                pass
                                                 else:
                                                     try:
                                                         self._page.get_by_text(txt, exact=True).first.click(timeout=3000)
                                                         logger.info(f"  カテゴリツリー L{level}: {txt}")
                                                         level_clicked = True
+                                                        if level == 2:
+                                                            _l2_selected_txt = txt
                                                     except Exception:
                                                         pass
                                             if not level_clicked:
@@ -1330,18 +2024,22 @@ class ShopeeBrowser:
                         """)
                         logger.info(f"  Brand JS click: {brand_click}")
 
+                        # (DIAG リスナーはカテゴリ選択直後に設定済み)
+
                         if brand_click.get("found"):
                             _human_wait(0.8, 1.2)
-                            # "No Brand" オプションを選択
-                            for opt_sel in [
-                                'li:has-text("No Brand")',
-                                '[role="option"]:has-text("No Brand")',
-                                '[class*="option"]:has-text("No Brand")',
-                                '[class*="popover"] li:first-child',
-                                '[class*="dropdown"] li:first-child',
-                            ]:
+                            # "No Brand" / "No brand" オプションを選択（Fix22: case-insensitive）
+                            _spec_nb_regex = re.compile(r'no\s*brand|ไม่มีแบรนด์', re.IGNORECASE)
+                            _spec_nb_pairs = [
+                                (self._page.locator('li').filter(has_text=_spec_nb_regex), 'li-regex'),
+                                (self._page.locator('[role="option"]').filter(has_text=_spec_nb_regex), 'role-option-regex'),
+                                (self._page.locator('[class*="option"]').filter(has_text=_spec_nb_regex), 'class-option-regex'),
+                                (self._page.locator('[class*="popover"] li:first-child'), 'popover-first'),
+                                (self._page.locator('[class*="dropdown"] li:first-child'), 'dropdown-first'),
+                            ]
+                            for opt_loc, opt_sel in _spec_nb_pairs:
                                 try:
-                                    opt = self._page.locator(opt_sel).first
+                                    opt = opt_loc.first
                                     if opt.count() and opt.is_visible():
                                         opt.click()
                                         logger.info(f"  ブランド選択: No Brand (via {opt_sel})")
@@ -1499,6 +2197,21 @@ class ShopeeBrowser:
                         """)
                         logger.info(f"  Brand確認: brand={brand_license_result.get('brand')}, license={brand_license_result.get('licenseHandled')}")
 
+                        # === DIAG: キャプチャしたレスポンス URL を出力 ===
+                        try:
+                            self._page.remove_listener('response', _diag_on_resp)
+                        except Exception:
+                            pass
+                        if _diag_responses:
+                            _seen = set()
+                            for _du in _diag_responses:
+                                if _du not in _seen:
+                                    _seen.add(_du)
+                                    logger.info(f"  [DIAG-NET] {_du[:150]}")
+                        else:
+                            logger.info("  [DIAG-NET] レスポンスなし（APIコールなし?）")
+                        # === END DIAG ===
+
                         if brand_license_result.get('licenseHandled') == 'clicked':
                             _human_wait(0.8, 1.2)
                             # Brand License ドロップダウンが開いた → 最初の選択肢を選ぶ
@@ -1526,33 +2239,15 @@ class ShopeeBrowser:
                             else:
                                 self._page.keyboard.press("Escape")
                                 logger.info("  Brand License: 選択肢なし → Escape")
-                                # ── Brand License必須判定 ──────────────────────────────
-                                # Brand が特定ブランドに強制設定され、選択肢がない場合はスキップ。
-                                # Run 36 で確認: Playwright isTrusted=true クリックでも Vue が
-                                # 強制ブランドを維持し、Shopee サーバーがライセンス不備で弾く。
-                                # Pre-publish atomic に委ねても改善しないため早期スキップに戻す。
+                                # ── Fix13: Early skip を廃止 → Pre-publish atomic に委ねる ──
+                                # 101件の過去出品成功は Pre-publish atomic（No Brand + 即時Publish）で達成。
+                                # Early skip では0%成功率になるため廃止。
+                                # カテゴリによっては Shopee サーバーが No Brand を受け入れる。
                                 _cur_brand = brand_license_result.get('brand') or ''
-                                _no_brand_vals = ('', 'unknown', 'No Brand', 'No brand',
-                                                  'ไม่มีแบรนด์', 'None')
-                                if _cur_brand not in _no_brand_vals:
-                                    # Brand が特定ブランドに強制 + ライセンス選択肢なし
-                                    # → Shopee のサーバー側ブランド規約。どうやっても出品不可。
-                                    logger.error(
-                                        f"  ❌ Brand license 必須: Brand='{_cur_brand}' "
-                                        f"→ ライセンス登録なし → スキップ"
-                                    )
-                                    update_status(
-                                        mw_id, 'error',
-                                        error_msg=f'brand_license_required:{_cur_brand[:40]}'
-                                    )
-                                    return None
-                                else:
-                                    # Brand=None/No Brand → Brand License確認UIの可能性
-                                    # Escapeして続行（サーバーバリデーションに委ねる）
-                                    logger.info(
-                                        f"  Brand License: Brand='{_cur_brand}' → 続行 "
-                                        f"（サーバー検証に委ねる）"
-                                    )
+                                logger.warning(
+                                    f"  ⚠️ Brand='{_cur_brand}' 強制（ライセンス選択肢なし）→ "
+                                    f"Pre-publish atomic に委ねる（早期スキップしない）"
+                                )
                     except Exception as e:
                         logger.debug(f"  Brand License処理エラー（続行）: {e}")
                 else:
@@ -2023,16 +2718,17 @@ class ShopeeBrowser:
                     if _bra_clicked:
                         _human_wait(0.8, 1.2)
                         _bra_done = False
-                        for _bra_sel in [
-                            'li:has-text("No Brand")',
-                            '[role="option"]:has-text("No Brand")',
-                            '[class*="option"]:has-text("No Brand")',
+                        _bra_regex = re.compile(r'no\s*brand|ไม่มีแบรนด์', re.IGNORECASE)
+                        for _bra_loc, _bra_lbl in [
+                            (self._page.locator('li').filter(has_text=_bra_regex), 'li'),
+                            (self._page.locator('[role="option"]').filter(has_text=_bra_regex), 'role-option'),
+                            (self._page.locator('[class*="option"]').filter(has_text=_bra_regex), 'class-option'),
                         ]:
                             try:
-                                _bra_opt = self._page.locator(_bra_sel).first
+                                _bra_opt = _bra_loc.first
                                 if _bra_opt.count() and _bra_opt.is_visible():
                                     _bra_opt.click()
-                                    logger.info(f"  Brand再アサーション: No Brand 再選択完了 (via {_bra_sel})")
+                                    logger.info(f"  Brand再アサーション: No Brand 再選択完了 (via {_bra_lbl})")
                                     _bra_done = True
                                     _human_wait(0.5, 0.8)
                                     break
@@ -2144,9 +2840,8 @@ class ShopeeBrowser:
                         """)
                         if price_marked:
                             price_inp = self._page.locator('[data-bot-price="true"]').first
-                            price_inp.click(click_count=3)
-                            _human_wait(0.1, 0.2)
-                            self._page.keyboard.type(str(int(price)), delay=50)
+                            # fill() は既存値をクリアしてから入力 — stale form data による蓄積バグを防ぐ
+                            price_inp.fill(str(int(price)))
                             _human_wait(0.5, 1.0)
                             self._page.evaluate("""
                                 () => {
@@ -2217,9 +2912,8 @@ class ShopeeBrowser:
                         logger.info(f"  在庫input特定: {stock_marked}")
                         if stock_marked.get("found"):
                             stock_inp = self._page.locator('[data-bot-stock="true"]').first
-                            stock_inp.click(click_count=3)
-                            _human_wait(0.1, 0.2)
-                            self._page.keyboard.type(str(stock), delay=50)
+                            # fill() は既存値をクリアしてから入力 — stale form data による蓄積バグを防ぐ
+                            stock_inp.fill(str(stock))
                             self._page.evaluate("""
                                 () => {
                                     const el = document.activeElement;
@@ -3184,8 +3878,11 @@ class ShopeeBrowser:
                 }
             """)
             logger.info(f"  [Pre-publish] Brand状態: '{_pre_brand}'")
+            # Fix21: NoBrand 強制を廃止。isSaveDisabled=true でボタンが永続 disabled になるため。
+            # Vue の auto-select ブランド (Pelican/Fico 等) をそのまま残し、通常の Save クリックを実行。
+            # Fix19 が save_product/add_product POST をインターセプトして brand_id=0 にパッチする。
             # Brand が No Brand 以外なら原子的修正（No Brand 選択 + 即時 Publish クリック）
-            if _pre_brand and _pre_brand not in ('No Brand', 'ไม่มีแบรนด์'):
+            if False and _pre_brand and _pre_brand.lower() not in ('no brand', 'ไม่มีแบรนด์'):
                 logger.warning(f"  [Pre-publish] Brand='{_pre_brand}' → 原子的 No Brand + Publish を試みる")
                 # Weight 充填保証: Brand ドロップダウンを開く *前* に実行する
                 # （タブ切替で dropdown が閉じてしまうため、必ず atomic 前に済ませる）
@@ -3232,6 +3929,11 @@ class ShopeeBrowser:
                         logger.debug(f"  [Pre-publish] Basic info タブ復帰エラー（無視）: {_bi_e}")
                 except Exception as _we_e:
                     logger.debug(f"  [Pre-publish] Weight 事前充填エラー（無視）: {_we_e}")
+                # Fix15: Pre-publish 直前にブランドAPIインターセプトを再確認・再インストール
+                # SPA ページ上での複数商品処理でインターセプトが失われる可能性に対応
+                self._reinstall_brand_intercept()
+                _human_wait(0.3, 0.5)
+
                 # Step 1: Brand EDS をクリックしてドロップダウンを開く
                 _fix_ok = self._page.evaluate("""
                     () => {
@@ -3263,23 +3965,182 @@ class ShopeeBrowser:
                     # 拒否し、v-model が commit されない。結果 button.disabled が解除されない。
                     # Playwright の locator.click() は OS-level mouse event (isTrusted=true) を
                     # 発火するため Vue が正しく commit する。
+                    # Fix22: has-text() はcase-sensitive。ShopeeのAPIが返す brand_id=0 の
+                    # display_name は "No brand"（小文字b）のため旧セレクタが不一致→誤要素クリック。
+                    # re.compile で case-insensitive マッチに変更。
                     _nb_clicked_via_pw = False
-                    for _nb_sel in [
-                        '[class*="option"]:has-text("No Brand")',
-                        'li:has-text("No Brand")',
-                        '[role="option"]:has-text("No Brand")',
-                        '[class*="option"]:has-text("ไม่มีแบรนด์")',
+                    _nb_regex = re.compile(r'no\s*brand|ไม่มีแบรนด์', re.IGNORECASE)
+                    # まずドロップダウンが実際に開いているか確認してスコープ内で検索
+                    _open_dd = None
+                    for _dd_sel in [
+                        '[class*="eds-selector__popover"]',
+                        '[class*="eds-selector__dropdown"]',
+                        '[class*="eds-dropdown__panel"]',
+                        '[role="listbox"]',
                     ]:
                         try:
-                            _nb_opt = self._page.locator(_nb_sel).first
+                            _dd = self._page.locator(_dd_sel).first
+                            if _dd.count() and _dd.is_visible(timeout=500):
+                                _open_dd = _dd
+                                break
+                        except Exception:
+                            pass
+                    _search_pairs = []
+                    if _open_dd:
+                        _search_pairs.append((
+                            _open_dd.locator('[class*="option"], li, [role="option"]')
+                            .filter(has_text=_nb_regex), 'dropdown-scoped'))
+                    _search_pairs.extend([
+                        (self._page.locator('[class*="option"]').filter(has_text=_nb_regex),
+                         'page-option'),
+                        (self._page.locator('[role="option"]').filter(has_text=_nb_regex),
+                         'page-role'),
+                        (self._page.locator('li').filter(has_text=_nb_regex), 'page-li'),
+                    ])
+                    for _nb_loc, _nb_label in _search_pairs:
+                        try:
+                            _nb_opt = _nb_loc.first
                             if _nb_opt.count() and _nb_opt.is_visible(timeout=2000):
                                 _nb_opt.scroll_into_view_if_needed(timeout=1500)
                                 _nb_opt.click(timeout=3000)
-                                logger.info(f"  [Pre-publish/Fix6] No Brand Playwright click: {_nb_sel}")
+                                logger.info(f"  [Pre-publish/Fix6] No Brand Playwright click: {_nb_label}")
                                 _nb_clicked_via_pw = True
                                 break
                         except Exception as _nb_e:
-                            logger.debug(f"  [Pre-publish/Fix6] No Brand click fail {_nb_sel}: {_nb_e}")
+                            logger.debug(f"  [Pre-publish/Fix6] No Brand click fail {_nb_label}: {_nb_e}")
+
+                    # ── Fix20: Vue 3 内部状態に brand_id=0 を直接注入 ──────────────────────
+                    # 根本原因: Vue の watcher が Spec 変更後に brand を名前付きブランドへ
+                    # 強制復元するため isSaveDisabled が常に true → ボタンが disabled のまま。
+                    # Fix16 の force-click は DOM 上の disabled 属性を除去するが、
+                    # Vue の click handler 内の isSaveDisabled ガードを突破できず
+                    # ネットワークリクエストが発火しない（Fix19 が一度も発火しない原因）。
+                    # → Vue の setupState / data に直接 brand_id=0 を書き込み、
+                    #   isSaveDisabled を false に変えてボタンを「本物 enabled」にする。
+                    if _nb_clicked_via_pw:
+                        try:
+                            _f20 = self._page.evaluate(r"""
+                                (() => {
+                                    const result = {ok: false, steps: [], setCount: 0};
+                                    const brandRe = /brand/i;
+
+                                    // Step1: brand 関連 DOM 要素を探す
+                                    let brandEl = null;
+                                    const _candidates = [
+                                        () => document.querySelector('[class*="brand"] input'),
+                                        () => document.querySelector('[class*="brand"] [class*="selector"]'),
+                                        () => {
+                                            const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+                                            let node;
+                                            while ((node = walker.nextNode())) {
+                                                if (/^Brand\s*[*]?\s*$/.test(node.textContent.trim())) {
+                                                    let p = node.parentElement;
+                                                    for (let i = 0; i < 6 && p; i++, p = p.parentElement) {
+                                                        const el = p.querySelector('input, [class*="selector"]');
+                                                        if (el) return el;
+                                                    }
+                                                }
+                                            }
+                                            return null;
+                                        },
+                                    ];
+                                    for (const fn of _candidates) {
+                                        try { brandEl = fn(); if (brandEl) break; } catch(e) {}
+                                    }
+                                    result.steps.push('brandEl:' + (brandEl
+                                        ? (brandEl.tagName + '.' + (brandEl.className || '').substring(0, 40))
+                                        : 'null'));
+
+                                    // Step2: DOM要素から Vue コンポーネントを取得（祖先方向）
+                                    let vueComp = null;
+                                    let el = brandEl || document.body;
+                                    while (el) {
+                                        if (el.__vueParentComponent) { vueComp = el.__vueParentComponent; break; }
+                                        el = el.parentElement;
+                                    }
+                                    // DOM で見つからない場合 app root から
+                                    if (!vueComp) {
+                                        const root = document.getElementById('app') || document.querySelector('[data-v-app]');
+                                        if (root && root.__vue_app__ && root.__vue_app__._instance) {
+                                            vueComp = root.__vue_app__._instance;
+                                        }
+                                    }
+                                    if (!vueComp) { result.steps.push('no_vue_comp'); return result; }
+                                    result.steps.push('vueComp:' + (vueComp.type?.name || vueComp.type?.__name || 'anon'));
+
+                                    // Step3: brand プロパティを持つコンポーネントを祖先方向に探索
+                                    // Fix22: boolean-only brand key（例: hasSelectedBrandFromRcmdBox）は
+                                    // スキップして数値/オブジェクト/文字列を持つ上位コンポーネントを探す
+                                    let brandComp = null;
+                                    let brandCompBoolFallback = null;
+                                    let curr = vueComp;
+                                    for (let depth = 0; depth < 40 && curr; depth++, curr = curr.parent) {
+                                        const ss = curr.setupState || {};
+                                        const d  = curr.data || {};
+                                        const bk = [
+                                            ...Object.keys(ss).filter(k => brandRe.test(k)),
+                                            ...Object.keys(d).filter(k => brandRe.test(k)),
+                                        ];
+                                        if (bk.length === 0) continue;
+                                        const hasMeaningful = bk.some(k => {
+                                            const v = (k in ss) ? ss[k] : d[k];
+                                            return typeof v !== 'boolean';
+                                        });
+                                        if (hasMeaningful) { brandComp = curr; break; }
+                                        if (!brandCompBoolFallback) brandCompBoolFallback = curr;
+                                    }
+                                    if (!brandComp) brandComp = brandCompBoolFallback;
+                                    if (!brandComp) { result.steps.push('no_brand_comp'); return result; }
+
+                                    const ss  = brandComp.setupState || {};
+                                    const dat = brandComp.data || {};
+                                    const brandKeys = [
+                                        ...Object.keys(ss).filter(k => brandRe.test(k)),
+                                        ...Object.keys(dat).filter(k => brandRe.test(k)),
+                                    ];
+                                    result.steps.push('brandComp:' + (brandComp.type?.name || brandComp.type?.__name || 'anon')
+                                        + ' keys=[' + brandKeys.join(',') + ']');
+
+                                    // Step4: brand_id=0 / NoBrand を各プロパティに書き込む
+                                    for (const k of brandKeys) {
+                                        try {
+                                            const src = (k in ss) ? ss : dat;
+                                            const v = src[k];
+                                            if (typeof v === 'number') {
+                                                src[k] = 0; result.setCount++;
+                                            } else if (v && typeof v === 'object') {
+                                                if ('brand_id' in v)  { v.brand_id = 0;  result.setCount++; }
+                                                if ('brandId'  in v)  { v.brandId  = 0;  result.setCount++; }
+                                                if ('name'     in v)  { v.name = 'NoBrand'; }
+                                                if ('display_name' in v) { v.display_name = 'No brand'; }
+                                                if ('id'       in v && /brand/i.test(k)) { v.id = 0; result.setCount++; }
+                                            } else if (typeof v === 'string' && /name$/i.test(k)) {
+                                                src[k] = 'NoBrand'; result.setCount++;
+                                            }
+                                        } catch(e) { result.steps.push('err:' + k + ':' + e.message); }
+                                    }
+
+                                    result.ok = result.setCount > 0;
+                                    return result;
+                                })()
+                            """)
+                            logger.info(f"  [Pre-publish/Fix20] Vue state injection: {_f20}")
+                        except Exception as _f20e:
+                            logger.warning(f"  [Pre-publish/Fix20] Vue state injection 失敗: {_f20e}")
+
+                        # Fix20: POST リクエストを観察してボタンがネットワークを発火するか確認
+                        _fix20_posts_captured = []
+                        def _fix20_post_logger(req):
+                            if req.method in ('POST', 'PUT') and 'shopee.co.th' in req.url:
+                                body = req.post_data or ''
+                                logger.info(f"[Fix20-POST] {req.method} {req.url[:120]} body={body[:120]}")
+                                _fix20_posts_captured.append(req.url)
+                        try:
+                            self._page.on('request', _fix20_post_logger)
+                        except Exception:
+                            pass
+                        # Vue reactivity flush を待つ
+                        self._page.wait_for_timeout(600)
 
                     # === Publish ボタン enable 待ち（Python side ポーリング） ===
                     # Playwright click が Vue に commit を走らせるので、validation が
@@ -3292,9 +4153,11 @@ class ShopeeBrowser:
                             'button:has-text("บันทึกและเผยแพร่"), '
                             'button:has-text("เผยแพร่")'
                         )
+                        # Fix13: 高速ポーリング（50ms × 60 = 3s）で Vue ブランド復元前の
+                        # 瞬間的 enabled 状態を捕捉する。また enabled 未検出時は force click を試みる。
                         _btn_enabled = False
                         _last_disabled_by = 'init'
-                        for _poll_i in range(25):
+                        for _poll_i in range(120):  # 50ms × 120 = 6 seconds（Fix20 Vue 反映待ち延長）
                             try:
                                 _diag = self._page.evaluate(f"""
                                     () => {{
@@ -3325,7 +4188,7 @@ class ShopeeBrowser:
                                     break
                             except Exception:
                                 pass
-                            self._page.wait_for_timeout(200)
+                            self._page.wait_for_timeout(50)
                         if _btn_enabled:
                             # Playwright で Publish を real click
                             try:
@@ -3335,8 +4198,39 @@ class ShopeeBrowser:
                                 logger.warning(f"  [Pre-publish/Fix6] Publish click 失敗: {_pc_e}")
                                 _atomic = {'noBrand': True, 'publish': False, 'reason': 'pw_click_fail'}
                         else:
-                            _atomic = {'noBrand': True, 'publish': False, 'reason': 'button_disabled',
-                                       'disabled_by': _last_disabled_by}
+                            # Fix16: button が disabled のまま → JS で disabled 除去 → Playwright force=True click
+                            # isTrusted=false の JS click と違い、Playwright force click は OS-level event で isTrusted=true
+                            logger.warning(f"  [Pre-publish/Fix16] button_disabled({_last_disabled_by}) → disabled除去 + Playwright force click")
+                            try:
+                                # Step A: JS で disabled 属性/プロパティを削除
+                                _rm_ok = self._page.evaluate("""
+                                    () => {
+                                        const btns = [...document.querySelectorAll('button')].filter(b => b.offsetParent !== null);
+                                        for (const b of btns) {
+                                            const t = b.textContent.trim();
+                                            if (t.includes('Save and Publish') || t.includes('บันทึกและเผยแพร่') || t.includes('เผยแพร่')) {
+                                                b.removeAttribute('disabled');
+                                                b.disabled = false;
+                                                // data 属性でマーキング（Playwright locator用）
+                                                b.setAttribute('data-fix16-pub', '1');
+                                                return true;
+                                            }
+                                        }
+                                        return false;
+                                    }
+                                """)
+                                if _rm_ok:
+                                    # Step B: Playwright real click（force=True で disabled 再チェック回避）
+                                    _pub_btn = self._page.locator('[data-fix16-pub="1"]').first
+                                    _pub_btn.click(force=True, timeout=3000)
+                                    _atomic = {'noBrand': True, 'publish': True, 'via': 'Fix16-force-pw-click'}
+                                    logger.info("  [Pre-publish/Fix16] disabled除去 + Playwright force click 送信")
+                                else:
+                                    _atomic = {'noBrand': True, 'publish': False, 'reason': 'button_not_found'}
+                            except Exception as _fc_e:
+                                logger.warning(f"  [Pre-publish/Fix16] force click 失敗: {_fc_e}")
+                                _atomic = {'noBrand': True, 'publish': False, 'reason': 'button_disabled',
+                                           'disabled_by': _last_disabled_by}
                             # Fix 7: button_disabled 時、どのフィールドが validation 失敗か全dump
                             try:
                                 _fdiag = self._page.evaluate("""
@@ -3388,6 +4282,14 @@ class ShopeeBrowser:
                                 logger.debug(f"  [Pre-publish/Fix7] diagnostic fail: {_fd_e}")
                     else:
                         _atomic = {'noBrand': False, 'publish': False, 'reason': 'no_option'}
+                    # Fix20: POST キャプチャ結果を記録
+                    try:
+                        if _fix20_posts_captured:
+                            logger.info(f"  [Fix20-POST-SUMMARY] {len(_fix20_posts_captured)} POST(s) captured: {_fix20_posts_captured[:5]}")
+                        else:
+                            logger.warning("  [Fix20-POST-SUMMARY] ネットワークリクエスト 0 件 → Vue click handler がブロック中（isSaveDisabled=true）")
+                    except NameError:
+                        pass
                     logger.info(f"  [Pre-publish] 原子的操作結果: {_atomic}")
                     if _atomic and _atomic.get('publish'):
                         logger.info("  [Pre-publish] No Brand + Save and Publish 原子的実行完了 ✅")
