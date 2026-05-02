@@ -1493,26 +1493,72 @@ class ShopeeBrowser:
                 title_raw = title_raw + suffix
             title = title_raw[:120]
 
-            # 商品名入力
+            # 商品名入力 (Fix26: selector を大幅拡張 + JS fallback)
             title_sel = (
                 'input[placeholder*="Brand Name"], '
                 'input[placeholder*="Key Features"], '
                 'input[placeholder*="Product Name"], '
+                'input[placeholder*="product name"], '
                 'input[placeholder*="ชื่อสินค้า"], '
+                'input[placeholder*="กรอกชื่อ"], '
+                'input[placeholder*="Enter product"], '
+                'input[placeholder*="Enter Product"], '
+                'input[placeholder*="Tên sản phẩm"], '
                 'label:has-text("Product Name") ~ div input, '
-                'label:has-text("Product Name") + div input'
+                'label:has-text("Product Name") + div input, '
+                'label:has-text("ชื่อสินค้า") ~ div input, '
+                'label:has-text("ชื่อสินค้า") + div input'
             )
+            title_input = None
             try:
                 self._page.wait_for_selector(title_sel, timeout=30000)
                 _human_wait(0.5, 1.0)
                 title_input = self._page.locator(title_sel).first
+                logger.info("  [Fix26] 商品名 input 検出（既定selector）")
+            except PlaywrightTimeout:
+                # Fix26 fallback: 幅広い input を診断ログとともに再探索
+                logger.warning("  [Fix26] 既定selectors タイムアウト → 診断 + 再探索")
+                self._screenshot(f"debug_{mw_id}_title_timeout")
+                try:
+                    _diag = self._page.evaluate("""
+                        () => {
+                            const all = [...document.querySelectorAll('input')];
+                            return all.map(el => ({
+                                ph: el.placeholder || '',
+                                type: el.type || '',
+                                w: Math.round(el.getBoundingClientRect().width),
+                                ml: el.maxLength,
+                                vis: el.offsetParent !== null,
+                            }));
+                        }
+                    """)
+                    logger.info(f"  [Fix26] 全input診断: {_diag[:10]}")
+                except Exception:
+                    pass
+                # 幅200px以上・maxLength≥50 の visible input を探す
+                _f26_sel = (
+                    'input[maxlength]:not([maxlength="1"]):not([maxlength="2"]):not([maxlength="10"])'
+                )
+                try:
+                    self._page.wait_for_selector(_f26_sel, timeout=15000)
+                    _candidates = self._page.locator(_f26_sel).all()
+                    _visible = [c for c in _candidates if c.is_visible()]
+                    if _visible:
+                        title_input = _visible[0]
+                        logger.info(f"  [Fix26] maxlength fallback で input 取得 ({len(_visible)}件候補)")
+                    else:
+                        raise Exception("visible input なし")
+                except Exception as _f26_e:
+                    inputs = self._page.locator("input:visible").all()
+                    logger.error(f"[Fix26] 商品名入力欄が見つかりません（visible input数: {len(inputs)}）: {_f26_e}")
+                    return None
+            try:
                 title_input.click()
                 _human_wait(0.3, 0.5)
                 title_input.fill(title)
                 logger.info(f"  商品名入力完了: {title[:30]}")
-            except PlaywrightTimeout:
-                inputs = self._page.locator("input:visible").all()
-                logger.error(f"商品名入力欄が見つかりません（visible input数: {len(inputs)}）")
+            except Exception as _ti_e:
+                logger.error(f"商品名入力エラー: {_ti_e}")
                 self._screenshot(f"error_{mw_id}_title")
                 return None
 
