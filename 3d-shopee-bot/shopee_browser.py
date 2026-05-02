@@ -1422,14 +1422,72 @@ class ShopeeBrowser:
 
             # /product/new がログインにリダイレクトされた場合: リロード前に再ログイン
             if "login" in self._page.url:
-                logger.info("セッション切れ (/product/new) — 再ログイン")
-                if not self.login():
+                _f27_actual_url = self._page.url
+                logger.warning(f"  [Fix27] セッション切れ検出 URL: {_f27_actual_url}")
+                # Fix27: product/list/all は通るが product/new は失敗する場合
+                # login() の _is_logged_in ショートカット（product/list/all 確認）では
+                # product/new に必要なセッション鮮度が回復しない → 強制フルログイン
+                logger.info("  [Fix27] 強制フルログイン（セッションチェックバイパス）")
+                try:
+                    self._page.goto(
+                        f"{SHOPEE_SELLER_URL}/account/login",
+                        timeout=30000,
+                        wait_until="domcontentloaded",
+                    )
+                    _human_wait(2, 3)
+                    try:
+                        self._page.wait_for_load_state("networkidle", timeout=15000)
+                    except Exception:
+                        pass
+                    _f27_login_url = self._page.url
+                    if "login" not in _f27_login_url:
+                        # account/login へ行ったらリダイレクトされた → セッション有効
+                        logger.info(f"  [Fix27] account/login → リダイレクト先: {_f27_login_url}")
+                    else:
+                        # ログインフォームが表示 → 資格情報を入力してログイン実行
+                        logger.info("  [Fix27] ログインフォーム表示 → 資格情報入力開始")
+                        self._dismiss_modals()
+                        _human_wait(1, 2)
+                        if self._detect_captcha():
+                            logger.error("  [Fix27] ❌ CAPTCHAが表示されています")
+                            _notify_captcha()
+                            self._session_error_count += 1
+                            return None
+                        input_sel = 'input[name="loginKey"], input[type="text"]'
+                        self._page.wait_for_selector(input_sel, timeout=10000)
+                        _human_wait(0.5, 1.0)
+                        self._page.locator(input_sel).first.fill(SHOPEE_EMAIL)
+                        _human_wait(0.5, 1.0)
+                        self._page.locator('input[type="password"]').first.fill(SHOPEE_PASSWORD)
+                        _human_wait(0.8, 1.5)
+                        login_btn_sel = (
+                            'button:has-text("LOG IN"), '
+                            'button:has-text("Log In"), '
+                            'button:has-text("เข้าสู่ระบบ"), '
+                            'button[type="submit"]'
+                        )
+                        self._page.wait_for_selector(login_btn_sel, timeout=8000)
+                        _human_wait(0.5, 1.0)
+                        self._page.locator(login_btn_sel).first.click()
+                        logger.info("  [Fix27] LOG IN ボタンクリック")
+                        _human_wait(5, 8)
+                        if self._detect_captcha():
+                            logger.error("  [Fix27] ❌ ログイン後CAPTCHA")
+                            _notify_captcha()
+                            self._session_error_count += 1
+                            return None
+                        self._save_cookies()
+                        logger.info(f"  [Fix27] ログイン後URL: {self._page.url}")
+                except Exception as _f27_e:
+                    logger.error(f"  [Fix27] 強制ログイン例外: {_f27_e}")
                     self._session_error_count += 1
                     if self._session_error_count >= MAX_CONSECUTIVE_SESSION_ERRORS:
                         raise LoginLoopError(
-                            f"ログイン失敗が{self._session_error_count}回連続 — 自動中断"
+                            f"[Fix27] ログイン失敗が{self._session_error_count}回連続 — 自動中断"
                         )
                     return None
+
+                # 強制ログイン後 product/new へ
                 self._page.goto(
                     f"{SHOPEE_SELLER_URL}/portal/product/new",
                     timeout=60000,
@@ -1443,16 +1501,18 @@ class ShopeeBrowser:
                 if "login" in self._page.url:
                     self._session_error_count += 1
                     logger.error(
-                        f"❌ 再ログイン後も /product/new でセッション切れ "
+                        f"  [Fix27] ❌ 強制ログイン後も /product/new でセッション切れ "
                         f"({self._session_error_count}/{MAX_CONSECUTIVE_SESSION_ERRORS})"
+                        f" URL: {self._page.url}"
                     )
                     if self._session_error_count >= MAX_CONSECUTIVE_SESSION_ERRORS:
                         raise LoginLoopError(
-                            f"ログイン→セッション切れのループを{self._session_error_count}回検出 — 自動中断"
+                            f"[Fix27] ログイン→セッション切れのループを{self._session_error_count}回検出 — 自動中断"
                         )
                     return None
                 # ログイン成功・セッション回復
                 self._session_error_count = 0
+                logger.info("  [Fix27] セッション回復 — product/new 到達成功")
 
             # ページをリロードしてドラフト復元をクリア
             self._page.reload(wait_until="domcontentloaded", timeout=60000)
