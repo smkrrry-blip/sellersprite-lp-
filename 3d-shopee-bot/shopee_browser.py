@@ -1421,6 +1421,7 @@ class ShopeeBrowser:
             self._setup_brand_api_intercept()
 
             # /product/new がログインにリダイレクトされた場合: リロード前に再ログイン
+            _f27_ran = False  # Fix28: Fix27実行フラグ
             if "login" in self._page.url:
                 _f27_actual_url = self._page.url
                 logger.warning(f"  [Fix27] セッション切れ検出 URL: {_f27_actual_url}")
@@ -1513,14 +1514,31 @@ class ShopeeBrowser:
                 # ログイン成功・セッション回復
                 self._session_error_count = 0
                 logger.info("  [Fix27] セッション回復 — product/new 到達成功")
+                _f27_ran = True  # Fix28: リロードスキップフラグ
 
-            # ページをリロードしてドラフト復元をクリア
-            self._page.reload(wait_until="domcontentloaded", timeout=60000)
-            try:
-                self._page.wait_for_load_state("networkidle", timeout=20000)
-            except Exception:
-                pass
-            _human_wait(3, 5)
+            # Fix28: page が閉じられていたら context から再取得
+            if self._page.is_closed():
+                logger.warning("  [Fix28] page が閉じられた → context から再取得")
+                _f28_pages = [p for p in self._context.pages if not p.is_closed()]
+                if _f28_pages:
+                    self._page = _f28_pages[-1]
+                    logger.info(f"  [Fix28] page 復元: {self._page.url}")
+                else:
+                    logger.error("  [Fix28] ❌ context に利用可能な page なし")
+                    return None
+
+            # Fix28: Fix27直後はgoto済み(fresh)なのでリロード不要
+            if _f27_ran:
+                logger.info("  [Fix28] Fix27直後 — reload スキップ（product/new fresh済み）")
+                _human_wait(1, 2)
+            else:
+                # ページをリロードしてドラフト復元をクリア
+                self._page.reload(wait_until="domcontentloaded", timeout=60000)
+                try:
+                    self._page.wait_for_load_state("networkidle", timeout=20000)
+                except Exception:
+                    pass
+                _human_wait(3, 5)
 
             # Fix17: リロード後に残存SWをunregister（init_scriptでブロック済みだが belt-and-suspenders）
             self._unregister_service_workers()
