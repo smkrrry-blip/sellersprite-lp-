@@ -1471,7 +1471,21 @@ class ShopeeBrowser:
                         _human_wait(0.5, 1.0)
                         self._page.locator(login_btn_sel).first.click()
                         logger.info("  [Fix27] LOG IN ボタンクリック")
-                        _human_wait(5, 8)
+                        # Fix29: ログイン後URLが login/404 以外になるまで待機（最大45秒）
+                        import time as _time
+                        _f29_deadline = _time.time() + 45
+                        _f29_last_url = self._page.url
+                        while _time.time() < _f29_deadline:
+                            _human_wait(2, 3)
+                            _f29_cur = self._page.url
+                            if "login" not in _f29_cur and "/404" not in _f29_cur:
+                                logger.info(f"  [Fix29] ログイン完了URL: {_f29_cur}")
+                                break
+                            if _f29_cur != _f29_last_url:
+                                logger.info(f"  [Fix29] URL変化中: {_f29_cur}")
+                                _f29_last_url = _f29_cur
+                        else:
+                            logger.warning(f"  [Fix29] 45秒待っても login/404 のまま: {self._page.url} — 続行")
                         if self._detect_captcha():
                             logger.error("  [Fix27] ❌ ログイン後CAPTCHA")
                             _notify_captcha()
@@ -1530,7 +1544,30 @@ class ShopeeBrowser:
             # Fix28: Fix27直後はgoto済み(fresh)なのでリロード不要
             if _f27_ran:
                 logger.info("  [Fix28] Fix27直後 — reload スキップ（product/new fresh済み）")
-                _human_wait(1, 2)
+                # Fix29: page close イベントを記録
+                def _on_page_close():
+                    logger.warning("  [Fix29] ⚠️ page close イベント検出")
+                self._page.on("close", _on_page_close)
+                _human_wait(5, 8)  # Fix29: pageが安定するまで長めに待つ
+                # Fix29: page安定確認（まだ product/new にいるか）
+                if self._page.is_closed():
+                    logger.warning("  [Fix29] page が wait 中に閉じた → context再取得")
+                    _f29_pages = [p for p in self._context.pages if not p.is_closed()]
+                    if _f29_pages:
+                        self._page = _f29_pages[-1]
+                        logger.info(f"  [Fix29] page復元: {self._page.url}")
+                    else:
+                        logger.error("  [Fix29] ❌ 利用可能な page なし")
+                        return None
+                elif "login" in self._page.url or "/404" in self._page.url:
+                    logger.warning(f"  [Fix29] wait後URLが不正: {self._page.url} — product/newへ再移動")
+                    self._page.goto(
+                        f"{SHOPEE_SELLER_URL}/portal/product/new",
+                        timeout=60000, wait_until="domcontentloaded",
+                    )
+                    _human_wait(3, 5)
+                else:
+                    logger.info(f"  [Fix29] page 安定確認: {self._page.url}")
             else:
                 # ページをリロードしてドラフト復元をクリア
                 self._page.reload(wait_until="domcontentloaded", timeout=60000)
