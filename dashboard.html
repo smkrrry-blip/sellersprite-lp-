@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="robots" content="noindex,nofollow">
+<title>LP ダッシュボード | セラースプライト</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --orange:#FB8C1E;
+  --orange-light:#fff5eb;
+  --orange-dark:#e07010;
+  --bg:#f7f8fa;
+  --surface:#fff;
+  --border:#e8eaed;
+  --text:#1a1a1a;
+  --muted:#6b7280;
+  --success:#27ae60;
+  --danger:#e74c3c;
+  --info:#3498db;
+}
+body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sans-serif;background:var(--bg);color:var(--text);font-size:14px;}
+
+/* ===== HEADER ===== */
+.header{background:var(--surface);border-bottom:1px solid var(--border);padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:56px;position:sticky;top:0;z-index:100;box-shadow:0 1px 4px rgba(0,0,0,0.06);}
+.header-logo{display:flex;align-items:center;gap:10px;font-weight:800;font-size:15px;color:var(--text);}
+.header-logo span{background:var(--orange);color:#fff;padding:3px 10px;border-radius:4px;font-size:12px;}
+.header-actions{display:flex;align-items:center;gap:12px;}
+.btn{display:inline-flex;align-items:center;gap:6px;padding:7px 16px;border-radius:6px;font-size:13px;font-weight:600;border:none;cursor:pointer;transition:all 0.15s;}
+.btn-primary{background:var(--orange);color:#fff;}
+.btn-primary:hover{background:var(--orange-dark);}
+.btn-outline{background:transparent;color:var(--text);border:1px solid var(--border);}
+.btn-outline:hover{background:var(--bg);}
+.btn-sm{padding:5px 12px;font-size:12px;}
+
+/* ===== SETUP SCREEN ===== */
+#setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fff8f2,#fffcf9);}
+.setup-card{background:var(--surface);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.1);padding:48px 40px;width:100%;max-width:480px;}
+.setup-logo{text-align:center;margin-bottom:32px;}
+.setup-logo h1{font-size:20px;font-weight:800;margin-top:12px;}
+.setup-logo p{font-size:13px;color:var(--muted);margin-top:6px;}
+.form-group{margin-bottom:18px;}
+.form-label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
+.form-input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none;transition:border-color 0.15s;}
+.form-input:focus{border-color:var(--orange);}
+.form-hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5;}
+.form-hint a{color:var(--orange);text-decoration:none;}
+.setup-divider{border:none;border-top:1px solid var(--border);margin:24px 0;}
+.setup-btn{width:100%;padding:14px;font-size:15px;border-radius:8px;}
+.step-badge{display:inline-block;background:var(--orange-light);color:var(--orange);font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-bottom:8px;}
+
+/* ===== MAIN DASHBOARD ===== */
+#dashboard{display:none;}
+.main{padding:24px;}
+.page-title{font-size:20px;font-weight:800;margin-bottom:4px;}
+.page-subtitle{font-size:13px;color:var(--muted);margin-bottom:24px;}
+
+/* ===== SUMMARY CARDS ===== */
+.cards{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,1fr);}}
+.card{background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border);}
+.card-label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:0.5px;margin-bottom:8px;}
+.card-value{font-size:28px;font-weight:800;line-height:1;}
+.card-change{font-size:12px;color:var(--muted);margin-top:6px;}
+.card-change.up{color:var(--success);}
+.card-change.down{color:var(--danger);}
+.card-icon{float:right;font-size:24px;opacity:0.2;}
+
+/* ===== CHART SECTION ===== */
+.charts{display:grid;grid-template-columns:2fr 1fr;gap:16px;margin-bottom:24px;}
+@media(max-width:1100px){.charts{grid-template-columns:1fr;}}
+.chart-card{background:var(--surface);border-radius:12px;padding:20px;border:1px solid var(--border);}
+.chart-title{font-size:14px;font-weight:700;margin-bottom:16px;}
+.chart-wrap{position:relative;height:220px;}
+
+/* ===== FILTERS ===== */
+.filters{display:flex;align-items:center;gap:12px;margin-bottom:16px;flex-wrap:wrap;}
+.search-wrap{position:relative;flex:1;min-width:200px;}
+.search-wrap input{width:100%;padding:9px 14px 9px 36px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;}
+.search-wrap input:focus{border-color:var(--orange);}
+.search-icon{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);}
+.select{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;background:var(--surface);outline:none;cursor:pointer;}
+.select:focus{border-color:var(--orange);}
+.date-range{display:flex;gap:8px;align-items:center;}
+.date-range input{padding:9px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;outline:none;}
+.date-range input:focus{border-color:var(--orange);}
+
+/* ===== TABLE ===== */
+.table-card{background:var(--surface);border-radius:12px;border:1px solid var(--border);overflow:hidden;}
+.table-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.table-header h3{font-size:14px;font-weight:700;}
+.table-wrap{overflow-x:auto;}
+table{width:100%;border-collapse:collapse;}
+thead th{padding:11px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;background:#fafafa;border-bottom:1px solid var(--border);cursor:pointer;white-space:nowrap;user-select:none;}
+thead th:hover{color:var(--orange);}
+thead th.sorted{color:var(--orange);}
+thead th .sort-arrow{margin-left:4px;opacity:0.5;}
+thead th.sorted .sort-arrow{opacity:1;}
+tbody tr{border-bottom:1px solid var(--border);transition:background 0.1s;}
+tbody tr:hover{background:#fafafa;}
+tbody tr:last-child{border-bottom:none;}
+td{padding:12px 16px;font-size:13px;vertical-align:middle;}
+td.url-cell{max-width:280px;}
+.url-link{color:var(--info);text-decoration:none;font-family:monospace;font-size:12px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;display:block;max-width:260px;}
+.url-link:hover{text-decoration:underline;}
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.badge-main{background:#e8f5e9;color:#2e7d32;}
+.badge-sub{background:#e3f2fd;color:#1565c0;}
+.meter{height:6px;border-radius:3px;background:#eee;overflow:hidden;min-width:60px;}
+.meter-fill{height:100%;border-radius:3px;background:var(--orange);transition:width 0.3s;}
+.meter-fill.green{background:var(--success);}
+.meter-fill.blue{background:var(--info);}
+.num{font-weight:600;font-variant-numeric:tabular-nums;}
+.num.good{color:var(--success);}
+.num.warn{color:#f39c12;}
+.num.bad{color:var(--danger);}
+.pagination{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-top:1px solid var(--border);}
+.page-info{font-size:12px;color:var(--muted);}
+.page-btns{display:flex;gap:6px;}
+.page-btn{padding:5px 11px;border:1px solid var(--border);border-radius:6px;background:var(--surface);font-size:12px;cursor:pointer;}
+.page-btn:hover{background:var(--bg);}
+.page-btn.active{background:var(--orange);color:#fff;border-color:var(--orange);}
+
+/* ===== LOADING / STATES ===== */
+.loading-wrap{text-align:center;padding:60px 20px;}
+.spinner{width:36px;height:36px;border:3px solid var(--border);border-top-color:var(--orange);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 16px;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state .icon{font-size:48px;margin-bottom:12px;}
+.toast{position:fixed;bottom:24px;right:24px;background:#333;color:#fff;padding:12px 20px;border-radius:8px;font-size:13px;z-index:9999;opacity:0;transform:translateY(10px);transition:all 0.3s;pointer-events:none;}
+.toast.show{opacity:1;transform:translateY(0);}
+.toast.success{background:var(--success);}
+.toast.error{background:var(--danger);}
+</style>
+</head>
+<body>
+
+<!-- ===== SETUP SCREEN ===== -->
+<div id="setup-screen">
+  <div class="setup-card">
+    <div class="setup-logo">
+      <div style="font-size:32px;">📊</div>
+      <h1>LP ダッシュボード</h1>
+      <p>セラースプライト | PV · CTR · CVR 一括計測</p>
+    </div>
+
+    <div class="step-badge">STEP 1 — 設定</div>
+    <div class="form-group" style="margin-top:8px;">
+      <label class="form-label">Google OAuth クライアントID</label>
+      <input class="form-input" id="cfg-oauth" type="text" placeholder="XXXXXXXXXX.apps.googleusercontent.com">
+      <p class="form-hint">
+        <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> →
+        「認証情報を作成」→「OAuthクライアントID」→「ウェブアプリ」<br>
+        承認済みオリジン: <code>https://sellersprite.blog</code>
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">GA4 プロパティID（数字のみ）</label>
+      <input class="form-input" id="cfg-ga4" type="text" placeholder="例: 123456789">
+      <p class="form-hint">
+        GA4 管理 → プロパティ設定 → 「プロパティID」（G-XXXXではなく数字）
+      </p>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">Search Console サイト URL</label>
+      <input class="form-input" id="cfg-gsc" type="text" value="https://sellersprite.blog/">
+    </div>
+
+    <hr class="setup-divider">
+
+    <div class="step-badge">STEP 2 — Googleログイン</div>
+    <p style="font-size:12px;color:var(--muted);margin:8px 0 16px;">GA4・Search Consoleの閲覧権限があるGoogleアカウントでログインしてください。</p>
+
+    <button class="btn btn-primary setup-btn" onclick="startSetup()">
+      設定を保存してGoogleログイン →
+    </button>
+
+    <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:14px;">
+      設定はブラウザのlocalStorageに保存されます。APIキーは外部に送信されません。
+    </p>
+  </div>
+</div>
+
+<!-- ===== MAIN DASHBOARD ===== -->
+<div id="dashboard">
+  <div class="header">
+    <div class="header-logo">
+      📊 <span>LP</span> ダッシュボード
+    </div>
+    <div class="header-actions">
+      <button class="btn btn-outline btn-sm" onclick="refreshData()">🔄 更新</button>
+      <button class="btn btn-outline btn-sm" onclick="exportCsv()">⬇ CSV</button>
+      <button class="btn btn-outline btn-sm" onclick="openSetup()">⚙ 設定</button>
+      <button class="btn btn-outline btn-sm" id="signout-btn" onclick="signOut()" style="display:none;">ログアウト</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div>
+      <div class="page-title">パフォーマンス概要</div>
+      <div class="page-subtitle" id="dash-subtitle">読み込み中...</div>
+    </div>
+
+    <!-- Summary Cards -->
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">👁</div>
+        <div class="card-label">総ページビュー</div>
+        <div class="card-value" id="card-pv">—</div>
+        <div class="card-change" id="card-pv-ch"></div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔍</div>
+        <div class="card-label">総インプレッション</div>
+        <div class="card-value" id="card-imp">—</div>
+        <div class="card-change" id="card-imp-ch"></div>
+      </div>
+      <div class="card">
+        <div class="card-icon">🖱</div>
+        <div class="card-label">平均CTR</div>
+        <div class="card-value" id="card-ctr">—</div>
+        <div class="card-change" id="card-ctr-ch"></div>
+      </div>
+      <div class="card">
+        <div class="card-icon">📋</div>
+        <div class="card-label">コード取得率 (CVR)</div>
+        <div class="card-value" id="card-cvr">—</div>
+        <div class="card-change" id="card-cvr-ch"></div>
+      </div>
+    </div>
+
+    <!-- Charts -->
+    <div class="charts">
+      <div class="chart-card">
+        <div class="chart-title">📈 上位ページ PV（直近28日）</div>
+        <div class="chart-wrap"><canvas id="chart-pv"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-title">🎯 CVR 分布</div>
+        <div class="chart-wrap"><canvas id="chart-cvr"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-card">
+      <div class="table-header">
+        <h3 id="table-count">全ページ — 読み込み中</h3>
+        <div class="filters">
+          <div class="search-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="search-input" placeholder="URLで絞り込み..." oninput="renderTable()">
+          </div>
+          <select class="select" id="sort-select" onchange="renderTable()">
+            <option value="pv-desc">PV 高い順</option>
+            <option value="pv-asc">PV 低い順</option>
+            <option value="ctr-desc">CTR 高い順</option>
+            <option value="cvr-desc">CVR 高い順</option>
+            <option value="imp-desc">表示回数 高い順</option>
+          </select>
+          <select class="select" id="range-select" onchange="refreshData()">
+            <option value="7">直近7日</option>
+            <option value="28" selected>直近28日</option>
+            <option value="90">直近90日</option>
+          </select>
+        </div>
+      </div>
+      <div id="table-body-wrap">
+        <div class="loading-wrap">
+          <div class="spinner"></div>
+          <p style="color:var(--muted);">データを取得中...</p>
+        </div>
+      </div>
+      <div class="pagination" id="pagination"></div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- ===== GOOGLE SIGN-IN (hidden, triggered by GIS) ===== -->
+<div id="g_id_onload"
+     data-client_id=""
+     data-callback="onGoogleSignIn"
+     data-auto_select="false"
+     style="display:none">
+</div>
+
+<script>
+/* =========================================================
+   CONFIG & STATE
+========================================================= */
+let CFG = {};
+let TOKEN = null;
+let allRows = [];
+let currentPage = 1;
+const PER_PAGE = 50;
+let sortKey = 'pv';
+let sortDir = 'desc';
+
+const GA4_SCOPES = 'https://www.googleapis.com/auth/analytics.readonly';
+const GSC_SCOPES = 'https://www.googleapis.com/auth/webmasters.readonly';
+const SCOPES = `${GA4_SCOPES} ${GSC_SCOPES}`;
+
+/* =========================================================
+   SETUP
+========================================================= */
+function loadConfig() {
+  try { CFG = JSON.parse(localStorage.getItem('ss_dash_cfg') || '{}'); } catch(e){}
+}
+
+function startSetup() {
+  const oauth = document.getElementById('cfg-oauth').value.trim();
+  const ga4   = document.getElementById('cfg-ga4').value.trim();
+  const gsc   = document.getElementById('cfg-gsc').value.trim();
+  if (!oauth || !ga4) { showToast('OAuthクライアントIDとGA4プロパティIDは必須です', 'error'); return; }
+  CFG = { oauth, ga4, gsc: gsc || 'https://sellersprite.blog/' };
+  localStorage.setItem('ss_dash_cfg', JSON.stringify(CFG));
+  initGIS();
+}
+
+function openSetup() {
+  document.getElementById('setup-screen').style.display = 'flex';
+  document.getElementById('dashboard').style.display = 'none';
+  document.getElementById('cfg-oauth').value = CFG.oauth || '';
+  document.getElementById('cfg-ga4').value   = CFG.ga4   || '';
+  document.getElementById('cfg-gsc').value   = CFG.gsc   || 'https://sellersprite.blog/';
+}
+
+/* =========================================================
+   GOOGLE IDENTITY SERVICES (OAuth 2.0)
+========================================================= */
+let tokenClient;
+
+function initGIS() {
+  if (!CFG.oauth) { showToast('OAuthクライアントIDを設定してください', 'error'); return; }
+  tokenClient = google.accounts.oauth2.initTokenClient({
+    client_id: CFG.oauth,
+    scope: SCOPES,
+    callback: (response) => {
+      if (response.error) { showToast('ログイン失敗: ' + response.error, 'error'); return; }
+      TOKEN = response.access_token;
+      document.getElementById('signout-btn').style.display = 'inline-flex';
+      document.getElementById('setup-screen').style.display = 'none';
+      document.getElementById('dashboard').style.display = 'block';
+      refreshData();
+    }
+  });
+  tokenClient.requestAccessToken();
+}
+
+function signOut() {
+  if (TOKEN) { google.accounts.oauth2.revoke(TOKEN, () => {}); TOKEN = null; }
+  document.getElementById('signout-btn').style.display = 'none';
+  openSetup();
+}
+
+/* =========================================================
+   DATA FETCHING
+========================================================= */
+async function refreshData() {
+  if (!TOKEN) { showToast('先にGoogleログインしてください', 'error'); return; }
+
+  const days = parseInt(document.getElementById('range-select').value);
+  const end   = new Date();
+  const start = new Date(); start.setDate(start.getDate() - days);
+  const fmt   = d => d.toISOString().split('T')[0];
+  const dateRange = { startDate: fmt(start), endDate: fmt(end) };
+
+  document.getElementById('dash-subtitle').textContent =
+    `${fmt(start)} 〜 ${fmt(end)} | データ取得中...`;
+
+  document.getElementById('table-body-wrap').innerHTML =
+    '<div class="loading-wrap"><div class="spinner"></div><p style="color:var(--muted);">データを取得中...</p></div>';
+
+  const [ga4Data, gscData] = await Promise.allSettled([
+    fetchGA4(dateRange),
+    fetchGSC(dateRange)
+  ]);
+
+  const ga4 = ga4Data.status === 'fulfilled' ? ga4Data.value : {};
+  const gsc = gscData.status === 'fulfilled' ? gscData.value : {};
+
+  if (ga4Data.status === 'rejected') showToast('GA4の取得に失敗しました', 'error');
+  if (gscData.status === 'rejected') showToast('Search Consoleの取得に失敗しました', 'error');
+
+  mergeData(ga4, gsc);
+  renderCards(days);
+  renderCharts();
+  renderTable();
+
+  document.getElementById('dash-subtitle').textContent =
+    `${fmt(start)} 〜 ${fmt(end)} | ${allRows.length}ページ | ${new Date().toLocaleTimeString('ja-JP')} 更新`;
+}
+
+/* -------- GA4 Data API -------- */
+async function fetchGA4(dateRange) {
+  const url = `https://analyticsdata.googleapis.com/v1beta/properties/${CFG.ga4}:runReport`;
+  const body = {
+    dateRanges: [dateRange],
+    dimensions: [{ name: 'pagePath' }],
+    metrics: [
+      { name: 'screenPageViews' },
+      { name: 'sessions' },
+      { name: 'activeUsers' },
+      { name: 'eventCount' }  // code_copy events fetched separately below
+    ],
+    limit: 2000
+  };
+
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const json = await res.json();
+
+  // Also fetch code_copy events per page
+  const evtBody = {
+    dateRanges: [dateRange],
+    dimensions: [{ name: 'pagePath' }],
+    metrics: [{ name: 'eventCount' }],
+    dimensionFilter: {
+      filter: { fieldName: 'eventName', stringFilter: { value: 'code_copy' } }
+    },
+    limit: 2000
+  };
+  const evtRes = await fetch(url, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(evtBody)
+  });
+  const evtJson = evtRes.ok ? await evtRes.json() : { rows: [] };
+  const copyMap = {};
+  (evtJson.rows || []).forEach(r => {
+    copyMap[r.dimensionValues[0].value] = parseInt(r.metricValues[0].value || 0);
+  });
+
+  const result = {};
+  (json.rows || []).forEach(r => {
+    const path = r.dimensionValues[0].value;
+    result[path] = {
+      pv:       parseInt(r.metricValues[0].value || 0),
+      sessions: parseInt(r.metricValues[1].value || 0),
+      users:    parseInt(r.metricValues[2].value || 0),
+      copies:   copyMap[path] || 0
+    };
+  });
+  return result;
+}
+
+/* -------- Search Console API -------- */
+async function fetchGSC(dateRange) {
+  const site = encodeURIComponent(CFG.gsc);
+  const url  = `https://searchconsole.googleapis.com/webmasters/v3/sites/${site}/searchAnalytics/query`;
+  const body = {
+    startDate:  dateRange.startDate,
+    endDate:    dateRange.endDate,
+    dimensions: ['page'],
+    rowLimit:   2000
+  };
+  const res = await fetch(url, {
+    method: 'POST',
+    headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+  if (!res.ok) throw new Error(await res.text());
+  const json = await res.json();
+
+  const result = {};
+  (json.rows || []).forEach(r => {
+    const url2 = r.keys[0];
+    const path = url2.replace(CFG.gsc.replace(/\/$/, ''), '') || '/';
+    result[path] = {
+      impressions: r.impressions || 0,
+      clicks:      r.clicks      || 0,
+      ctr:         r.ctr         || 0,
+      position:    r.position    || 0
+    };
+  });
+  return result;
+}
+
+/* -------- Merge GA4 + GSC -------- */
+function mergeData(ga4, gsc) {
+  const allPaths = new Set([...Object.keys(ga4), ...Object.keys(gsc)]);
+  allRows = Array.from(allPaths).map(path => {
+    const g = ga4[path] || { pv: 0, sessions: 0, users: 0, copies: 0 };
+    const s = gsc[path] || { impressions: 0, clicks: 0, ctr: 0, position: 0 };
+    const cvr = g.sessions > 0 ? g.copies / g.sessions : 0;
+    return { path, ...g, ...s, cvr };
+  });
+}
+
+/* =========================================================
+   RENDER — CARDS
+========================================================= */
+function renderCards() {
+  const totalPv  = allRows.reduce((a, r) => a + r.pv, 0);
+  const totalImp = allRows.reduce((a, r) => a + r.impressions, 0);
+  const totalClk = allRows.reduce((a, r) => a + r.clicks, 0);
+  const avgCtr   = totalImp > 0 ? totalClk / totalImp : 0;
+  const totalSes = allRows.reduce((a, r) => a + r.sessions, 0);
+  const totalCop = allRows.reduce((a, r) => a + r.copies, 0);
+  const avgCvr   = totalSes > 0 ? totalCop / totalSes : 0;
+
+  document.getElementById('card-pv').textContent   = fmtNum(totalPv);
+  document.getElementById('card-imp').textContent  = fmtNum(totalImp);
+  document.getElementById('card-ctr').textContent  = fmtPct(avgCtr);
+  document.getElementById('card-cvr').textContent  = fmtPct(avgCvr);
+}
+
+/* =========================================================
+   RENDER — CHARTS
+========================================================= */
+let pvChart, cvrChart;
+
+function renderCharts() {
+  const top20 = [...allRows].sort((a, b) => b.pv - a.pv).slice(0, 20);
+
+  // PV Bar Chart
+  const pvCtx = document.getElementById('chart-pv').getContext('2d');
+  if (pvChart) pvChart.destroy();
+  pvChart = new Chart(pvCtx, {
+    type: 'bar',
+    data: {
+      labels: top20.map(r => r.path.length > 30 ? r.path.slice(0,28)+'…' : r.path),
+      datasets: [{
+        data: top20.map(r => r.pv),
+        backgroundColor: '#FB8C1E',
+        borderRadius: 4,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      indexAxis: 'y',
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: '#f0f0f0' }, ticks: { font: { size: 11 } } },
+        y: { grid: { display: false }, ticks: { font: { size: 10 } } }
+      }
+    }
+  });
+
+  // CVR Distribution Doughnut
+  const cvrCtx = document.getElementById('chart-cvr').getContext('2d');
+  if (cvrChart) cvrChart.destroy();
+  const bands = [
+    { label: '0%',      min: 0,    max: 0,    count: 0, color: '#e5e7eb' },
+    { label: '0〜1%',   min: 0,    max: 0.01, count: 0, color: '#fed7aa' },
+    { label: '1〜5%',   min: 0.01, max: 0.05, count: 0, color: '#fb923c' },
+    { label: '5%+',     min: 0.05, max: 999,  count: 0, color: '#FB8C1E' },
+  ];
+  allRows.forEach(r => {
+    if (r.cvr === 0) bands[0].count++;
+    else if (r.cvr < 0.01) bands[1].count++;
+    else if (r.cvr < 0.05) bands[2].count++;
+    else bands[3].count++;
+  });
+  cvrChart = new Chart(cvrCtx, {
+    type: 'doughnut',
+    data: {
+      labels: bands.map(b => b.label),
+      datasets: [{ data: bands.map(b => b.count), backgroundColor: bands.map(b => b.color), borderWidth: 2 }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { font: { size: 11 }, padding: 12 } }
+      }
+    }
+  });
+}
+
+/* =========================================================
+   RENDER — TABLE
+========================================================= */
+function renderTable() {
+  const q    = document.getElementById('search-input').value.toLowerCase();
+  const sort = document.getElementById('sort-select').value;
+  const [sk, sd] = sort.split('-');
+
+  let rows = allRows.filter(r => r.path.toLowerCase().includes(q));
+  rows.sort((a, b) => sd === 'desc' ? b[sk] - a[sk] : a[sk] - b[sk]);
+
+  const total = rows.length;
+  const totalPages = Math.ceil(total / PER_PAGE);
+  if (currentPage > totalPages) currentPage = 1;
+  const page = rows.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE);
+
+  document.getElementById('table-count').textContent =
+    `全 ${fmtNum(total)} ページ` + (q ? ` (「${q}」で絞り込み)` : '');
+
+  const maxPv  = Math.max(...rows.map(r => r.pv), 1);
+  const maxImp = Math.max(...rows.map(r => r.impressions), 1);
+  const maxCvr = Math.max(...rows.map(r => r.cvr), 0.001);
+
+  const tbody = page.map(r => {
+    const isMain = r.path === '/';
+    const cvrCls = r.cvr >= 0.05 ? 'good' : r.cvr >= 0.01 ? 'warn' : '';
+    const ctrCls = r.ctr >= 0.05 ? 'good' : r.ctr >= 0.01 ? 'warn' : '';
+    const fullUrl = CFG.gsc.replace(/\/$/, '') + (r.path === '/' ? '' : r.path);
+    return `<tr>
+      <td class="url-cell">
+        ${isMain ? '<span class="badge badge-main">メインLP</span> ' : ''}
+        <a class="url-link" href="${fullUrl}" target="_blank" title="${r.path}">${r.path}</a>
+      </td>
+      <td>
+        <span class="num">${fmtNum(r.pv)}</span>
+        <div class="meter" style="margin-top:4px;"><div class="meter-fill" style="width:${pct(r.pv,maxPv)}%"></div></div>
+      </td>
+      <td><span class="num">${fmtNum(r.sessions)}</span></td>
+      <td>
+        <span class="num">${fmtNum(r.impressions)}</span>
+        <div class="meter" style="margin-top:4px;"><div class="meter-fill blue" style="width:${pct(r.impressions,maxImp)}%"></div></div>
+      </td>
+      <td><span class="num">${fmtNum(r.clicks)}</span></td>
+      <td><span class="num ${ctrCls}">${fmtPct(r.ctr)}</span></td>
+      <td><span class="num ${r.position > 0 ? '' : 'bad'}">${r.position > 0 ? r.position.toFixed(1) : '—'}</span></td>
+      <td><span class="num">${fmtNum(r.copies)}</span></td>
+      <td>
+        <span class="num ${cvrCls}">${fmtPct(r.cvr)}</span>
+        <div class="meter" style="margin-top:4px;"><div class="meter-fill green" style="width:${pct(r.cvr,maxCvr)}%"></div></div>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('table-body-wrap').innerHTML = `
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="setSort('path')">ページ URL <span class="sort-arrow">↕</span></th>
+            <th onclick="setSort('pv')" class="${sortKey==='pv'?'sorted':''}">PV <span class="sort-arrow">${sortKey==='pv'?(sortDir==='desc'?'↓':'↑'):'↕'}</span></th>
+            <th onclick="setSort('sessions')" class="${sortKey==='sessions'?'sorted':''}">セッション <span class="sort-arrow">${sortKey==='sessions'?(sortDir==='desc'?'↓':'↑'):'↕'}</span></th>
+            <th onclick="setSort('impressions')" class="${sortKey==='impressions'?'sorted':''}">表示回数 <span class="sort-arrow">${sortKey==='impressions'?(sortDir==='desc'?'↓':'↑'):'↕'}</span></th>
+            <th onclick="setSort('clicks')" class="${sortKey==='clicks'?'sorted':''}">クリック <span class="sort-arrow">${sortKey==='clicks'?(sortDir==='desc'?'↓':'↑'):'↕'}</span></th>
+            <th onclick="setSort('ctr')" class="${sortKey==='ctr'?'sorted':''}">CTR <span class="sort-arrow">${sortKey==='ctr'?(sortDir==='desc'?'↓':'↑'):'↕'}</span></th>
+            <th onclick="setSort('position')" class="${sortKey==='position'?'sorted':''}">平均順位 <span class="sort-arrow">${sortKey==='position'?(sortDir==='desc'?'↓':'↑'):'↕'}</span></th>
+            <th onclick="setSort('copies')" class="${sortKey==='copies'?'sorted':''}">コード取得数 <span class="sort-arrow">${sortKey==='copies'?(sortDir==='desc'?'↓':'↑'):'↕'}</span></th>
+            <th onclick="setSort('cvr')" class="${sortKey==='cvr'?'sorted':''}">CVR <span class="sort-arrow">${sortKey==='cvr'?(sortDir==='desc'?'↓':'↑'):'↕'}</span></th>
+          </tr>
+        </thead>
+        <tbody>${tbody || '<tr><td colspan="9" class="empty-state"><div class="icon">🔍</div><p>該当ページなし</p></td></tr>'}</tbody>
+      </table>
+    </div>`;
+
+  renderPagination(total, totalPages);
+}
+
+function setSort(key) {
+  if (sortKey === key) {
+    sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+  } else {
+    sortKey = key;
+    sortDir = 'desc';
+  }
+  const sel = document.getElementById('sort-select');
+  sel.value = `${sortKey}-${sortDir}`;
+  renderTable();
+}
+
+function renderPagination(total, totalPages) {
+  const el = document.getElementById('pagination');
+  if (totalPages <= 1) { el.innerHTML = ''; return; }
+  const start = (currentPage - 1) * PER_PAGE + 1;
+  const end   = Math.min(currentPage * PER_PAGE, total);
+  const pages = [];
+  for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) pages.push(i);
+
+  el.innerHTML = `
+    <span class="page-info">${start}〜${end} / ${fmtNum(total)}件</span>
+    <div class="page-btns">
+      <button class="page-btn" onclick="goPage(1)" ${currentPage===1?'disabled':''}>«</button>
+      <button class="page-btn" onclick="goPage(${currentPage-1})" ${currentPage===1?'disabled':''}>‹</button>
+      ${pages.map(p=>`<button class="page-btn ${p===currentPage?'active':''}" onclick="goPage(${p})">${p}</button>`).join('')}
+      <button class="page-btn" onclick="goPage(${currentPage+1})" ${currentPage===totalPages?'disabled':''}>›</button>
+      <button class="page-btn" onclick="goPage(${totalPages})" ${currentPage===totalPages?'disabled':''}>»</button>
+    </div>`;
+}
+
+function goPage(n) { currentPage = n; renderTable(); }
+
+/* =========================================================
+   EXPORT CSV
+========================================================= */
+function exportCsv() {
+  if (!allRows.length) { showToast('データがありません', 'error'); return; }
+  const cols = ['path','pv','sessions','users','impressions','clicks','ctr','position','copies','cvr'];
+  const head = ['ページURL','PV','セッション','ユーザー','表示回数','クリック','CTR','平均順位','コード取得数','CVR'];
+  const csv  = [head.join(',')].concat(
+    allRows.map(r => cols.map(c => {
+      const v = r[c];
+      return typeof v === 'number' ? (Number.isInteger(v) ? v : v.toFixed(4)) : `"${v}"`;
+    }).join(','))
+  ).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8;' }));
+  a.download = `ss-lp-dashboard-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click();
+  showToast('CSVをダウンロードしました', 'success');
+}
+
+/* =========================================================
+   UTILS
+========================================================= */
+function fmtNum(n) { return n == null ? '—' : n.toLocaleString('ja-JP'); }
+function fmtPct(n) { return n == null ? '—' : (n * 100).toFixed(1) + '%'; }
+function pct(v, max) { return max > 0 ? Math.min(100, Math.round(v / max * 100)) : 0; }
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' ' + type : '');
+  setTimeout(() => t.className = 'toast', 3200);
+}
+
+/* =========================================================
+   INIT
+========================================================= */
+window.addEventListener('load', () => {
+  loadConfig();
+  if (CFG.oauth && CFG.ga4) {
+    document.getElementById('cfg-oauth').value = CFG.oauth;
+    document.getElementById('cfg-ga4').value   = CFG.ga4;
+    document.getElementById('cfg-gsc').value   = CFG.gsc || 'https://sellersprite.blog/';
+  }
+  // Auto-login if config is saved
+  if (CFG.oauth && CFG.ga4) {
+    // Wait for GIS to load, then auto-init
+    const waitGIS = setInterval(() => {
+      if (window.google && google.accounts) {
+        clearInterval(waitGIS);
+        initGIS();
+      }
+    }, 200);
+  }
+});
+</script>
+</body>
+</html>
