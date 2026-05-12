@@ -284,15 +284,18 @@ class ShopeeBrowser:
                 self._browser = self._playwright.chromium.connect_over_cdp(CDP_URL)
                 self._context = self._browser.contexts[0]
                 # Fix8: 既存ページを再利用（new_page()はSSLキャッシュなしで失敗する）
+                # Fix30: chrome:// 内部ページは除外（networkidleが永遠に返らない）
                 existing_pages = self._context.pages
                 shopee_pages = [p for p in existing_pages if "shopee" in p.url]
+                usable_pages = [p for p in existing_pages if not p.url.startswith("chrome://")]
                 if shopee_pages:
                     self._page = shopee_pages[0]
                     logger.info(f"✅ CDP接続成功 (port {CDP_PORT}) — 既存Shopeeタブ再利用: {self._page.url[:60]}")
-                elif existing_pages:
-                    self._page = existing_pages[0]
+                elif usable_pages:
+                    self._page = usable_pages[0]
                     logger.info(f"✅ CDP接続成功 (port {CDP_PORT}) — 既存タブ再利用: {self._page.url[:60]}")
                 else:
+                    # chrome://タブしかない場合 or タブなし → 新規タブ作成
                     self._page = self._context.new_page()
                     logger.info(f"✅ CDP接続成功 (port {CDP_PORT}) — 新規タブ作成")
                 self._using_cdp = True
@@ -1147,8 +1150,12 @@ class ShopeeBrowser:
         try:
             self._page.goto(f"{SHOPEE_SELLER_URL}/account/login", timeout=30000)
 
-            # ページ完全読み込みを待つ
-            self._page.wait_for_load_state("networkidle", timeout=15000)
+            # ページ完全読み込みを待つ（Fix30: networkidleが来なくてもdomcontentloadedで続行）
+            try:
+                self._page.wait_for_load_state("networkidle", timeout=20000)
+            except Exception:
+                logger.info("networkidle timeout — domcontentloaded で続行")
+                self._page.wait_for_load_state("domcontentloaded", timeout=10000)
             _human_wait(2, 3)
 
             # 言語選択モーダルが出るのを待ってから閉じる
@@ -1191,7 +1198,25 @@ class ShopeeBrowser:
             )
             self._page.wait_for_selector(login_btn_sel, timeout=8000)
             _human_wait(0.5, 1.0)
-            self._page.locator(login_btn_sel).first.click()
+            # Fix30: viewport外でもクリックできるよう force=True + JS fallback
+            _f30_btn = self._page.locator(login_btn_sel).first
+            try:
+                _f30_btn.scroll_into_view_if_needed(timeout=3000)
+            except Exception:
+                pass
+            try:
+                _f30_btn.click(force=True, timeout=10000)
+            except Exception:
+                # JS fallback: viewport外でも確実にクリック
+                self._page.evaluate("""
+                    () => {
+                        const candidates = Array.from(document.querySelectorAll('button[type="submit"], button'));
+                        const btn = candidates.find(b =>
+                            /LOG IN|Log In|เข้าสู่ระบบ/.test(b.textContent.trim()));
+                        if (btn) { btn.click(); return true; }
+                        return false;
+                    }
+                """)
             logger.info("LOG IN ボタンをクリックしました")
             _human_wait(4, 7)
 
@@ -1469,7 +1494,24 @@ class ShopeeBrowser:
                         )
                         self._page.wait_for_selector(login_btn_sel, timeout=8000)
                         _human_wait(0.5, 1.0)
-                        self._page.locator(login_btn_sel).first.click()
+                        # Fix30: viewport外ボタン対応 — force=True + JS fallback
+                        _f30_f27_btn = self._page.locator(login_btn_sel).first
+                        try:
+                            _f30_f27_btn.scroll_into_view_if_needed(timeout=3000)
+                        except Exception:
+                            pass
+                        try:
+                            _f30_f27_btn.click(force=True, timeout=10000)
+                        except Exception:
+                            self._page.evaluate("""
+                                () => {
+                                    const candidates = Array.from(document.querySelectorAll('button[type="submit"], button'));
+                                    const btn = candidates.find(b =>
+                                        /LOG IN|Log In|เข้าสู่ระบบ/.test(b.textContent.trim()));
+                                    if (btn) { btn.click(); return true; }
+                                    return false;
+                                }
+                            """)
                         logger.info("  [Fix27] LOG IN ボタンクリック")
                         # Fix29: ログイン後URLが login/404 以外になるまで待機（最大45秒）
                         import time as _time
