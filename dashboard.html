@@ -150,17 +150,15 @@ td.url-cell{max-width:280px;}
     <div class="step-badge">STEP 1 — 設定</div>
     <div class="form-group" style="margin-top:8px;">
       <label class="form-label">Google OAuth クライアントID</label>
-      <input class="form-input" id="cfg-oauth" type="text" placeholder="XXXXXXXXXX.apps.googleusercontent.com">
+      <input class="form-input" id="cfg-oauth" type="text" value="110336682893-tqmi6vg9ikc20qavmr5j2ohcllpfmqcf.apps.googleusercontent.com">
       <p class="form-hint">
-        <a href="https://console.cloud.google.com/apis/credentials" target="_blank">Google Cloud Console</a> →
-        「認証情報を作成」→「OAuthクライアントID」→「ウェブアプリ」<br>
-        承認済みオリジン: <code>https://sellersprite.blog</code>
+        承認済みオリジン: <code>https://smkrrry-blip.github.io</code>
       </p>
     </div>
 
     <div class="form-group">
       <label class="form-label">GA4 プロパティID（数字のみ）</label>
-      <input class="form-input" id="cfg-ga4" type="text" placeholder="例: 123456789">
+      <input class="form-input" id="cfg-ga4" type="text" value="530190563">
       <p class="form-hint">
         GA4 管理 → プロパティ設定 → 「プロパティID」（G-XXXXではなく数字）
       </p>
@@ -284,7 +282,7 @@ td.url-cell{max-width:280px;}
 
 <!-- ===== GOOGLE SIGN-IN (hidden, triggered by GIS) ===== -->
 <div id="g_id_onload"
-     data-client_id=""
+     data-client_id="110336682893-tqmi6vg9ikc20qavmr5j2ohcllpfmqcf.apps.googleusercontent.com"
      data-callback="onGoogleSignIn"
      data-auto_select="false"
      style="display:none">
@@ -309,8 +307,15 @@ const SCOPES = `${GA4_SCOPES} ${GSC_SCOPES}`;
 /* =========================================================
    SETUP
 ========================================================= */
+const DEFAULT_CFG = {
+  oauth: '110336682893-tqmi6vg9ikc20qavmr5j2ohcllpfmqcf.apps.googleusercontent.com',
+  ga4:   '530190563',
+  gsc:   'https://sellersprite.blog/'
+};
+
 function loadConfig() {
   try { CFG = JSON.parse(localStorage.getItem('ss_dash_cfg') || '{}'); } catch(e){}
+  if (!CFG.oauth) CFG = { ...DEFAULT_CFG };
 }
 
 function startSetup() {
@@ -326,8 +331,8 @@ function startSetup() {
 function openSetup() {
   document.getElementById('setup-screen').style.display = 'flex';
   document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('cfg-oauth').value = CFG.oauth || '';
-  document.getElementById('cfg-ga4').value   = CFG.ga4   || '';
+  document.getElementById('cfg-oauth').value = CFG.oauth || '110336682893-tqmi6vg9ikc20qavmr5j2ohcllpfmqcf.apps.googleusercontent.com';
+  document.getElementById('cfg-ga4').value   = CFG.ga4   || '530190563';
   document.getElementById('cfg-gsc').value   = CFG.gsc   || 'https://sellersprite.blog/';
 }
 
