@@ -346,6 +346,7 @@ function initGIS() {
   tokenClient = google.accounts.oauth2.initTokenClient({
     client_id: CFG.oauth,
     scope: SCOPES,
+    hint: 'smkrrry@gmail.com',
     callback: (response) => {
       if (response.error) { showToast('ログイン失敗: ' + response.error, 'error'); return; }
       TOKEN = response.access_token;
