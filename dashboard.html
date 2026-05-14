@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="robots" content="noindex,nofollow">
 <title>LP ダッシュボード | セラースプライト</title>
-<script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
@@ -36,24 +35,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Yu Gothic',sa
 .btn-outline:hover{background:var(--bg);}
 .btn-sm{padding:5px 12px;font-size:12px;}
 
-/* ===== SETUP SCREEN ===== */
-#setup-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#fff8f2,#fffcf9);}
-.setup-card{background:var(--surface);border-radius:16px;box-shadow:0 8px 40px rgba(0,0,0,0.1);padding:48px 40px;width:100%;max-width:480px;}
-.setup-logo{text-align:center;margin-bottom:32px;}
-.setup-logo h1{font-size:20px;font-weight:800;margin-top:12px;}
-.setup-logo p{font-size:13px;color:var(--muted);margin-top:6px;}
-.form-group{margin-bottom:18px;}
-.form-label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.5px;}
-.form-input{width:100%;padding:10px 14px;border:1px solid var(--border);border-radius:8px;font-size:14px;outline:none;transition:border-color 0.15s;}
-.form-input:focus{border-color:var(--orange);}
-.form-hint{font-size:11px;color:var(--muted);margin-top:5px;line-height:1.5;}
-.form-hint a{color:var(--orange);text-decoration:none;}
-.setup-divider{border:none;border-top:1px solid var(--border);margin:24px 0;}
-.setup-btn{width:100%;padding:14px;font-size:15px;border-radius:8px;}
-.step-badge{display:inline-block;background:var(--orange-light);color:var(--orange);font-size:11px;font-weight:700;padding:2px 8px;border-radius:4px;margin-bottom:8px;}
-
-/* ===== MAIN DASHBOARD ===== */
-#dashboard{display:none;}
+/* ===== DATA-AGE BANNER ===== */
+.age-banner{background:var(--orange-light);border-bottom:1px solid #fde0b0;padding:8px 24px;font-size:12px;color:#7a4400;display:none;}
+.age-banner.show{display:block;}
 .main{padding:24px;}
 .page-title{font-size:20px;font-weight:800;margin-bottom:4px;}
 .page-subtitle{font-size:13px;color:var(--muted);margin-bottom:24px;}
@@ -138,63 +122,16 @@ td.url-cell{max-width:280px;}
 </head>
 <body>
 
-<!-- ===== SETUP SCREEN ===== -->
-<div id="setup-screen">
-  <div class="setup-card">
-    <div class="setup-logo">
-      <div style="font-size:32px;">📊</div>
-      <h1>LP ダッシュボード</h1>
-      <p>セラースプライト | PV · CTR · CVR 一括計測</p>
-    </div>
-
-    <div class="step-badge">STEP 1 — 設定</div>
-    <div class="form-group" style="margin-top:8px;">
-      <label class="form-label">Google OAuth クライアントID</label>
-      <input class="form-input" id="cfg-oauth" type="text" value="110336682893-tqmi6vg9ikc20qavmr5j2ohcllpfmqcf.apps.googleusercontent.com">
-      <p class="form-hint">
-        承認済みオリジン: <code>https://smkrrry-blip.github.io</code>
-      </p>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">GA4 プロパティID（数字のみ）</label>
-      <input class="form-input" id="cfg-ga4" type="text" value="530190563">
-      <p class="form-hint">
-        GA4 管理 → プロパティ設定 → 「プロパティID」（G-XXXXではなく数字）
-      </p>
-    </div>
-
-    <div class="form-group">
-      <label class="form-label">Search Console サイト URL</label>
-      <input class="form-input" id="cfg-gsc" type="text" value="https://sellersprite.blog/">
-    </div>
-
-    <hr class="setup-divider">
-
-    <div class="step-badge">STEP 2 — Googleログイン</div>
-    <p style="font-size:12px;color:var(--muted);margin:8px 0 16px;">GA4・Search Consoleの閲覧権限があるGoogleアカウントでログインしてください。</p>
-
-    <button class="btn btn-primary setup-btn" onclick="startSetup()">
-      設定を保存してGoogleログイン →
-    </button>
-
-    <p style="font-size:11px;color:var(--muted);text-align:center;margin-top:14px;">
-      設定はブラウザのlocalStorageに保存されます。APIキーは外部に送信されません。
-    </p>
-  </div>
-</div>
-
 <!-- ===== MAIN DASHBOARD ===== -->
-<div id="dashboard">
-  <div class="header">
+<div id="age-banner" class="age-banner"></div>
+
+<div class="header">
     <div class="header-logo">
       📊 <span>LP</span> ダッシュボード
     </div>
     <div class="header-actions">
       <button class="btn btn-outline btn-sm" onclick="refreshData()">🔄 更新</button>
       <button class="btn btn-outline btn-sm" onclick="exportCsv()">⬇ CSV</button>
-      <button class="btn btn-outline btn-sm" onclick="openSetup()">⚙ 設定</button>
-      <button class="btn btn-outline btn-sm" id="signout-btn" onclick="signOut()" style="display:none;">ログアウト</button>
     </div>
   </div>
 
@@ -260,11 +197,6 @@ td.url-cell{max-width:280px;}
             <option value="cvr-desc">CVR 高い順</option>
             <option value="imp-desc">表示回数 高い順</option>
           </select>
-          <select class="select" id="range-select" onchange="refreshData()">
-            <option value="7">直近7日</option>
-            <option value="28" selected>直近28日</option>
-            <option value="90">直近90日</option>
-          </select>
         </div>
       </div>
       <div id="table-body-wrap">
@@ -276,249 +208,92 @@ td.url-cell{max-width:280px;}
       <div class="pagination" id="pagination"></div>
     </div>
   </div>
-</div>
 
 <div class="toast" id="toast"></div>
 
-<!-- ===== GOOGLE SIGN-IN (hidden, triggered by GIS) ===== -->
-<div id="g_id_onload"
-     data-client_id="110336682893-tqmi6vg9ikc20qavmr5j2ohcllpfmqcf.apps.googleusercontent.com"
-     data-callback="onGoogleSignIn"
-     data-auto_select="false"
-     style="display:none">
-</div>
-
 <script>
 /* =========================================================
-   CONFIG & STATE
+   CONSTANTS & STATE
 ========================================================= */
-let CFG = {};
-let TOKEN = null;
+const BASE_URL = 'https://sellersprite.blog';
+
 let allRows = [];
 let currentPage = 1;
 const PER_PAGE = 50;
 let sortKey = 'pv';
 let sortDir = 'desc';
 
-const GA4_SCOPES = 'https://www.googleapis.com/auth/analytics.readonly';
-const GSC_SCOPES = 'https://www.googleapis.com/auth/webmasters.readonly';
-const SCOPES = `${GA4_SCOPES} ${GSC_SCOPES}`;
-
 /* =========================================================
-   SETUP
-========================================================= */
-const DEFAULT_CFG = {
-  oauth: '110336682893-tqmi6vg9ikc20qavmr5j2ohcllpfmqcf.apps.googleusercontent.com',
-  ga4:   '530190563',
-  gsc:   'https://sellersprite.blog/'
-};
-
-function loadConfig() {
-  try { CFG = JSON.parse(localStorage.getItem('ss_dash_cfg') || '{}'); } catch(e){}
-  if (!CFG.oauth) CFG = { ...DEFAULT_CFG };
-}
-
-function startSetup() {
-  const oauth = document.getElementById('cfg-oauth').value.trim();
-  const ga4   = document.getElementById('cfg-ga4').value.trim();
-  const gsc   = document.getElementById('cfg-gsc').value.trim();
-  if (!oauth || !ga4) { showToast('OAuthクライアントIDとGA4プロパティIDは必須です', 'error'); return; }
-  CFG = { oauth, ga4, gsc: gsc || 'https://sellersprite.blog/' };
-  localStorage.setItem('ss_dash_cfg', JSON.stringify(CFG));
-  initGIS();
-}
-
-function openSetup() {
-  document.getElementById('setup-screen').style.display = 'flex';
-  document.getElementById('dashboard').style.display = 'none';
-  document.getElementById('cfg-oauth').value = CFG.oauth || '110336682893-tqmi6vg9ikc20qavmr5j2ohcllpfmqcf.apps.googleusercontent.com';
-  document.getElementById('cfg-ga4').value   = CFG.ga4   || '530190563';
-  document.getElementById('cfg-gsc').value   = CFG.gsc   || 'https://sellersprite.blog/';
-}
-
-/* =========================================================
-   GOOGLE IDENTITY SERVICES (OAuth 2.0)
-========================================================= */
-let tokenClient;
-
-function initGIS() {
-  if (!CFG.oauth) { showToast('OAuthクライアントIDを設定してください', 'error'); return; }
-  tokenClient = google.accounts.oauth2.initTokenClient({
-    client_id: CFG.oauth,
-    scope: SCOPES,
-    hint: 'smkrrry@gmail.com',
-    callback: (response) => {
-      if (response.error) { showToast('ログイン失敗: ' + response.error, 'error'); return; }
-      TOKEN = response.access_token;
-      document.getElementById('signout-btn').style.display = 'inline-flex';
-      document.getElementById('setup-screen').style.display = 'none';
-      document.getElementById('dashboard').style.display = 'block';
-      refreshData();
-    }
-  });
-  tokenClient.requestAccessToken();
-}
-
-function signOut() {
-  if (TOKEN) { google.accounts.oauth2.revoke(TOKEN, () => {}); TOKEN = null; }
-  document.getElementById('signout-btn').style.display = 'none';
-  openSetup();
-}
-
-/* =========================================================
-   DATA FETCHING
+   DATA FETCHING — reads pre-generated data.json
 ========================================================= */
 async function refreshData() {
-  if (!TOKEN) { showToast('先にGoogleログインしてください', 'error'); return; }
-
-  const days = parseInt(document.getElementById('range-select').value);
-  const end   = new Date();
-  const start = new Date(); start.setDate(start.getDate() - days);
-  const fmt   = d => d.toISOString().split('T')[0];
-  const dateRange = { startDate: fmt(start), endDate: fmt(end) };
-
-  document.getElementById('dash-subtitle').textContent =
-    `${fmt(start)} 〜 ${fmt(end)} | データ取得中...`;
-
+  document.getElementById('dash-subtitle').textContent = 'データ読み込み中...';
   document.getElementById('table-body-wrap').innerHTML =
-    '<div class="loading-wrap"><div class="spinner"></div><p style="color:var(--muted);">データを取得中...</p></div>';
+    '<div class="loading-wrap"><div class="spinner"></div><p style="color:var(--muted);">読み込み中...</p></div>';
 
-  const [ga4Data, gscData] = await Promise.allSettled([
-    fetchGA4(dateRange),
-    fetchGSC(dateRange)
-  ]);
+  try {
+    const res = await fetch('data.json?_=' + Date.now());
+    if (!res.ok) throw new Error('data.json が見つかりません (HTTP ' + res.status + ')');
+    const data = await res.json();
 
-  const ga4 = ga4Data.status === 'fulfilled' ? ga4Data.value : {};
-  const gsc = gscData.status === 'fulfilled' ? gscData.value : {};
+    allRows = data.rows || [];
 
-  if (ga4Data.status === 'rejected') showToast('GA4の取得に失敗しました', 'error');
-  if (gscData.status === 'rejected') showToast('Search Consoleの取得に失敗しました', 'error');
+    const dr  = data.date_range || {};
+    const gen = data.generated_at ? data.generated_at.replace('T', ' ') : '不明';
+    document.getElementById('dash-subtitle').textContent =
+      `${dr.start || ''} 〜 ${dr.end || ''} | ${allRows.length} ページ | 更新: ${gen}`;
 
-  mergeData(ga4, gsc);
-  renderCards(days);
-  renderCharts();
-  renderTable();
+    // Age warning banner (>25 hours old)
+    if (data.generated_at) {
+      const ageHours = (Date.now() - new Date(data.generated_at).getTime()) / 3600000;
+      const banner = document.getElementById('age-banner');
+      if (ageHours > 25) {
+        banner.textContent = `⚠️ データが ${Math.floor(ageHours)} 時間前のものです。fetch_dashboard.py を実行して更新してください。`;
+        banner.classList.add('show');
+      } else {
+        banner.classList.remove('show');
+      }
+    }
 
-  document.getElementById('dash-subtitle').textContent =
-    `${fmt(start)} 〜 ${fmt(end)} | ${allRows.length}ページ | ${new Date().toLocaleTimeString('ja-JP')} 更新`;
-}
-
-/* -------- GA4 Data API -------- */
-async function fetchGA4(dateRange) {
-  const url = `https://analyticsdata.googleapis.com/v1beta/properties/${CFG.ga4}:runReport`;
-  const body = {
-    dateRanges: [dateRange],
-    dimensions: [{ name: 'pagePath' }],
-    metrics: [
-      { name: 'screenPageViews' },
-      { name: 'sessions' },
-      { name: 'activeUsers' },
-      { name: 'eventCount' }  // code_copy events fetched separately below
-    ],
-    limit: 2000
-  };
-
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) throw new Error(await res.text());
-  const json = await res.json();
-
-  // Also fetch code_copy events per page
-  const evtBody = {
-    dateRanges: [dateRange],
-    dimensions: [{ name: 'pagePath' }],
-    metrics: [{ name: 'eventCount' }],
-    dimensionFilter: {
-      filter: { fieldName: 'eventName', stringFilter: { value: 'code_copy' } }
-    },
-    limit: 2000
-  };
-  const evtRes = await fetch(url, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(evtBody)
-  });
-  const evtJson = evtRes.ok ? await evtRes.json() : { rows: [] };
-  const copyMap = {};
-  (evtJson.rows || []).forEach(r => {
-    copyMap[r.dimensionValues[0].value] = parseInt(r.metricValues[0].value || 0);
-  });
-
-  const result = {};
-  (json.rows || []).forEach(r => {
-    const path = r.dimensionValues[0].value;
-    result[path] = {
-      pv:       parseInt(r.metricValues[0].value || 0),
-      sessions: parseInt(r.metricValues[1].value || 0),
-      users:    parseInt(r.metricValues[2].value || 0),
-      copies:   copyMap[path] || 0
-    };
-  });
-  return result;
-}
-
-/* -------- Search Console API -------- */
-async function fetchGSC(dateRange) {
-  const site = encodeURIComponent(CFG.gsc);
-  const url  = `https://searchconsole.googleapis.com/webmasters/v3/sites/${site}/searchAnalytics/query`;
-  const body = {
-    startDate:  dateRange.startDate,
-    endDate:    dateRange.endDate,
-    dimensions: ['page'],
-    rowLimit:   2000
-  };
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Authorization': `Bearer ${TOKEN}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify(body)
-  });
-  if (!res.ok) throw new Error(await res.text());
-  const json = await res.json();
-
-  const result = {};
-  (json.rows || []).forEach(r => {
-    const url2 = r.keys[0];
-    const path = url2.replace(CFG.gsc.replace(/\/$/, ''), '') || '/';
-    result[path] = {
-      impressions: r.impressions || 0,
-      clicks:      r.clicks      || 0,
-      ctr:         r.ctr         || 0,
-      position:    r.position    || 0
-    };
-  });
-  return result;
-}
-
-/* -------- Merge GA4 + GSC -------- */
-function mergeData(ga4, gsc) {
-  const allPaths = new Set([...Object.keys(ga4), ...Object.keys(gsc)]);
-  allRows = Array.from(allPaths).map(path => {
-    const g = ga4[path] || { pv: 0, sessions: 0, users: 0, copies: 0 };
-    const s = gsc[path] || { impressions: 0, clicks: 0, ctr: 0, position: 0 };
-    const cvr = g.sessions > 0 ? g.copies / g.sessions : 0;
-    return { path, ...g, ...s, cvr };
-  });
+    renderCards(data.summary);
+    renderCharts();
+    renderTable();
+  } catch (e) {
+    showToast('読み込み失敗: ' + e.message, 'error');
+    document.getElementById('dash-subtitle').textContent = 'データ読み込み失敗';
+    document.getElementById('table-body-wrap').innerHTML = `
+      <div class="empty-state">
+        <div class="icon">⚠️</div>
+        <p style="font-weight:700;margin-bottom:8px;">${e.message}</p>
+        <p style="font-size:12px;">
+          <code>python3 ~/sellersprite-lp-/fetch_dashboard.py</code> を実行後、<br>
+          git push して GitHub Pages に data.json をデプロイしてください。
+        </p>
+      </div>`;
+  }
 }
 
 /* =========================================================
    RENDER — CARDS
 ========================================================= */
-function renderCards() {
-  const totalPv  = allRows.reduce((a, r) => a + r.pv, 0);
-  const totalImp = allRows.reduce((a, r) => a + r.impressions, 0);
-  const totalClk = allRows.reduce((a, r) => a + r.clicks, 0);
-  const avgCtr   = totalImp > 0 ? totalClk / totalImp : 0;
-  const totalSes = allRows.reduce((a, r) => a + r.sessions, 0);
-  const totalCop = allRows.reduce((a, r) => a + r.copies, 0);
-  const avgCvr   = totalSes > 0 ? totalCop / totalSes : 0;
+function renderCards(summary) {
+  // Use pre-computed summary from data.json when available
+  const totalPv  = summary ? summary.total_pv         : allRows.reduce((a, r) => a + r.pv, 0);
+  const totalImp = summary ? summary.total_impressions : allRows.reduce((a, r) => a + r.impressions, 0);
+  const avgCtr   = summary ? summary.avg_ctr           : (() => {
+    const clk = allRows.reduce((a,r)=>a+r.clicks,0);
+    return totalImp > 0 ? clk/totalImp : 0;
+  })();
+  const avgCvr   = summary ? summary.avg_cvr           : (() => {
+    const ses = allRows.reduce((a,r)=>a+r.sessions,0);
+    const cop = allRows.reduce((a,r)=>a+r.copies,0);
+    return ses > 0 ? cop/ses : 0;
+  })();
 
-  document.getElementById('card-pv').textContent   = fmtNum(totalPv);
-  document.getElementById('card-imp').textContent  = fmtNum(totalImp);
-  document.getElementById('card-ctr').textContent  = fmtPct(avgCtr);
-  document.getElementById('card-cvr').textContent  = fmtPct(avgCvr);
+  document.getElementById('card-pv').textContent  = fmtNum(totalPv);
+  document.getElementById('card-imp').textContent = fmtNum(totalImp);
+  document.getElementById('card-ctr').textContent = fmtPct(avgCtr);
+  document.getElementById('card-cvr').textContent = fmtPct(avgCvr);
 }
 
 /* =========================================================
@@ -613,7 +388,7 @@ function renderTable() {
     const isMain = r.path === '/';
     const cvrCls = r.cvr >= 0.05 ? 'good' : r.cvr >= 0.01 ? 'warn' : '';
     const ctrCls = r.ctr >= 0.05 ? 'good' : r.ctr >= 0.01 ? 'warn' : '';
-    const fullUrl = CFG.gsc.replace(/\/$/, '') + (r.path === '/' ? '' : r.path);
+    const fullUrl = BASE_URL + (r.path === '/' ? '' : r.path);
     return `<tr>
       <td class="url-cell">
         ${isMain ? '<span class="badge badge-main">メインLP</span> ' : ''}
@@ -731,24 +506,7 @@ function showToast(msg, type = '') {
 /* =========================================================
    INIT
 ========================================================= */
-window.addEventListener('load', () => {
-  loadConfig();
-  if (CFG.oauth && CFG.ga4) {
-    document.getElementById('cfg-oauth').value = CFG.oauth;
-    document.getElementById('cfg-ga4').value   = CFG.ga4;
-    document.getElementById('cfg-gsc').value   = CFG.gsc || 'https://sellersprite.blog/';
-  }
-  // Auto-login if config is saved
-  if (CFG.oauth && CFG.ga4) {
-    // Wait for GIS to load, then auto-init
-    const waitGIS = setInterval(() => {
-      if (window.google && google.accounts) {
-        clearInterval(waitGIS);
-        initGIS();
-      }
-    }, 200);
-  }
-});
+window.addEventListener('load', () => refreshData());
 </script>
 </body>
 </html>
