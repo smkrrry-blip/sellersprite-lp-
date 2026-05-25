@@ -31,10 +31,12 @@
   "@context": "https://schema.org",
   "@type": "Article",
   "headline": "ブランドアナリティクスでデータ分析して売上を伸ばす方法",
-  "description": "ブランドアナリティクスでデータ分析して売上を伸ばす方法を徹底解説。検索頻度ランク、デモグラフィクス、繰り返し購買分析、セラースプライトとの連携まで実践的に紹介します。",
+  "description": "ブランドアナリティクスでデータ分析して売上を伸ばす方法を、鬼束壮一が自身の失敗と転機を交えて解説。検索頻度ランク、デモグラフィクス、繰り返し購買分析、セラースプライトとの連携まで実践的に紹介します。",
+  "image": "https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg",
   "author": {
     "@type": "Person",
     "name": "鬼束壮一",
+    "image": "https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg",
     "affiliation": "セラースプライト公式代理店"
   },
   "publisher": {
@@ -43,7 +45,7 @@
     "url": "https://sellersprite.blog/"
   },
   "datePublished": "2026-04-19",
-  "dateModified": "2026-04-19",
+  "dateModified": "2026-05-25",
   "url": "https://sellersprite.blog/amazon-brand-analytics.html"
 }
 </script>
@@ -126,6 +128,68 @@
 .ng-list{list-style:none;margin:20px 0;}
 .ng-list li{padding:12px 16px 12px 48px;position:relative;background:#fff5f5;border-radius:8px;margin-bottom:10px;font-size:14px;color:#444;line-height:1.8;}
 .ng-list li::before{content:"✕";position:absolute;left:16px;top:12px;color:#e74c3c;font-weight:bold;font-size:16px;}
+/* Author byline (hero) */
+.author-byline{display:flex;align-items:center;gap:10px;margin:18px 0 22px;padding:8px 14px 8px 8px;background:#fff;border-radius:50px;border:1px solid #f0ede8;width:fit-content;box-shadow:0 2px 8px rgba(0,0,0,0.04);}
+.author-byline img{width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid #FB8C1E;}
+.author-byline-text{font-size:13px;line-height:1.3;}
+.author-byline-name{font-weight:700;color:#1a1a1a;}
+.author-byline-role{font-size:11px;color:#888;}
+/* Hero illustration */
+.hero-grid{display:grid;grid-template-columns:1.4fr 1fr;gap:32px;align-items:center;}
+@media(max-width:720px){.hero-grid{grid-template-columns:1fr;}.hero-visual{order:-1;max-width:260px;margin:0 auto;}}
+.hero-visual{width:100%;}
+/* Voice opening (dark) */
+.voice-open{background:#1a1a1a;color:#fff;padding:56px 24px;}
+.voice-open-inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:120px 1fr;gap:28px;align-items:start;}
+@media(max-width:600px){.voice-open-inner{grid-template-columns:1fr;text-align:center;}.voice-open-photo{margin:0 auto;}}
+.voice-open-photo{width:120px;height:120px;border-radius:50%;object-fit:cover;border:3px solid #FB8C1E;}
+.voice-open-text{font-size:15px;line-height:2;color:#e8e6e2;}
+.voice-open-text p{margin-bottom:14px;}
+.voice-open-text p:last-child{margin-bottom:0;}
+.voice-open-text strong{color:#FFC58C;font-weight:600;}
+.voice-open-sign{display:inline-block;margin-top:8px;font-size:13px;color:#FB8C1E;letter-spacing:1px;}
+/* Section number icon */
+.section-num{display:inline-flex;align-items:center;justify-content:center;width:44px;height:44px;background:linear-gradient(135deg,#FB8C1E,#f57c00);color:#fff;border-radius:12px;margin-bottom:14px;box-shadow:0 4px 16px rgba(251,140,30,0.3);}
+.section-num svg{width:24px;height:24px;}
+/* Em-box icon head */
+.em-box-head{display:flex;align-items:center;gap:8px;font-weight:700;color:#1a1a1a;margin-bottom:10px;font-size:15px;}
+.em-box-head svg{width:20px;height:20px;color:#FB8C1E;flex-shrink:0;}
+.em-box ul{list-style:none;padding:0;margin:0;}
+.em-box ul li{padding:6px 0 6px 22px;position:relative;font-size:14.5px;}
+.em-box ul li::before{content:"";position:absolute;left:0;top:14px;width:12px;height:2px;background:#FB8C1E;border-radius:2px;}
+/* Feature card icon */
+.feature-card{transition:transform 0.2s,box-shadow 0.2s;}
+.feature-card:hover{transform:translateY(-2px);box-shadow:0 8px 24px rgba(0,0,0,0.06);}
+.feature-card-icon{width:40px;height:40px;background:#fff5eb;border-radius:10px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;color:#FB8C1E;}
+.feature-card-icon svg{width:22px;height:22px;}
+/* Voice block (inline quote) */
+.voice-block{background:#fffaf5;border:1px solid #ffe2bf;border-radius:12px;padding:22px 24px;margin:28px 0;}
+.voice-block-head{display:flex;align-items:center;gap:10px;margin-bottom:12px;}
+.voice-block-head img{width:32px;height:32px;border-radius:50%;object-fit:cover;border:2px solid #FB8C1E;}
+.voice-block-head span{font-size:12px;color:#888;font-weight:600;}
+.voice-block-head span strong{color:#1a1a1a;}
+.voice-block p{font-size:14.5px;color:#444;line-height:1.95;margin:0;font-style:italic;}
+/* Flow diagram */
+.flow-diagram{background:#fff;border:1px solid #f0ede8;border-radius:14px;padding:32px 24px;margin:28px 0;}
+.flow-title{font-size:12px;font-weight:700;color:#888;text-align:center;letter-spacing:2px;margin-bottom:22px;}
+.flow-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:0;}
+@media(max-width:680px){.flow-steps{grid-template-columns:1fr;gap:12px;}.flow-steps .flow-arrow{display:none;}}
+.flow-step{text-align:center;padding:0 6px;position:relative;}
+.flow-step-num{width:44px;height:44px;background:linear-gradient(135deg,#FB8C1E,#f57c00);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;margin:0 auto 12px;box-shadow:0 4px 14px rgba(251,140,30,0.35);}
+.flow-step-text{font-size:12.5px;color:#444;font-weight:600;line-height:1.5;}
+.flow-arrow{position:absolute;top:18px;right:-12px;color:#fddbb5;font-size:18px;font-weight:bold;}
+/* Author message block */
+.author-msg{background:linear-gradient(135deg,#1a1a1a 0%,#2d2620 100%);color:#fff;padding:60px 24px;}
+.author-msg-inner{max-width:760px;margin:0 auto;}
+.author-msg-card{display:grid;grid-template-columns:140px 1fr;gap:32px;align-items:center;}
+@media(max-width:600px){.author-msg-card{grid-template-columns:1fr;text-align:center;}.author-msg-photo{margin:0 auto;}}
+.author-msg-photo{width:140px;height:140px;border-radius:50%;object-fit:cover;border:4px solid #FB8C1E;box-shadow:0 8px 30px rgba(251,140,30,0.3);}
+.author-msg-label{font-size:11px;color:#FB8C1E;letter-spacing:2px;font-weight:700;margin-bottom:10px;}
+.author-msg-name{font-size:24px;font-weight:800;color:#fff;margin-bottom:6px;}
+.author-msg-role{font-size:13px;color:#aaa;margin-bottom:14px;}
+.author-msg-text{font-size:14.5px;color:#e8e6e2;line-height:1.95;}
+/* CTA button arrow */
+.btn-arrow{display:inline-block;margin-left:6px;}
 </style>
 </head>
 <body>
@@ -145,112 +209,244 @@
 <!-- Hero -->
 <section class="hero">
   <div class="hero-inner">
-    <span class="hero-sub">2026年最新版</span>
-    <h1>ブランドアナリティクスで<em>データ分析</em>して<br>売上を伸ばす方法</h1>
-    <p class="hero-lead">
-      Amazonの需要データを読み解けるブランドアナリティクスは、売れる商品設計の起点になります。本記事では、使い方、検索頻度ランク、デモグラフィクス、繰り返し購買分析、そしてセラースプライトとの連携まで実践的に解説します。
-    </p>
-    <div class="coupon-block">
-      <span class="coupon-tag">30%OFF</span>
-      <span class="coupon-code" id="heroCode">CJ9852</span>
-      <button class="copy-btn" id="heroBtn" onclick="copyCode('heroBtn','CJ9852','hero')">コピー</button>
+    <div class="hero-grid">
+      <div>
+        <span class="hero-sub">2026年最新版・実体験ベース</span>
+        <h1>ブランドアナリティクスで<br><em>「売れる兆し」</em>を先に掴む</h1>
+        <div class="author-byline">
+          <img src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一">
+          <div class="author-byline-text">
+            <div class="author-byline-name">鬼束壮一</div>
+            <div class="author-byline-role">セラースプライト公式代理店</div>
+          </div>
+        </div>
+        <p class="hero-lead">
+          データだけ並べた解説記事は腐るほどある。でも本当に欲しいのは「明日からどう動くか」。<br>
+          この記事では、僕がつまずいた場所と、突破した時に見ていた順番を、そのまま公開します。
+        </p>
+        <div class="coupon-block">
+          <span class="coupon-tag">30%OFF</span>
+          <span class="coupon-code" id="heroCode">CJ9852</span>
+          <button class="copy-btn" id="heroBtn" onclick="copyCode('heroBtn','CJ9852','hero')">コピー</button>
+        </div>
+        <p class="coupon-note">※ セラースプライト公式サイトのお支払い画面でご利用ください</p>
+        <a href="https://www.sellersprite.com/jp/w/user/login" class="hero-cta-btn">セラースプライトを試す<span class="btn-arrow">→</span></a>
+        <p class="hero-assure">クレジットカード不要・無料プランあり</p>
+      </div>
+      <div class="hero-visual">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" fill="none" aria-hidden="true">
+          <defs>
+            <linearGradient id="hg1" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#FFC58C"/><stop offset="100%" stop-color="#FB8C1E"/></linearGradient>
+          </defs>
+          <circle cx="160" cy="160" r="130" fill="#fff5eb"/>
+          <rect x="60" y="170" width="32" height="80" rx="6" fill="url(#hg1)"/>
+          <rect x="104" y="140" width="32" height="110" rx="6" fill="url(#hg1)"/>
+          <rect x="148" y="100" width="32" height="150" rx="6" fill="url(#hg1)"/>
+          <rect x="192" y="120" width="32" height="130" rx="6" fill="url(#hg1)"/>
+          <rect x="236" y="80" width="32" height="170" rx="6" fill="url(#hg1)"/>
+          <path d="M76 200 L120 170 L164 130 L208 145 L252 105" stroke="#1a1a1a" stroke-width="3" fill="none" stroke-linecap="round"/>
+          <circle cx="76" cy="200" r="6" fill="#1a1a1a"/>
+          <circle cx="120" cy="170" r="6" fill="#1a1a1a"/>
+          <circle cx="164" cy="130" r="6" fill="#1a1a1a"/>
+          <circle cx="208" cy="145" r="6" fill="#1a1a1a"/>
+          <circle cx="252" cy="105" r="8" fill="#FB8C1E" stroke="#fff" stroke-width="3"/>
+        </svg>
+      </div>
     </div>
-    <p class="coupon-note">※ セラースプライト公式サイトのお支払い画面でご利用ください</p>
-    <a href="https://www.sellersprite.com/jp/w/user/login" class="hero-cta-btn">セラースプライトを試す →</a>
-    <p class="hero-assure">クレジットカード不要・無料プランあり</p>
   </div>
 </section>
 
-<!-- Section 1: ブランドアナリティクスの使い方 -->
+<!-- Voice opening (dark) -->
+<section class="voice-open">
+  <div class="voice-open-inner">
+    <img src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一" class="voice-open-photo">
+    <div class="voice-open-text">
+      <p>正直に書きます。僕も最初、ブランドアナリティクスを開いて「で？」って思った。</p>
+      <p>数字とグラフはあるのに、何をすればいいか分からない。売れない商品の前で、ただランキングを眺めていた時期がある。</p>
+      <p>変わったのは、<strong>「見る順番」</strong>を決めてからです。需要 → 顧客像 → 競合 → 反映、この4ステップに固定した瞬間、データが言葉になった。商品ページの一語一語が、お客さんの言葉に置き換わっていきました。</p>
+      <p>これから書くのは、僕がその順番に辿り着くまでに踏んだ道です。教科書じゃなくて、現場の話として読んでください。</p>
+      <span class="voice-open-sign">— 鬼束壮一</span>
+    </div>
+  </div>
+</section>
+
+<!-- Section 1 -->
 <section class="section bg-white">
   <div class="section-inner">
-    <h2>① ブランドアナリティクスの使い方</h2>
-    <p>ブランドアナリティクスは、Amazon上の検索行動や購買データをもとに、商品需要と顧客行動を可視化するための重要な分析機能です。単なる売上確認ではなく、どのキーワードが売上につながったのか、どの層が購入しているのかを把握するのに役立ちます。</p>
-    <p>まず確認すべきなのは、売れているASINだけでなく、売れ始めた瞬間の変化です。商品ページ改善、広告配分、在庫補充の判断は、後追いではなく需要の兆しを早く掴めるかで差がつきます。</p>
-    <div class="em-box">
-      <strong>ブランドアナリティクスで見るべき基本項目：</strong><br>
-      1. どの検索語句から売上が生まれたか<br>
-      2. どの顧客属性が購入しているか<br>
-      3. 何度も買われる商品かどうか<br>
-      4. 競合と比べてどこに伸びしろがあるか
+    <div class="section-num">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
     </div>
-    <p>この4つを押さえるだけでも、商品ページの訴求、広告キーワード、価格設計の精度が大きく変わります。データを見る目的を「確認」ではなく「意思決定」に置くことが重要です。</p>
+    <h2>ブランドアナリティクスは「答え合わせ」ではなく「兆しを掴む道具」</h2>
+    <p>多くの人が、ブランドアナリティクスを売上の確認画面として使っています。でも本当の価値は、過去の確認じゃなくて、<strong>売れ始める瞬間の変化を一番早く検知できる</strong>ところにあります。</p>
+    <p>商品ページ改善、広告配分、在庫補充。この3つの判断は、後追いになるほど効率が落ちます。需要の兆しを誰よりも早く掴めるかが、結局のところ売上の伸びを決めるんです。</p>
+    <div class="em-box">
+      <div class="em-box-head">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        ブランドアナリティクスで見るべき4つの基本
+      </div>
+      <ul>
+        <li>どの検索語句から売上が生まれたか</li>
+        <li>どの顧客属性が購入しているか</li>
+        <li>何度も買われる商品かどうか</li>
+        <li>競合と比べてどこに伸びしろがあるか</li>
+      </ul>
+    </div>
+    <p>この4つを押さえるだけで、商品ページの訴求も、広告キーワードも、価格設計も、全部精度が変わります。データを見る目的を「確認」から「<strong>意思決定</strong>」に置き換えてください。それだけで景色が変わります。</p>
   </div>
 </section>
 
-<!-- Section 2: 検索頻度ランク -->
+<!-- Section 2 -->
 <section class="section bg-gray">
   <div class="section-inner">
-    <h2>② 検索頻度ランクを売れるキーワード選定に活かす</h2>
-    <p>検索頻度ランクは、顧客がどのキーワードをどれだけ探しているかを相対的に把握するための指標です。需要の大きいテーマを優先して取りに行くことで、無駄な広告配信を減らしながら売上機会を広げられます。</p>
+    <div class="section-num">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+    </div>
+    <h2>検索頻度ランクは「顧客の言葉」を教えてくれる地図</h2>
+    <p>検索頻度ランクは、顧客がどのキーワードをどれだけ探しているかを相対的に見るための指標です。でも僕がここを使い始めて気づいたのは、<strong>これは需要の地図というより、お客さんの語彙集だ</strong>ということでした。</p>
+    <p>自分が当たり前に使っている商品名は、お客さんの検索窓には登場していないことがある。逆に、自分が想定していなかった表現で大きな需要が動いていたりする。そのズレを埋めるだけで、自然検索と広告の両方が動き始めます。</p>
     <div class="feature-grid">
       <div class="feature-card">
+        <div class="feature-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>
+        </div>
         <h3>需要の強い語句を優先</h3>
-        <p>上位ランクのキーワードは、商品名・箇条書き・広告の優先候補にします。まずは大きい需要を取りに行くのが基本です。</p>
+        <p>上位ランクのキーワードは、商品名・箇条書き・広告の優先候補に。まずは大きい需要を取りに行く。</p>
       </div>
       <div class="feature-card">
+        <div class="feature-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14"/></svg>
+        </div>
         <h3>ロングテールも拾う</h3>
-        <p>競争が激しい大語よりも、意図が明確な複合語の方がCVRが高いことがあります。補助キーワードの精査が重要です。</p>
+        <p>大語よりも、意図が明確な複合語の方がCVRが高いことが多い。補助キーワードの精査が要。</p>
       </div>
       <div class="feature-card">
+        <div class="feature-card-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        </div>
         <h3>季節変動を読む</h3>
-        <p>ランクの変化を月単位で追うと、繁忙期やトレンドの波が見えます。在庫と広告予算の前倒し調整に使えます。</p>
+        <p>月単位で追うと、繁忙期やトレンドの波が見える。在庫と広告予算の前倒し調整に直結。</p>
       </div>
     </div>
-    <p>検索頻度ランクを使うと、なんとなく選んだキーワードではなく、実際に顧客が探している言葉に寄せた設計ができます。これはSEOと広告の両方に効く、最も費用対効果の高い改善ポイントです。</p>
+    <div class="voice-block">
+      <div class="voice-block-head">
+        <img src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一">
+        <span><strong>鬼束壮一</strong>のひとこと</span>
+      </div>
+      <p>「自分が呼んでる商品名」と「お客さんが探してる言葉」は、9割の人がズレてます。僕も最初ズレてた。検索頻度ランクで答え合わせするまで、永遠に売れない商品ページを書き続けてた。</p>
+    </div>
   </div>
 </section>
 
-<!-- Section 3: デモグラフィクス -->
+<!-- Section 3 -->
 <section class="section bg-white">
   <div class="section-inner">
-    <h2>③ デモグラフィクスで購入者像を具体化する</h2>
-    <p>デモグラフィクス分析では、年齢層、性別、世帯属性、購買パターンなどの傾向を把握できます。商品が「誰に売れているか」が分かると、訴求軸の優先順位を誤りにくくなります。</p>
-    <div class="em-box">
-      <strong>デモグラフィクスで見るべきポイント：</strong><br>
-      ・想定ターゲットと実際の購入者のズレ<br>
-      ・年齢帯ごとの購買傾向<br>
-      ・性別による訴求反応の違い<br>
-      ・ファミリー層、単身層などの購買文脈
+    <div class="section-num">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
     </div>
-    <p>たとえば、20代向けに見せていた商品が実際には30代の購入比率が高いなら、画像・コピー・FAQの作り方を見直すべきです。属性データは広告のクリック率よりも深い、商品そのものの適合性を示します。</p>
-    <p>この分析を行うことで、見込み客に合わせた表現へ調整でき、ページ滞在時間やCVRの改善につながります。訴求と実購入者の一致は、長期的なレビュー品質にも影響します。</p>
+    <h2>デモグラフィクスで「売れている本当の相手」を知る</h2>
+    <p>デモグラフィクスは、年齢層、性別、世帯属性、購買パターンを見せてくれます。ここで何度も僕が体験したのは、<strong>「想定ターゲットと実際の購入者が全然違う」</strong>という気づきでした。</p>
+    <p>20代向けに作ったつもりの商品が、実は30代後半に売れていた。男性向けに振っていたコピーが、購入者は女性が多かった。こういうズレに気付かないまま広告を打ち続けると、お金が燃えるだけです。</p>
+    <div class="em-box">
+      <div class="em-box-head">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+        デモグラで見るべきポイント
+      </div>
+      <ul>
+        <li>想定ターゲットと実際の購入者のズレ</li>
+        <li>年齢帯ごとの購買傾向</li>
+        <li>性別による訴求反応の違い</li>
+        <li>ファミリー層・単身層などの購買文脈</li>
+      </ul>
+    </div>
+    <p>属性データは、クリック率より深い「<strong>商品そのものの適合性</strong>」を映し出します。誰に売れているかが分かれば、画像・コピー・FAQの作り方は自動的に決まる。逆に言うと、ここを見ないで作ったコンテンツはほぼ全部ハズレます。</p>
   </div>
 </section>
 
-<!-- Section 4: 繰り返し購買分析 -->
+<!-- Section 4 -->
 <section class="section bg-gray">
   <div class="section-inner">
-    <h2>④ 繰り返し購買分析でLTVを伸ばす</h2>
-    <p>繰り返し購買分析は、一度買って終わりの商品ではなく、再購入が起こる商品特性を把握するための重要な視点です。リピートが発生する商品は、広告効率だけでなく、利益の安定性にも直結します。</p>
-    <p>単発購入が多い商品と、定期的に買い直される商品では、勝ち筋が異なります。前者は初回転換率を、後者は継続購入率や関連商品のクロスセルを重視するべきです。</p>
-    <div class="em-box">
-      <strong>繰り返し購買分析で分かること：</strong><br>
-      1. リピートされやすい商品カテゴリ<br>
-      2. 再購入までの期間の目安<br>
-      3. まとめ買い・定期購入の可能性<br>
-      4. 継続率を高めるための改善点
+    <div class="section-num">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
     </div>
-    <p>このデータを見れば、初回購入を取るだけの施策ではなく、顧客を長く удержえる設計に移れます。レビューが安定しやすい商品ほど、LTVを意識した運用の価値が高まります。</p>
+    <h2>繰り返し購買分析でLTVを掘り起こす</h2>
+    <p>一度買って終わりの商品ばかり追いかけていると、広告費の天井がすぐ来ます。本当に強い事業は、<strong>「同じ人が何度も買ってくれる商品」</strong>を中心に組み立てられています。</p>
+    <p>繰り返し購買分析で見えるのは、その商品が消耗品的に再購入されているのか、まとめ買いされているのか、ギフト用途で動いているのか。文脈が違えば、戦い方も変わります。</p>
+    <div class="em-box">
+      <div class="em-box-head">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+        繰り返し購買分析で分かること
+      </div>
+      <ul>
+        <li>リピートされやすい商品カテゴリ</li>
+        <li>再購入までの期間の目安</li>
+        <li>まとめ買い・定期購入の可能性</li>
+        <li>継続率を高めるための改善点</li>
+      </ul>
+    </div>
+    <p>初回購入を取るだけの施策では、いつまでも疲れます。同じ人をどう留めるか、関連商品をどう繋ぐか。<strong>LTV視点に切り替えた瞬間、広告ROIの考え方が全部ひっくり返ります。</strong></p>
   </div>
 </section>
 
-<!-- Section 5: セラースプライトとの連携 -->
+<!-- Section 5 -->
 <section class="section bg-white">
   <div class="section-inner">
-    <h2>⑤ セラースプライトとの連携で分析を実務に落とし込む</h2>
-    <p>ブランドアナリティクスで「需要」を確認し、セラースプライトで「競合」と「キーワード」を深掘りすると、実行可能な施策に変換しやすくなります。片方だけでは見えない判断材料を、両方の視点で補完できます。</p>
-    <p>たとえば、検索頻度ランクで需要の高い語句を見つけたあと、その語句でどの競合が強いか、レビュー評価がどう分かれているかをセラースプライトで確認します。その上で、商品ページの見出し、画像、箇条書き、広告文を調整します。</p>
-    <div class="em-box">
-      <strong>連携の実務フロー：</strong><br>
-      ・ブランドアナリティクスで需要を確認<br>
-      ・セラースプライトで競合とレビューを分析<br>
-      ・高需要・高意図キーワードを抽出<br>
-      ・商品ページと広告に反映<br>
-      ・結果を再度データで検証
+    <div class="section-num">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
     </div>
-    <p>この流れを回せると、感覚的な運用から脱却できます。売上が伸びる商品は、たいてい「需要を見る」「競合を見る」「反映する」の3点が一貫しています。セラースプライトはその実行を速く、具体的にするための補助線になります。</p>
-    <p>今なら割引コード <strong style="color:#FB8C1E;">CJ9852</strong> を使うと30%OFFで利用開始できます。</p>
+    <h2>セラースプライトとの併用で「実行可能な施策」に変える</h2>
+    <p>ブランドアナリティクスは「需要」を映し出します。でも、需要だけ見ても勝てません。<strong>需要 × 競合 × キーワード</strong>の3点が揃って、初めて施策に落ちます。ここをセラースプライトで埋めます。</p>
+    <p>例えば検索頻度ランクで需要の高い語句を見つけたあと、その語句でどの競合が強いか、レビュー評価がどう分かれているか、隙間がどこにあるかをセラースプライトで深掘りする。そこから商品ページの見出し・画像・箇条書き・広告文を組み直す。これが僕の標準フローです。</p>
+
+    <div class="flow-diagram">
+      <div class="flow-title">需要把握から実行までの5ステップ</div>
+      <div class="flow-steps">
+        <div class="flow-step">
+          <div class="flow-step-num">1</div>
+          <div class="flow-step-text">ブランド<br>アナリティクスで<br>需要を確認</div>
+          <span class="flow-arrow">→</span>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">2</div>
+          <div class="flow-step-text">セラースプライトで<br>競合・レビュー<br>分析</div>
+          <span class="flow-arrow">→</span>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">3</div>
+          <div class="flow-step-text">高需要・<br>高意図キーワード<br>抽出</div>
+          <span class="flow-arrow">→</span>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">4</div>
+          <div class="flow-step-text">商品ページと<br>広告に反映</div>
+          <span class="flow-arrow">→</span>
+        </div>
+        <div class="flow-step">
+          <div class="flow-step-num">5</div>
+          <div class="flow-step-text">データで<br>再検証</div>
+        </div>
+      </div>
+    </div>
+
+    <p>感覚運用から脱却できるかは、この5ステップを習慣化できるかにかかっています。今なら割引コード <strong style="color:#FB8C1E;">CJ9852</strong> でセラースプライトを30%OFFで使い始められます。</p>
+  </div>
+</section>
+
+<!-- Author message -->
+<section class="author-msg">
+  <div class="author-msg-inner">
+    <div class="author-msg-card">
+      <img src="https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg" alt="鬼束壮一" class="author-msg-photo">
+      <div>
+        <div class="author-msg-label">MESSAGE</div>
+        <div class="author-msg-name">鬼束壮一</div>
+        <div class="author-msg-role">セラースプライト公式代理店</div>
+        <p class="author-msg-text">
+          データはツールでしかありません。読む順番と、読んだあとの動き方を決めないと、ただの数字遊びで終わります。<br>
+          僕が今でも毎日見ているのは、需要 → 顧客 → 競合 → 反映 → 検証の5周。これを回すだけで、商品は確実に変わっていきます。<br>
+          もし手が止まっているなら、まず1商品でいいので、この順番で回してみてください。きっと景色が変わります。
+        </p>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -286,15 +482,15 @@
 <!-- CTA Section -->
 <section class="cta-section">
   <div class="cta-inner">
-    <p class="cta-title">データ分析で<em>売上の伸びしろ</em>を掘り起こす</p>
-    <p class="cta-lead">ブランドアナリティクスの視点にセラースプライトを組み合わせることで、需要把握から実行までを一気通貫で進められます。公式代理店限定コードで30%OFFでスタートできます。</p>
+    <p class="cta-title">データを<em>動きに変える</em>のは、今日から</p>
+    <p class="cta-lead">ブランドアナリティクスの需要把握に、セラースプライトの競合・キーワード分析を重ねるだけで、施策の精度は跳ね上がります。公式代理店限定の30%OFFコードで、最短コストで始められます。</p>
     <div class="coupon-block" style="margin-bottom:20px;">
       <span class="coupon-tag">30%OFF</span>
       <span class="coupon-code" id="ctaCode">CJ9852</span>
       <button class="copy-btn" id="ctaBtn" onclick="copyCode('ctaBtn','CJ9852','cta')">コピー</button>
     </div>
     <br>
-    <a href="https://www.sellersprite.com/jp/w/user/login" class="cta-main-btn">セラースプライトで分析を始める →</a>
+    <a href="https://www.sellersprite.com/jp/w/user/login" class="cta-main-btn">セラースプライトで分析を始める<span class="btn-arrow">→</span></a>
     <p class="cta-sub">著者：鬼束壮一（セラースプライト公式代理店）</p>
   </div>
 </section>
