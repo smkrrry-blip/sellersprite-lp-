@@ -1,0 +1,557 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🍎 果物ビジネス管理システム</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Hiragino Sans', sans-serif; background: #f5f5f0; color: #333; }
+  header { background: #2d6a4f; color: white; padding: 20px 16px 16px; text-align: center; }
+  header h1 { font-size: 22px; margin-bottom: 4px; }
+  header p { font-size: 13px; opacity: 0.85; }
+  .tab-nav { display: flex; background: #1b4332; overflow-x: auto; }
+  .tab-btn { flex: 1; min-width: 80px; padding: 12px 8px; color: rgba(255,255,255,0.7); font-size: 12px; text-align: center; cursor: pointer; border: none; background: none; white-space: nowrap; }
+  .tab-btn.active { color: white; border-bottom: 3px solid #52b788; font-weight: bold; }
+  .tab-content { display: none; padding: 16px; max-width: 800px; margin: 0 auto; }
+  .tab-content.active { display: block; }
+  h2 { font-size: 17px; color: #1b4332; margin: 20px 0 10px; border-left: 4px solid #52b788; padding-left: 10px; }
+  h3 { font-size: 15px; color: #2d6a4f; margin: 16px 0 8px; }
+  p { font-size: 14px; line-height: 1.7; margin-bottom: 10px; }
+  .step { background: white; border-radius: 12px; padding: 16px; margin-bottom: 14px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .step-num { display: inline-block; background: #2d6a4f; color: white; border-radius: 50%; width: 26px; height: 26px; line-height: 26px; text-align: center; font-size: 13px; font-weight: bold; margin-right: 8px; }
+  .step-title { font-size: 15px; font-weight: bold; color: #1b4332; }
+  ol, ul { padding-left: 20px; font-size: 14px; line-height: 1.9; }
+  code { background: #e8f4e8; color: #1b4332; padding: 2px 6px; border-radius: 4px; font-size: 13px; font-family: 'Courier New', monospace; }
+  .code-block { position: relative; background: #1a1a2e; color: #a8d8a8; padding: 14px; border-radius: 10px; margin: 10px 0; font-size: 13px; font-family: 'Courier New', monospace; line-height: 1.6; overflow-x: auto; white-space: pre; }
+  .copy-btn { position: absolute; top: 8px; right: 8px; background: #52b788; color: white; border: none; border-radius: 6px; padding: 4px 10px; font-size: 11px; cursor: pointer; }
+  .copy-btn:active { background: #2d6a4f; }
+  .format-card { background: white; border-radius: 12px; padding: 14px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  .format-label { font-size: 12px; color: #888; margin-bottom: 6px; }
+  .format-example { background: #f0faf4; border-left: 3px solid #52b788; padding: 8px 12px; border-radius: 0 8px 8px 0; font-size: 14px; margin: 4px 0; font-family: 'Courier New', monospace; }
+  .badge { display: inline-block; font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: bold; margin-left: 6px; }
+  .badge.green { background: #d1fae5; color: #065f46; }
+  .badge.yellow { background: #fef3c7; color: #92400e; }
+  .badge.blue { background: #dbeafe; color: #1e40af; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; margin: 10px 0; }
+  th { background: #2d6a4f; color: white; padding: 8px; text-align: left; }
+  td { padding: 8px; border-bottom: 1px solid #e5e5e5; }
+  tr:nth-child(even) { background: #f9fafb; }
+  .notice { background: #fef9c3; border: 1px solid #fde68a; border-radius: 8px; padding: 12px; font-size: 13px; margin: 10px 0; }
+  .success { background: #d1fae5; border: 1px solid #6ee7b7; border-radius: 8px; padding: 12px; font-size: 13px; margin: 10px 0; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🍎 果物ビジネス管理システム</h1>
+  <p>Telegram → Googleスプレッドシート 自動記録</p>
+</header>
+
+<div class="tab-nav">
+  <button class="tab-btn active" onclick="showTab('setup')">📋 セットアップ</button>
+  <button class="tab-btn" onclick="showTab('usage')">📱 使い方</button>
+  <button class="tab-btn" onclick="showTab('code1')">💻 Code.gs</button>
+  <button class="tab-btn" onclick="showTab('code2')">📊 SetupSheets.gs</button>
+</div>
+
+<!-- ======== セットアップ ======== -->
+<div id="tab-setup" class="tab-content active">
+
+  <h2>必要なもの</h2>
+  <div class="step">
+    <ul>
+      <li>Telegramアカウント（iPhoneにインストール済み）</li>
+      <li>Googleアカウント（Gmailで使用中のもの）</li>
+      <li>所要時間：約20〜30分（初回のみ）</li>
+    </ul>
+  </div>
+
+  <h2>STEP 1：Telegramボットを作る</h2>
+  <div class="step">
+    <ol>
+      <li>TelegramでBotFatherを検索 → <code>@BotFather</code></li>
+      <li><code>/newbot</code> と送信</li>
+      <li>ボット名を入力（例：<code>Fruit Business Bot</code>）</li>
+      <li>ユーザー名を入力（例：<code>myfruit_bot</code>）※末尾は <code>bot</code> が必須</li>
+      <li>表示される <strong>トークン</strong>（長い文字列）をメモ帳にコピーして保管</li>
+    </ol>
+  </div>
+
+  <h2>STEP 2：チャンネルを3つ作る</h2>
+  <div class="step">
+    <p>iPhone Telegramで：右上の✏️ → 「新しいチャンネル」</p>
+    <table>
+      <tr><th>チャンネル名</th><th>用途</th></tr>
+      <tr><td>🍎 仕入れ</td><td>市場での仕入れを記録</td></tr>
+      <tr><td>💰 売上</td><td>注文が来たら記録</td></tr>
+      <tr><td>💸 経費</td><td>充電代・梱包材などを記録</td></tr>
+    </table>
+    <p>種類は「プライベート」でOKです。</p>
+  </div>
+
+  <h2>STEP 3：ボットをチャンネルに追加する</h2>
+  <div class="step">
+    <ol>
+      <li>各チャンネルを開く → チャンネル名をタップ</li>
+      <li>「管理者を追加」</li>
+      <li>作ったボット名を検索して追加</li>
+      <li>3つのチャンネル全部に追加する</li>
+    </ol>
+  </div>
+
+  <h2>STEP 4：Googleスプレッドシートを作る</h2>
+  <div class="step">
+    <ol>
+      <li><a href="https://sheets.google.com" style="color:#2d6a4f;">sheets.google.com</a> にアクセス</li>
+      <li>「+」で新しいシートを作成</li>
+      <li>URLの <code>/d/</code> のあとの文字列が <strong>スプレッドシートID</strong></li>
+    </ol>
+    <p style="font-size:12px;color:#888;">例：...spreadsheets/d/<strong style="color:#1b4332;">1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms</strong>/edit</p>
+  </div>
+
+  <h2>STEP 5：Google Apps Scriptにコードを貼る</h2>
+  <div class="step">
+    <ol>
+      <li>スプレッドシートを開く</li>
+      <li>「拡張機能」→「Apps Script」</li>
+      <li>最初のコードを全部削除</li>
+      <li>上の「💻 Code.gs」タブのコードをコピーして貼り付け</li>
+      <li>「＋」で新しいファイルを追加 → 名前 <code>SetupSheets</code></li>
+      <li>「📊 SetupSheets.gs」タブのコードをコピーして貼り付け</li>
+    </ol>
+  </div>
+
+  <h2>STEP 6：設定を書き換える</h2>
+  <div class="step">
+    <p>Code.gsの一番上の <code>CONFIG</code> を書き換えます：</p>
+    <ul>
+      <li><code>BOT_TOKEN</code>：STEP1で取得したトークン</li>
+      <li><code>SPREADSHEET_ID</code>：STEP4で確認したID</li>
+      <li><code>CHANNEL</code>：あとで埋める（STEP9で確認）</li>
+    </ul>
+  </div>
+
+  <h2>STEP 7：シートを自動作成する</h2>
+  <div class="step">
+    <ol>
+      <li>Apps Scriptの画面で、上部ドロップダウンから <code>setupAllSheets</code> を選択</li>
+      <li>「▶ 実行」をクリック</li>
+      <li>権限許可画面 → 「許可」→ Googleアカウントでログイン → 「詳細」→「安全でないページへ移動」→「許可」</li>
+      <li>スプレッドシートに戻ると5つのシートが作られている</li>
+    </ol>
+  </div>
+
+  <h2>STEP 8：Webhookを登録する</h2>
+  <div class="step">
+    <ol>
+      <li>「デプロイ」→「新しいデプロイ」</li>
+      <li>「種類を選択」→「ウェブアプリ」</li>
+      <li>「アクセスできるユーザー」→ <strong>全員</strong></li>
+      <li>「デプロイ」→ 表示された<strong>URLをコピー</strong></li>
+      <li>ドロップダウンで <code>setWebhook</code> を選択 → 「▶ 実行」</li>
+      <li>ログに <code>{"ok":true}</code> が出ればOK</li>
+    </ol>
+  </div>
+
+  <h2>STEP 9：チャンネルIDを確認する</h2>
+  <div class="step">
+    <ol>
+      <li>各チャンネルで何かメッセージを送信する</li>
+      <li><code>getUpdates</code> を実行 → ログに表示されるJSONを確認</li>
+      <li><code>"chat":{"id":</code> の数字（例：<code>-1001234567890</code>）がチャンネルID</li>
+      <li>Code.gsの <code>CONFIG.CHANNEL</code> に3つのIDを貼り付ける</li>
+      <li>「デプロイ」→「デプロイを管理」→ 鉛筆アイコン → 「新しいバージョン」→「デプロイ」</li>
+    </ol>
+  </div>
+
+  <div class="success">
+    ✅ 動作確認：仕入れチャンネルに「マンゴー 5kg 1500」と送ってみてください。ボットが返信してスプレッドシートに記録されたら完成です！
+  </div>
+
+</div>
+
+<!-- ======== 使い方 ======== -->
+<div id="tab-usage" class="tab-content">
+
+  <h2>🍎 仕入れチャンネル</h2>
+  <div class="format-card">
+    <div class="format-label">書式：果物名 　重量kg 　金額 　[市場名]</div>
+    <div class="format-example">マンゴー 10kg 3000 中央市場</div>
+    <div class="format-example">みかん 20kg 2000</div>
+    <div class="format-example">ぶどう 5kg 4000 農家直送</div>
+  </div>
+  <p style="font-size:13px;color:#555;">→ 果物名・重量・単価(/kg)・仕入れ金額・市場名が記録されます</p>
+
+  <h2>💰 売上チャンネル</h2>
+  <div class="format-card">
+    <div class="format-label">書式：顧客名 　商品×kg 　合計金額 　支払い方法 　支払い状態</div>
+    <div class="format-example">田中花子 マンゴー×2.5 3500 PayPay 済</div>
+    <div class="format-example">山田太郎 みかん×3 マンゴー×1 2800 現金 未</div>
+    <div class="format-example">佐藤美咲 ぶどう×2 4000 振込 済</div>
+  </div>
+  <table>
+    <tr><th>支払い方法</th><td>現金 / PayPay / 振込 / 銀行</td></tr>
+    <tr><th>支払い状態</th><td>済（受け取り済み）/ 未（未払い）</td></tr>
+  </table>
+  <p style="font-size:13px;color:#555;margin-top:8px;">→ 顧客マスタも自動更新。「未」にすると未収金として管理されます</p>
+
+  <h2>💸 経費チャンネル</h2>
+  <div class="format-card">
+    <div class="format-label">書式：カテゴリ 　金額 　[メモ]</div>
+    <div class="format-example">充電 1200</div>
+    <div class="format-example">充電 800 コンビニ急速充電</div>
+    <div class="format-example">梱包資材 1500 みかん箱20枚</div>
+    <div class="format-example">市場交通費 300</div>
+  </div>
+
+  <h2>📊 ダッシュボードの見方</h2>
+  <div class="step">
+    <table>
+      <tr><th>項目</th><th>内容</th></tr>
+      <tr><td>今月の売上</td><td>今月の売上合計（自動計算）</td></tr>
+      <tr><td>今月の仕入れ</td><td>今月の仕入れコスト合計</td></tr>
+      <tr><td>今月の経費</td><td>充電・梱包材などの合計</td></tr>
+      <tr><td>今月の利益</td><td>売上 − 仕入れ − 経費（マイナスは赤表示）</td></tr>
+      <tr><td>未収金合計</td><td>「未」にした注文の合計</td></tr>
+      <tr><td>未収金リスト</td><td>未払いの顧客名と金額の一覧</td></tr>
+    </table>
+  </div>
+
+  <h2>⚠️ トラブルシューティング</h2>
+  <div class="step">
+    <table>
+      <tr><th>問題</th><th>対処</th></tr>
+      <tr><td>ボットが返信しない</td><td>setWebhookを再実行</td></tr>
+      <tr><td>シートに記録されない</td><td>チャンネルIDを再確認</td></tr>
+      <tr><td>権限エラー</td><td>Apps Scriptの権限を再度許可</td></tr>
+      <tr><td>数値がおかしい</td><td>半角数字で入力（全角NG）</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<!-- ======== Code.gs ======== -->
+<div id="tab-code1" class="tab-content">
+  <div class="notice">このコードをGoogle Apps Scriptの「コード.gs」に貼り付けてください</div>
+  <div style="position:relative;">
+    <button class="copy-btn" onclick="copyCode('code1text')">コピー</button>
+    <div class="code-block" id="code1text">// ============================================================
+//  🍎 果物ビジネス管理ボット — Google Apps Script
+//  Telegram → Googleスプレッドシート 自動記録システム
+// ============================================================
+
+// ── 設定（初回セットアップ時にここを書き換えてください） ──────────
+const CONFIG = {
+  BOT_TOKEN: 'YOUR_BOT_TOKEN_HERE',       // BotFatherから取得
+  SPREADSHEET_ID: 'YOUR_SPREADSHEET_ID',  // スプレッドシートのID
+
+  // 各チャンネルのID（ボットをチャンネルに追加後、下記getChannelId()で確認）
+  CHANNEL: {
+    仕入れ: 'CHANNEL_ID_仕入れ',
+    売上:   'CHANNEL_ID_売上',
+    経費:   'CHANNEL_ID_経費',
+  }
+};
+// ─────────────────────────────────────────────────────────────
+
+// ── メインハンドラ ─────────────────────────────────────────────
+function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    const message = data.message || data.channel_post;
+    if (!message || !message.text) return;
+
+    const chatId  = String(message.chat.id);
+    const text    = message.text.trim();
+    const date    = new Date();
+    const ss      = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+
+    let reply = '';
+
+    if (chatId === CONFIG.CHANNEL.仕入れ) {
+      reply = handlePurchase(ss, text, date);
+    } else if (chatId === CONFIG.CHANNEL.売上) {
+      reply = handleSale(ss, text, date);
+    } else if (chatId === CONFIG.CHANNEL.経費) {
+      reply = handleExpense(ss, text, date);
+    } else {
+      reply = `このチャットのID: ${chatId}`;
+    }
+
+    sendMessage(chatId, reply);
+  } catch (err) {
+    Logger.log('Error: ' + err.message);
+  }
+}
+
+// ── 仕入れ記録 ────────────────────────────────────────────────
+function handlePurchase(ss, text, date) {
+  const parts = text.split(/\s+/);
+  if (parts.length < 3) {
+    return '❌ 形式エラー\n例: マンゴー 10kg 1500 中央市場';
+  }
+  const fruit     = parts[0];
+  const kg        = parseFloat(parts[1].replace(/kg/i, ''));
+  const price     = parseFloat(parts[2].replace(/[,円]/g, ''));
+  const market    = parts[3] || '';
+  const unitPrice = Math.round(price / kg);
+
+  if (isNaN(kg) || isNaN(price)) {
+    return '❌ 数値を正しく入力してください。\n例: マンゴー 10kg 1500';
+  }
+
+  const sheet = ss.getSheetByName('仕入れ');
+  sheet.appendRow([formatDate(date), fruit, kg, unitPrice, price, market]);
+
+  return ['✅ 仕入れ記録完了', `${fruit}  ${kg}kg`,
+    `単価: ¥${unitPrice.toLocaleString()}/kg`,
+    `合計: ¥${price.toLocaleString()}`,
+    market ? `市場: ${market}` : ''].filter(Boolean).join('\n');
+}
+
+// ── 売上記録 ──────────────────────────────────────────────────
+function handleSale(ss, text, date) {
+  const parts = text.split(/\s+/);
+  if (parts.length < 4) {
+    return '❌ 形式エラー\n例: 田中花子 マンゴー×2.5 みかん×1 3500 PayPay 済';
+  }
+  const customerName = parts[0];
+  let amount = 0, paymentMethod = '', paymentStatus = '未';
+  const products = [];
+  const paymentKeywords = ['現金','paypay','PayPay','PAYPAY','振込','銀行'];
+  const paidKeywords = ['済','完了','ok','OK'];
+  const unpaidKeywords = ['未','未払','未払い'];
+
+  for (let i = 1; i < parts.length; i++) {
+    const p = parts[i];
+    if (/^\d[\d,]*$/.test(p)) {
+      amount = parseFloat(p.replace(/,/g, ''));
+    } else if (paymentKeywords.some(k => p.toLowerCase() === k.toLowerCase())) {
+      paymentMethod = p;
+    } else if (paidKeywords.some(k => p.toLowerCase() === k.toLowerCase())) {
+      paymentStatus = '済';
+    } else if (unpaidKeywords.some(k => p.toLowerCase() === k.toLowerCase())) {
+      paymentStatus = '未';
+    } else if (/[×xX]/.test(p) || /kg$/i.test(p)) {
+      products.push(p.replace(/[xX]/g, '×'));
+    }
+  }
+
+  if (amount === 0) return '❌ 金額が見つかりません。';
+  const productsStr = products.join('  ');
+  const sheet = ss.getSheetByName('売上');
+  sheet.appendRow([formatDate(date), customerName, productsStr, amount, paymentMethod, paymentStatus, '未']);
+  updateCustomer(ss, customerName, amount, paymentStatus);
+
+  return ['✅ 売上記録完了', `顧客: ${customerName}`,
+    productsStr ? `商品: ${productsStr}` : '',
+    `金額: ¥${amount.toLocaleString()}`,
+    `支払: ${paymentMethod || '未設定'}  ${paymentStatus}`].filter(Boolean).join('\n');
+}
+
+// ── 経費記録 ──────────────────────────────────────────────────
+function handleExpense(ss, text, date) {
+  const parts = text.split(/\s+/);
+  if (parts.length < 2) return '❌ 形式エラー\n例: 充電 1200';
+  const category = parts[0];
+  const amount = parseFloat(parts[1].replace(/[,円]/g, ''));
+  const memo = parts.slice(2).join(' ');
+  if (isNaN(amount)) return '❌ 金額を正しく入力してください。';
+  const sheet = ss.getSheetByName('経費');
+  sheet.appendRow([formatDate(date), category, amount, memo]);
+  return ['✅ 経費記録完了', `${category}: ¥${amount.toLocaleString()}`,
+    memo ? `メモ: ${memo}` : ''].filter(Boolean).join('\n');
+}
+
+// ── 顧客マスタ更新 ────────────────────────────────────────────
+function updateCustomer(ss, name, amount, paymentStatus) {
+  const sheet = ss.getSheetByName('顧客マスタ');
+  const data = sheet.getDataRange().getValues();
+  const unpaid = paymentStatus === '未' ? amount : 0;
+  for (let i = 1; i < data.length; i++) {
+    if (data[i][0] === name) {
+      sheet.getRange(i+1, 3).setValue(data[i][2] + 1);
+      sheet.getRange(i+1, 4).setValue(data[i][3] + amount);
+      sheet.getRange(i+1, 5).setValue(data[i][4] + unpaid);
+      sheet.getRange(i+1, 6).setValue(formatDate(new Date()));
+      return;
+    }
+  }
+  sheet.appendRow([name, '', 1, amount, unpaid, formatDate(new Date())]);
+}
+
+// ── Telegramにメッセージ送信 ──────────────────────────────────
+function sendMessage(chatId, text) {
+  UrlFetchApp.fetch(
+    `https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/sendMessage`,
+    { method: 'post', contentType: 'application/json',
+      payload: JSON.stringify({ chat_id: chatId, text: text }) }
+  );
+}
+
+// ── Webhook登録（初回のみ実行） ────────────────────────────────
+function setWebhook() {
+  const scriptUrl = ScriptApp.getService().getUrl();
+  const res = UrlFetchApp.fetch(
+    `https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/setWebhook?url=${encodeURIComponent(scriptUrl)}`
+  );
+  Logger.log(res.getContentText());
+}
+
+// ── チャンネルID確認用 ─────────────────────────────────────────
+function getUpdates() {
+  const res = UrlFetchApp.fetch(
+    `https://api.telegram.org/bot${CONFIG.BOT_TOKEN}/getUpdates`
+  );
+  Logger.log(res.getContentText());
+}
+
+// ── 日付フォーマット ──────────────────────────────────────────
+function formatDate(date) {
+  return Utilities.formatDate(date, 'Asia/Tokyo', 'yyyy/MM/dd');
+}</div>
+  </div>
+</div>
+
+<!-- ======== SetupSheets.gs ======== -->
+<div id="tab-code2" class="tab-content">
+  <div class="notice">Apps Scriptで「SetupSheets」という名前の新しいファイルを作り、このコードを貼り付けてください</div>
+  <div style="position:relative;">
+    <button class="copy-btn" onclick="copyCode('code2text')">コピー</button>
+    <div class="code-block" id="code2text">// ============================================================
+//  📊 スプレッドシート初期セットアップ
+//  一度だけ実行すると全シートと書式が自動作成されます
+// ============================================================
+
+function setupAllSheets() {
+  const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID);
+  setup仕入れSheet(ss);
+  setup売上Sheet(ss);
+  setup経費Sheet(ss);
+  setup顧客マスタSheet(ss);
+  setupDashboard(ss);
+  const defaultSheet = ss.getSheetByName('シート1');
+  if (defaultSheet) ss.deleteSheet(defaultSheet);
+  SpreadsheetApp.flush();
+  Logger.log('✅ セットアップ完了！');
+}
+
+function setup仕入れSheet(ss) {
+  let sheet = ss.getSheetByName('仕入れ');
+  if (!sheet) sheet = ss.insertSheet('仕入れ');
+  sheet.clearContents();
+  const headers = ['日付', '果物名', '重量(kg)', '単価(/kg)', '仕入れ金額', '市場名'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  styleHeader(sheet, headers.length);
+  sheet.getRange('E2:E1000').setNumberFormat('¥#,##0');
+  sheet.getRange('C2:D1000').setNumberFormat('#,##0.0');
+}
+
+function setup売上Sheet(ss) {
+  let sheet = ss.getSheetByName('売上');
+  if (!sheet) sheet = ss.insertSheet('売上');
+  sheet.clearContents();
+  const headers = ['日付', '顧客名', '商品詳細', '売上金額', '支払い方法', '支払い状態', '配達状態'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  styleHeader(sheet, headers.length);
+  sheet.setColumnWidth(3, 200);
+  sheet.getRange('D2:D1000').setNumberFormat('¥#,##0');
+  const paidRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('済').setBackground('#d9ead3')
+    .setRanges([sheet.getRange('F2:G1000')]).build();
+  const unpaidRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenTextEqualTo('未').setBackground('#fce8b2')
+    .setRanges([sheet.getRange('F2:F1000')]).build();
+  sheet.setConditionalFormatRules([paidRule, unpaidRule]);
+}
+
+function setup経費Sheet(ss) {
+  let sheet = ss.getSheetByName('経費');
+  if (!sheet) sheet = ss.insertSheet('経費');
+  sheet.clearContents();
+  const headers = ['日付', 'カテゴリ', '金額', 'メモ'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  styleHeader(sheet, headers.length);
+  sheet.setColumnWidth(4, 200);
+  sheet.getRange('C2:C1000').setNumberFormat('¥#,##0');
+}
+
+function setup顧客マスタSheet(ss) {
+  let sheet = ss.getSheetByName('顧客マスタ');
+  if (!sheet) sheet = ss.insertSheet('顧客マスタ');
+  sheet.clearContents();
+  const headers = ['顧客名', 'メモ（住所・連絡先など）', '注文回数', '累計金額', '未収金', '最終注文日'];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  styleHeader(sheet, headers.length);
+  sheet.setColumnWidth(2, 250);
+  sheet.getRange('D2:E1000').setNumberFormat('¥#,##0');
+  const unpaidRule = SpreadsheetApp.newConditionalFormatRule()
+    .whenNumberGreaterThan(0).setBackground('#fce8b2')
+    .setRanges([sheet.getRange('E2:E1000')]).build();
+  sheet.setConditionalFormatRules([unpaidRule]);
+}
+
+function setupDashboard(ss) {
+  let sheet = ss.getSheetByName('ダッシュボード');
+  if (!sheet) sheet = ss.insertSheet('ダッシュボード', 0);
+  sheet.clearContents();
+  sheet.getRange('A1').setValue('🍎 果物ビジネス ダッシュボード').setFontSize(16).setFontWeight('bold');
+  sheet.getRange('A2').setValue('最終更新:').setFontColor('#888888');
+  sheet.getRange('B2').setFormula('=NOW()').setNumberFormat('yyyy/mm/dd HH:mm');
+
+  sheet.getRange('A4').setValue('📅 今月の集計').setFontWeight('bold').setFontSize(13);
+  sheet.getRange('A5:A9').setValues([['売上合計'],['仕入れ合計'],['経費合計'],['利益（売上－仕入れ－経費）'],['未収金合計']]);
+  sheet.getRange('B5').setFormula('=SUMPRODUCT((TEXT(売上!A2:A1000,"yyyymm")=TEXT(TODAY(),"yyyymm"))*(売上!D2:D1000))');
+  sheet.getRange('B6').setFormula('=SUMPRODUCT((TEXT(仕入れ!A2:A1000,"yyyymm")=TEXT(TODAY(),"yyyymm"))*(仕入れ!E2:E1000))');
+  sheet.getRange('B7').setFormula('=SUMPRODUCT((TEXT(経費!A2:A1000,"yyyymm")=TEXT(TODAY(),"yyyymm"))*(経費!C2:C1000))');
+  sheet.getRange('B8').setFormula('=B5-B6-B7');
+  sheet.getRange('B9').setFormula('=SUM(顧客マスタ!E2:E1000)');
+  sheet.getRange('B5:B9').setNumberFormat('¥#,##0');
+
+  sheet.getRange('A11').setValue('📊 累計').setFontWeight('bold').setFontSize(13);
+  sheet.getRange('A12:A16').setValues([['売上累計'],['仕入れ累計'],['経費累計'],['利益累計'],['総注文件数']]);
+  sheet.getRange('B12').setFormula('=SUM(売上!D2:D1000)');
+  sheet.getRange('B13').setFormula('=SUM(仕入れ!E2:E1000)');
+  sheet.getRange('B14').setFormula('=SUM(経費!C2:C1000)');
+  sheet.getRange('B15').setFormula('=B12-B13-B14');
+  sheet.getRange('B16').setFormula('=COUNTA(売上!A2:A1000)');
+  sheet.getRange('B12:B15').setNumberFormat('¥#,##0');
+
+  sheet.getRange('D4').setValue('⚠️ 未収金リスト').setFontWeight('bold').setFontSize(13);
+  sheet.getRange('D5').setValue('顧客名').setFontWeight('bold');
+  sheet.getRange('E5').setValue('未収金額').setFontWeight('bold');
+  sheet.getRange('D6').setFormula('=IFERROR(FILTER(顧客マスタ!A2:A1000,顧客マスタ!E2:E1000>0),"未収金なし")');
+  sheet.getRange('E6').setFormula('=IFERROR(FILTER(顧客マスタ!E2:E1000,顧客マスタ!E2:E1000>0),"")');
+  sheet.getRange('E6:E1000').setNumberFormat('¥#,##0');
+
+  sheet.setColumnWidth(1, 230);
+  sheet.setColumnWidth(2, 130);
+}
+
+function styleHeader(sheet, colCount) {
+  const r = sheet.getRange(1, 1, 1, colCount);
+  r.setBackground('#2d6a4f').setFontColor('#ffffff').setFontWeight('bold').setHorizontalAlignment('center');
+  sheet.setFrozenRows(1);
+}</div>
+  </div>
+</div>
+
+<script>
+function showTab(name) {
+  document.querySelectorAll('.tab-content').forEach(el => el.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  event.target.classList.add('active');
+}
+function copyCode(id) {
+  const text = document.getElementById(id).innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    event.target.textContent = '✓ コピー済';
+    setTimeout(() => { event.target.textContent = 'コピー'; }, 2000);
+  });
+}
+</script>
+
+</body>
+</html>
