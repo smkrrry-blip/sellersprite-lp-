@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-02T07:02:32",
+  "generated_at": "2026-06-10T09:07:20",
   "date_range": {
-    "start": "2026-05-04",
-    "end": "2026-06-02"
+    "start": "2026-05-12",
+    "end": "2026-06-10"
   },
   "summary": {
-    "total_pv": 112,
+    "total_pv": 128,
     "total_impressions": 0,
     "total_clicks": 0,
     "avg_ctr": 0,
@@ -14,9 +14,9 @@
   "rows": [
     {
       "path": "/",
-      "pv": 27,
-      "sessions": 27,
-      "users": 24,
+      "pv": 24,
+      "sessions": 25,
+      "users": 23,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -73,6 +73,18 @@
       "position": 0
     },
     {
+      "path": "/amazon-beginner.html",
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
       "path": "/amazon-brand-analytics.html",
       "pv": 4,
       "sessions": 5,
@@ -97,7 +109,31 @@
       "position": 0
     },
     {
+      "path": "/amazon-brand-store-design.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
       "path": "/amazon-category-bsr.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/amazon-climate-pledge.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -145,10 +181,10 @@
       "position": 0
     },
     {
-      "path": "/amazon-export.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "path": "/amazon-flat-file.html",
+      "pv": 4,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -194,21 +230,9 @@
     },
     {
       "path": "/amazon-invoice.html",
-      "pv": 14,
-      "sessions": 13,
-      "users": 12,
-      "copies": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-kdp-publishing.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 24,
+      "sessions": 21,
+      "users": 20,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -301,6 +325,18 @@
       "position": 0
     },
     {
+      "path": "/amazon-packaging-insert.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
       "path": "/amazon-product-bundling.html",
       "pv": 1,
       "sessions": 1,
@@ -337,10 +373,10 @@
       "position": 0
     },
     {
-      "path": "/amazon-review-management.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "path": "/amazon-search-query-report.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -385,6 +421,18 @@
       "position": 0
     },
     {
+      "path": "/amazon-seller-central.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
       "path": "/amazon-sourcing.html",
       "pv": 2,
       "sessions": 2,
@@ -398,9 +446,9 @@
     },
     {
       "path": "/amazon-storefront.html",
-      "pv": 3,
-      "sessions": 3,
-      "users": 3,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -422,9 +470,9 @@
     },
     {
       "path": "/amazon-tiktok-amazon.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -494,9 +542,21 @@
     },
     {
       "path": "/muryou.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 4,
+      "sessions": 4,
+      "users": 4,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/oubei-yunyuu.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
