@@ -1,8 +1,8 @@
 {
-  "generated_at": "2026-06-14T07:09:34",
+  "generated_at": "2026-06-15T07:00:08",
   "date_range": {
-    "start": "2026-05-16",
-    "end": "2026-06-14"
+    "start": "2026-05-17",
+    "end": "2026-06-15"
   },
   "summary": {
     "total_pv": 138,
@@ -14,9 +14,9 @@
   "rows": [
     {
       "path": "/",
-      "pv": 31,
-      "sessions": 31,
-      "users": 30,
+      "pv": 33,
+      "sessions": 33,
+      "users": 32,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -218,8 +218,8 @@
     },
     {
       "path": "/amazon-keyword-backend.html",
-      "pv": 3,
-      "sessions": 3,
+      "pv": 2,
+      "sessions": 2,
       "users": 2,
       "copies": 0,
       "cvr": 0.0,
@@ -494,18 +494,6 @@
     },
     {
       "path": "/amazon-us-market.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-variation-listing.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
