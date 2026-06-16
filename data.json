@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-15T07:00:08",
+  "generated_at": "2026-06-16T07:00:08",
   "date_range": {
-    "start": "2026-05-17",
-    "end": "2026-06-15"
+    "start": "2026-05-18",
+    "end": "2026-06-16"
   },
   "summary": {
-    "total_pv": 138,
+    "total_pv": 139,
     "total_impressions": 0,
     "total_clicks": 0,
     "avg_ctr": 0,
@@ -14,9 +14,9 @@
   "rows": [
     {
       "path": "/",
-      "pv": 33,
-      "sessions": 33,
-      "users": 32,
+      "pv": 32,
+      "sessions": 32,
+      "users": 31,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -98,6 +98,18 @@
     },
     {
       "path": "/amazon-brand-store-design.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/amazon-bundle-product.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -375,8 +387,8 @@
     {
       "path": "/amazon-review-management.html",
       "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -422,9 +434,9 @@
     },
     {
       "path": "/amazon-seller-app.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -446,9 +458,9 @@
     },
     {
       "path": "/amazon-sourcing.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -590,7 +602,7 @@
     },
     {
       "path": "/ranking-tool.html",
-      "pv": 1,
+      "pv": 2,
       "sessions": 2,
       "users": 2,
       "copies": 0,
