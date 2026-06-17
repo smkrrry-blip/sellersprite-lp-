@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-16T07:00:08",
+  "generated_at": "2026-06-17T07:12:00",
   "date_range": {
-    "start": "2026-05-18",
-    "end": "2026-06-16"
+    "start": "2026-05-19",
+    "end": "2026-06-17"
   },
   "summary": {
-    "total_pv": 139,
+    "total_pv": 253,
     "total_impressions": 0,
     "total_clicks": 0,
     "avg_ctr": 0,
@@ -14,9 +14,21 @@
   "rows": [
     {
       "path": "/",
-      "pv": 32,
-      "sessions": 32,
-      "users": 31,
+      "pv": 130,
+      "sessions": 130,
+      "users": 129,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/amazon-a-plus-content.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -86,9 +98,21 @@
     },
     {
       "path": "/amazon-brand-analytics.html",
-      "pv": 4,
-      "sessions": 5,
+      "pv": 5,
+      "sessions": 6,
       "users": 3,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/amazon-brand-registry.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -110,6 +134,18 @@
     },
     {
       "path": "/amazon-bundle-product.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/amazon-buy-box.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -145,7 +181,31 @@
       "position": 0
     },
     {
+      "path": "/amazon-competitor-analysis.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
       "path": "/amazon-competitor-keyword.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/amazon-fba-cost.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -193,7 +253,7 @@
       "position": 0
     },
     {
-      "path": "/amazon-image-tool.html",
+      "path": "/amazon-inventory-replenishment.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -206,9 +266,9 @@
     },
     {
       "path": "/amazon-invoice.html",
-      "pv": 23,
-      "sessions": 20,
-      "users": 19,
+      "pv": 24,
+      "sessions": 21,
+      "users": 20,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -230,9 +290,9 @@
     },
     {
       "path": "/amazon-keyword-backend.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -386,7 +446,7 @@
     },
     {
       "path": "/amazon-review-management.html",
-      "pv": 1,
+      "pv": 2,
       "sessions": 2,
       "users": 2,
       "copies": 0,
@@ -457,10 +517,22 @@
       "position": 0
     },
     {
+      "path": "/amazon-seller-feedback.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
       "path": "/amazon-sourcing.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 3,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -529,6 +601,18 @@
       "position": 0
     },
     {
+      "path": "/coupon.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
       "path": "/fba-hajimekata.html",
       "pv": 1,
       "sessions": 1,
@@ -577,10 +661,34 @@
       "position": 0
     },
     {
-      "path": "/oubei-yunyuu.html",
+      "path": "/nihongo.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/oubei-tool.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/oubei-yunyuu.html",
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -625,7 +733,43 @@
       "position": 0
     },
     {
+      "path": "/ryoukin.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/sedori-muryou.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
       "path": "/seo-keyword.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/uresuji.html",
       "pv": 2,
       "sessions": 2,
       "users": 2,
@@ -637,7 +781,7 @@
       "position": 0
     },
     {
-      "path": "/uresuji.html",
+      "path": "/vs-junglescout.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
