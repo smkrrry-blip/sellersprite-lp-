@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-27T07:00:09",
+  "generated_at": "2026-06-28T07:00:11",
   "date_range": {
-    "start": "2026-05-29",
-    "end": "2026-06-27"
+    "start": "2026-05-30",
+    "end": "2026-06-28"
   },
   "summary": {
-    "total_pv": 947,
+    "total_pv": 948,
     "total_impressions": 0,
     "total_clicks": 0,
     "avg_ctr": 0,
@@ -14,8 +14,8 @@
   "rows": [
     {
       "path": "/",
-      "pv": 296,
-      "sessions": 286,
+      "pv": 297,
+      "sessions": 287,
       "users": 287,
       "copies": 0,
       "cvr": 0.0,
@@ -1345,6 +1345,18 @@
       "position": 0
     },
     {
+      "path": "/amazon-influencer-program.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
       "path": "/amazon-international-expansion.html",
       "pv": 1,
       "sessions": 1,
@@ -1730,9 +1742,9 @@
     },
     {
       "path": "/amazon-negative-keywords.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -3518,7 +3530,7 @@
     },
     {
       "path": "/keyword-volume.html",
-      "pv": 1,
+      "pv": 2,
       "sessions": 2,
       "users": 2,
       "copies": 0,
@@ -3602,9 +3614,9 @@
     },
     {
       "path": "/muryou.html",
-      "pv": 6,
-      "sessions": 6,
-      "users": 5,
+      "pv": 5,
+      "sessions": 5,
+      "users": 4,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
