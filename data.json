@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-28T07:00:11",
+  "generated_at": "2026-06-29T07:00:07",
   "date_range": {
-    "start": "2026-05-30",
-    "end": "2026-06-28"
+    "start": "2026-05-31",
+    "end": "2026-06-29"
   },
   "summary": {
-    "total_pv": 948,
+    "total_pv": 949,
     "total_impressions": 0,
     "total_clicks": 0,
     "avg_ctr": 0,
@@ -14,9 +14,9 @@
   "rows": [
     {
       "path": "/",
-      "pv": 297,
-      "sessions": 287,
-      "users": 287,
+      "pv": 295,
+      "sessions": 285,
+      "users": 285,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -1070,9 +1070,9 @@
     },
     {
       "path": "/amazon-fba-size-weight.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -3614,9 +3614,9 @@
     },
     {
       "path": "/muryou.html",
-      "pv": 5,
-      "sessions": 5,
-      "users": 4,
+      "pv": 6,
+      "sessions": 6,
+      "users": 5,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -3626,9 +3626,9 @@
     },
     {
       "path": "/niche-shohin.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
