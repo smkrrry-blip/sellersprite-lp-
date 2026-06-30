@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-29T07:00:07",
+  "generated_at": "2026-06-30T07:00:07",
   "date_range": {
-    "start": "2026-05-31",
-    "end": "2026-06-29"
+    "start": "2026-06-01",
+    "end": "2026-06-30"
   },
   "summary": {
-    "total_pv": 949,
+    "total_pv": 954,
     "total_impressions": 0,
     "total_clicks": 0,
     "avg_ctr": 0,
@@ -1070,9 +1070,9 @@
     },
     {
       "path": "/amazon-fba-size-weight.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 4,
+      "sessions": 4,
+      "users": 4,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -1418,9 +1418,9 @@
     },
     {
       "path": "/amazon-invoice.html",
-      "pv": 19,
-      "sessions": 18,
-      "users": 17,
+      "pv": 20,
+      "sessions": 19,
+      "users": 18,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -1754,6 +1754,18 @@
     },
     {
       "path": "/amazon-negative-review.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
+    },
+    {
+      "path": "/amazon-new-arrival-ranking.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -2486,8 +2498,8 @@
     },
     {
       "path": "/amazon-search-terms.html",
-      "pv": 3,
-      "sessions": 4,
+      "pv": 1,
+      "sessions": 2,
       "users": 2,
       "copies": 0,
       "cvr": 0.0,
@@ -2858,9 +2870,9 @@
     },
     {
       "path": "/amazon-storefront.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -3806,9 +3818,9 @@
     },
     {
       "path": "/ranking-tool.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 3,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -4010,9 +4022,9 @@
     },
     {
       "path": "/touroku.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
