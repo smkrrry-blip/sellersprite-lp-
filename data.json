@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-06-30T07:00:07",
+  "generated_at": "2026-07-01T07:00:09",
   "date_range": {
-    "start": "2026-06-01",
-    "end": "2026-06-30"
+    "start": "2026-06-02",
+    "end": "2026-07-01"
   },
   "summary": {
-    "total_pv": 954,
+    "total_pv": 952,
     "total_impressions": 0,
     "total_clicks": 0,
     "avg_ctr": 0,
@@ -206,9 +206,9 @@
     },
     {
       "path": "/amazon-ai-listing.html",
-      "pv": 7,
-      "sessions": 5,
-      "users": 5,
+      "pv": 6,
+      "sessions": 4,
+      "users": 4,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -2499,8 +2499,8 @@
     {
       "path": "/amazon-search-terms.html",
       "pv": 1,
-      "sessions": 2,
-      "users": 2,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -2978,9 +2978,9 @@
     },
     {
       "path": "/amazon-tiktok-amazon.html",
-      "pv": 3,
-      "sessions": 3,
-      "users": 3,
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -3386,9 +3386,9 @@
     },
     {
       "path": "/fba-vs-fbm.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -3566,9 +3566,9 @@
     },
     {
       "path": "/listing-seo-hub.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
