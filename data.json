@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-07-02T07:00:08",
+  "generated_at": "2026-07-02T15:45:15",
   "date_range": {
     "start": "2026-06-03",
     "end": "2026-07-02"
   },
   "summary": {
-    "total_pv": 957,
+    "total_pv": 960,
     "total_impressions": 0,
     "total_clicks": 0,
     "avg_ctr": 0,
-    "avg_cvr": 0.001203
+    "avg_cvr": 0.001198
   },
   "rows": [
     {
@@ -266,9 +266,9 @@
     },
     {
       "path": "/amazon-asin-research.html",
-      "pv": 5,
-      "sessions": 3,
-      "users": 3,
+      "pv": 6,
+      "sessions": 4,
+      "users": 4,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -1070,9 +1070,9 @@
     },
     {
       "path": "/amazon-fba-size-weight.html",
-      "pv": 4,
-      "sessions": 4,
-      "users": 4,
+      "pv": 5,
+      "sessions": 5,
+      "users": 5,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -2870,9 +2870,9 @@
     },
     {
       "path": "/amazon-storefront.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 3,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -4023,10 +4023,10 @@
     {
       "path": "/touroku.html",
       "pv": 3,
-      "sessions": 3,
+      "sessions": 4,
       "users": 3,
       "copies": 1,
-      "cvr": 0.333333,
+      "cvr": 0.25,
       "impressions": 0,
       "clicks": 0,
       "ctr": 0,
