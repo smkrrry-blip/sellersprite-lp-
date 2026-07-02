@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-07-01T07:00:09",
+  "generated_at": "2026-07-02T07:00:08",
   "date_range": {
-    "start": "2026-06-02",
-    "end": "2026-07-01"
+    "start": "2026-06-03",
+    "end": "2026-07-02"
   },
   "summary": {
-    "total_pv": 952,
+    "total_pv": 957,
     "total_impressions": 0,
     "total_clicks": 0,
     "avg_ctr": 0,
-    "avg_cvr": 0.0
+    "avg_cvr": 0.001203
   },
   "rows": [
     {
       "path": "/",
-      "pv": 295,
-      "sessions": 285,
-      "users": 285,
+      "pv": 299,
+      "sessions": 289,
+      "users": 289,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -1418,9 +1418,9 @@
     },
     {
       "path": "/amazon-invoice.html",
-      "pv": 20,
-      "sessions": 19,
-      "users": 18,
+      "pv": 16,
+      "sessions": 16,
+      "users": 15,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -2606,9 +2606,9 @@
     },
     {
       "path": "/amazon-seller-central.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 3,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -2774,9 +2774,9 @@
     },
     {
       "path": "/amazon-sourcing.html",
-      "pv": 6,
-      "sessions": 6,
-      "users": 6,
+      "pv": 7,
+      "sessions": 7,
+      "users": 7,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -3062,9 +3062,9 @@
     },
     {
       "path": "/amazon-variation-listing.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 3,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -3626,9 +3626,9 @@
     },
     {
       "path": "/muryou.html",
-      "pv": 6,
-      "sessions": 6,
-      "users": 5,
+      "pv": 7,
+      "sessions": 7,
+      "users": 6,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -4022,11 +4022,11 @@
     },
     {
       "path": "/touroku.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
-      "copies": 0,
-      "cvr": 0.0,
+      "pv": 3,
+      "sessions": 3,
+      "users": 3,
+      "copies": 1,
+      "cvr": 0.333333,
       "impressions": 0,
       "clicks": 0,
       "ctr": 0,
