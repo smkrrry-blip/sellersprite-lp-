@@ -73,6 +73,19 @@
 }
 </script>
 <style>
+.diag-box{max-width:640px;margin:32px auto 0;background:#f9f8f6;border-radius:14px;padding:28px 24px;}
+.diag-box h3{font-size:1.15em;text-align:center;margin-bottom:6px;}
+.diag-box .diag-lead{font-size:13px;color:#888;text-align:center;margin-bottom:20px;}
+.diag-q{margin-bottom:16px;}
+.diag-q label{display:block;font-size:13px;font-weight:bold;color:#444;margin-bottom:6px;}
+.diag-q select{width:100%;padding:10px 12px;font-size:15px;border:1.5px solid #e5e0d8;border-radius:8px;background:#fff;}
+.diag-result{margin-top:18px;background:#fff;border:2px solid #FB8C1E;border-radius:10px;padding:18px 20px;text-align:center;display:none;}
+.diag-result.show{display:block;}
+.diag-result .dr-plan{font-size:1.3em;font-weight:800;color:#FB8C1E;margin-bottom:4px;}
+.diag-result .dr-price{font-size:13px;color:#666;margin-bottom:10px;}
+.diag-result .dr-why{font-size:13px;color:#555;line-height:1.7;}
+</style>
+<style>
 *{margin:0;padding:0;box-sizing:border-box;}
 body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Hiragino Sans","Meiryo",sans-serif;font-size:16px;line-height:1.7;color:#333;background:#fff;padding-bottom:80px;}
 a{color:#FB8C1E;text-decoration:none;}
@@ -451,6 +464,51 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
     </div>
   </div>
 </div>
+<div class="section bg-gray">
+  <div class="section-inner">
+    <div class="diag-box">
+      <h3>30秒でわかる、あなたに合うプラン診断</h3>
+      <p class="diag-lead">4つ答えるだけ。CJ9852適用後の金額で診断します。</p>
+      <div class="diag-q">
+        <label>① 月商（現在または半年後の目標）</label>
+        <select id="dqSales">
+          <option value="0">〜10万円</option>
+          <option value="1">10〜30万円</option>
+          <option value="2">30〜100万円</option>
+          <option value="3">100万円以上</option>
+        </select>
+      </div>
+      <div class="diag-q">
+        <label>② 取り扱いカテゴリ数</label>
+        <select id="dqCat">
+          <option value="0">1つ</option>
+          <option value="1">2〜3つ</option>
+          <option value="2">4つ以上</option>
+        </select>
+      </div>
+      <div class="diag-q">
+        <label>③ 一緒に運用する人</label>
+        <select id="dqTeam">
+          <option value="0">自分だけ</option>
+          <option value="1">外注・チームあり</option>
+        </select>
+      </div>
+      <div class="diag-q">
+        <label>④ 本気度</label>
+        <select id="dqSerious">
+          <option value="0">まず試したい</option>
+          <option value="1">本格的に取り組みたい</option>
+        </select>
+      </div>
+      <div class="diag-result" id="diagResult">
+        <div class="dr-plan" id="drPlan"></div>
+        <div class="dr-price" id="drPrice"></div>
+        <div class="dr-why" id="drWhy"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <section class="calc-section">
   <h2>CJ9852を使うと、実際いくら安くなる？</h2>
   <div class="table-wrap">
@@ -741,6 +799,26 @@ function stickyCopy(btn){
     });
   } catch(e) {}
 })();
+</script>
+<script>
+function diagCalc(){
+  var s=+document.getElementById('dqSales').value, c=+document.getElementById('dqCat').value;
+  var t=+document.getElementById('dqTeam').value, g=+document.getElementById('dqSerious').value;
+  var score=s+c+t+g;
+  var plan,price,why;
+  if(score<=1 && s===0){plan='スタンダード（月単位）';price='¥9,799/月（30%OFF後）';why='まずは月単位で試すのが安全。合わなければ翌月やめられます。';}
+  else if(score<=3){plan='スタンダード（年単位）';price='¥97,999/年（30%OFF後）';why='月商10〜30万円クラスなら年払いの方が総額で得。継続前提ならこちら。';}
+  else if(score<=5){plan='アドバンス（年単位）';price='¥188,882/年（30%OFF後）';why='複数カテゴリ・チーム運用が視野に入るなら、モニタリング件数に余裕があるアドバンスが安心。';}
+  else {plan='VIP（年単位）';price='¥237,999/年（30%OFF後）';why='月商100万円超・チーム運用規模なら、上限の高いVIPでないとすぐ機能制限に当たります。';}
+  document.getElementById('drPlan').textContent=plan;
+  document.getElementById('drPrice').textContent=price;
+  document.getElementById('drWhy').textContent=why;
+  document.getElementById('diagResult').classList.add('show');
+}
+['dqSales','dqCat','dqTeam','dqSerious'].forEach(function(id){
+  document.getElementById(id).addEventListener('change',diagCalc);
+});
+diagCalc();
 </script>
 </body>
 </html>
