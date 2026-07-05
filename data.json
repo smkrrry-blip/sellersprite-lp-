@@ -1,15 +1,15 @@
 {
-  "generated_at": "2026-07-05T08:00:15",
+  "generated_at": "2026-07-05T13:15:38",
   "date_range": {
     "start": "2026-06-06",
     "end": "2026-07-05"
   },
   "summary": {
-    "total_pv": 961,
-    "total_impressions": 1652,
+    "total_pv": 962,
+    "total_impressions": 1720,
     "total_clicks": 30,
-    "avg_ctr": 0.01816,
-    "avg_cvr": 0.001198
+    "avg_ctr": 0.017442,
+    "avg_cvr": 0.001196
   },
   "rows": [
     {
@@ -19,10 +19,10 @@
       "users": 288,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 31,
+      "impressions": 35,
       "clicks": 0,
       "ctr": 0,
-      "position": 10.65
+      "position": 10.66
     },
     {
       "path": "/2024/07/01/%E3%82%BB%E3%83%A9%E3%83%BC%E3%82%B9%E3%83%97%E3%83%A9%E3%82%A4%E3%83%88%E3%81%AE%E6%8B%A1%E5%BC%B5%E6%A9%9F%E8%83%BD%E3%81%A7amazon%E5%A3%B2%E4%B8%8A%E3%82%A2%E3%83%83%E3%83%97%E3%81%AE%E7%A7%98/",
@@ -235,10 +235,10 @@
       "users": 3,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 50,
+      "impressions": 53,
       "clicks": 0,
       "ctr": 0,
-      "position": 34.86
+      "position": 34.55
     },
     {
       "path": "/amazon-apparel-selling.html",
@@ -415,10 +415,10 @@
       "users": 3,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 258,
+      "impressions": 270,
       "clicks": 0,
       "ctr": 0,
-      "position": 58.97
+      "position": 59.13
     },
     {
       "path": "/amazon-brand-store-design.html",
@@ -571,10 +571,10 @@
       "users": 3,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 54,
+      "impressions": 57,
       "clicks": 0,
       "ctr": 0,
-      "position": 29.07
+      "position": 28.33
     },
     {
       "path": "/amazon-canada-market.html",
@@ -631,10 +631,10 @@
       "users": 5,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 19,
+      "impressions": 20,
       "clicks": 1,
-      "ctr": 0.052632,
-      "position": 7.37
+      "ctr": 0.05,
+      "position": 7.4
     },
     {
       "path": "/amazon-category.html",
@@ -691,10 +691,10 @@
       "users": 4,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 97,
+      "impressions": 100,
       "clicks": 0,
       "ctr": 0,
-      "position": 17.14
+      "position": 16.91
     },
     {
       "path": "/amazon-competitor-keyword.html",
@@ -979,10 +979,10 @@
       "users": 1,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 3,
+      "impressions": 4,
       "clicks": 0,
       "ctr": 0,
-      "position": 11.33
+      "position": 9.5
     },
     {
       "path": "/amazon-fba-cost.html",
@@ -1267,10 +1267,10 @@
       "users": 1,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 5,
+      "impressions": 6,
       "clicks": 0,
       "ctr": 0,
-      "position": 7.6
+      "position": 7.33
     },
     {
       "path": "/amazon-handmade.html",
@@ -1591,10 +1591,10 @@
       "users": 1,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 8,
+      "impressions": 9,
       "clicks": 0,
       "ctr": 0,
-      "position": 8.38
+      "position": 8.67
     },
     {
       "path": "/amazon-lightning-deals.html",
@@ -1951,10 +1951,10 @@
       "users": 1,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 20,
+      "impressions": 21,
       "clicks": 0,
       "ctr": 0,
-      "position": 24.75
+      "position": 24.1
     },
     {
       "path": "/amazon-ppc-basics.html",
@@ -2198,9 +2198,9 @@
     },
     {
       "path": "/amazon-profit-calculation.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 1,
@@ -2467,10 +2467,10 @@
       "users": 3,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 115,
+      "impressions": 118,
       "clicks": 1,
-      "ctr": 0.008696,
-      "position": 11.75
+      "ctr": 0.008475,
+      "position": 11.68
     },
     {
       "path": "/amazon-review-strategy.html",
@@ -2671,10 +2671,10 @@
       "users": 3,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 61,
+      "impressions": 65,
       "clicks": 1,
-      "ctr": 0.016393,
-      "position": 10.93
+      "ctr": 0.015385,
+      "position": 10.82
     },
     {
       "path": "/amazon-seller-analysis.html",
@@ -2695,10 +2695,10 @@
       "users": 1,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 25,
+      "impressions": 28,
       "clicks": 0,
       "ctr": 0,
-      "position": 9.6
+      "position": 9.64
     },
     {
       "path": "/amazon-seller-central.html",
@@ -2875,10 +2875,10 @@
       "users": 7,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 109,
+      "impressions": 115,
       "clicks": 4,
-      "ctr": 0.036697,
-      "position": 10.97
+      "ctr": 0.034783,
+      "position": 11
     },
     {
       "path": "/amazon-sp-ads-optimization.html",
@@ -3187,10 +3187,10 @@
       "users": 3,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 52,
+      "impressions": 61,
       "clicks": 1,
-      "ctr": 0.019231,
-      "position": 21.94
+      "ctr": 0.016393,
+      "position": 21.87
     },
     {
       "path": "/amazon-variation.html",
@@ -3751,10 +3751,10 @@
       "users": 5,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 43,
+      "impressions": 50,
       "clicks": 4,
-      "ctr": 0.093023,
-      "position": 8.93
+      "ctr": 0.08,
+      "position": 8.7
     },
     {
       "path": "/niche-shohin.html",
@@ -4003,10 +4003,10 @@
       "users": 1,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 0,
+      "impressions": 1,
       "clicks": 0,
       "ctr": 0,
-      "position": 0
+      "position": 7
     },
     {
       "path": "/sedori-muryou.html",
@@ -4147,10 +4147,10 @@
       "users": 4,
       "copies": 1,
       "cvr": 0.2,
-      "impressions": 11,
+      "impressions": 13,
       "clicks": 1,
-      "ctr": 0.090909,
-      "position": 7.73
+      "ctr": 0.076923,
+      "position": 7.85
     },
     {
       "path": "/trend-shohin.html",
@@ -4183,10 +4183,10 @@
       "users": 1,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 35,
+      "impressions": 37,
       "clicks": 0,
       "ctr": 0,
-      "position": 24.57
+      "position": 23.51
     },
     {
       "path": "/uriage-bunseki.html",
@@ -4231,10 +4231,10 @@
       "users": 1,
       "copies": 0,
       "cvr": 0.0,
-      "impressions": 16,
+      "impressions": 17,
       "clicks": 0,
       "ctr": 0,
-      "position": 24.69
+      "position": 23.88
     },
     {
       "path": "/vs-keepa.html",
