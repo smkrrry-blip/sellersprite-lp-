@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-07-12T06:00:08",
+  "generated_at": "2026-07-13T06:00:07",
   "date_range": {
-    "start": "2026-06-13",
-    "end": "2026-07-12"
+    "start": "2026-06-14",
+    "end": "2026-07-13"
   },
   "summary": {
-    "total_pv": 968,
+    "total_pv": 962,
     "total_impressions": 0,
     "total_clicks": 0,
     "avg_ctr": 0,
-    "avg_cvr": 0.001186
+    "avg_cvr": 0.001195
   },
   "rows": [
     {
       "path": "/",
-      "pv": 292,
-      "sessions": 281,
-      "users": 281,
+      "pv": 287,
+      "sessions": 276,
+      "users": 276,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
@@ -3326,9 +3326,9 @@
     },
     {
       "path": "/fba-hajimekata.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 0,
