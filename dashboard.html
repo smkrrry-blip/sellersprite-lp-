@@ -243,11 +243,14 @@ async function refreshData() {
     document.getElementById('dash-subtitle').textContent =
       `${dr.start || ''} 〜 ${dr.end || ''} | ${allRows.length} ページ | 更新: ${gen}`;
 
-    // Age warning banner (>25 hours old)
+    // Age warning banner (>25 hours old) / GSC計測停止の警告
     if (data.generated_at) {
       const ageHours = (Date.now() - new Date(data.generated_at).getTime()) / 3600000;
       const banner = document.getElementById('age-banner');
-      if (ageHours > 25) {
+      if (data.gsc_status === 'error') {
+        banner.textContent = '🚨 GSC計測停止中（認証失効）。検索データはゼロではなく「取得不能」です。復旧: python3 ~/sellersprite-lp-/get_user_token.py';
+        banner.classList.add('show');
+      } else if (ageHours > 25) {
         banner.textContent = `⚠️ データが ${Math.floor(ageHours)} 時間前のものです。fetch_dashboard.py を実行して更新してください。`;
         banner.classList.add('show');
       } else {
