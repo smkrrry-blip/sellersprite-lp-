@@ -1,15 +1,16 @@
 {
-  "generated_at": "2026-07-14T15:09:05",
+  "generated_at": "2026-07-14T16:44:58",
+  "gsc_status": "ok",
   "date_range": {
     "start": "2026-06-15",
     "end": "2026-07-14"
   },
   "summary": {
-    "total_pv": 964,
+    "total_pv": 965,
     "total_impressions": 1993,
     "total_clicks": 40,
     "avg_ctr": 0.02007,
-    "avg_cvr": 0.001193
+    "avg_cvr": 0.001192
   },
   "rows": [
     {
@@ -3746,9 +3747,9 @@
     },
     {
       "path": "/niche-shohin.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 3,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cvr": 0.0,
       "impressions": 13,
