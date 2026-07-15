@@ -118,6 +118,24 @@ td.url-cell{max-width:280px;}
 .toast.show{opacity:1;transform:translateY(0);}
 .toast.success{background:var(--success);}
 .toast.error{background:var(--danger);}
+
+/* KPIパネル */
+.kpi-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;margin-bottom:24px;overflow:hidden;}
+.kpi-head{padding:16px 20px;border-bottom:1px solid var(--border);}
+.kpi-head h3{font-size:15px;font-weight:800;margin:0;}
+.kpi-head p{font-size:12px;color:var(--muted);margin:4px 0 0;}
+.kpi-table{width:100%;border-collapse:collapse;}
+.kpi-table th{padding:10px 16px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:0.5px;background:#fafafa;border-bottom:1px solid var(--border);}
+.kpi-table td{padding:12px 16px;border-bottom:1px solid var(--border);font-size:13px;vertical-align:middle;}
+.kpi-stage{font-size:11px;font-weight:700;color:#fff;padding:2px 8px;border-radius:20px;white-space:nowrap;}
+.kpi-metric{font-weight:700;color:var(--text);}
+.kpi-desc{font-size:11px;color:var(--muted);margin-top:2px;}
+.kpi-cur{font-size:16px;font-weight:800;font-variant-numeric:tabular-nums;}
+.kpi-tgt{font-variant-numeric:tabular-nums;color:var(--muted);}
+.kpi-bar-wrap{background:#eef0f3;border-radius:20px;height:8px;overflow:hidden;width:90px;}
+.kpi-bar{height:100%;border-radius:20px;}
+.kpi-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap;}
+.kpi-manual{font-size:10px;color:#b45309;background:#fef3c7;padding:1px 6px;border-radius:4px;margin-left:6px;}
 </style>
 </head>
 <body>
@@ -178,6 +196,20 @@ td.url-cell{max-width:280px;}
       <div class="chart-card">
         <div class="chart-title">🎯 CVR 分布</div>
         <div class="chart-wrap"><canvas id="chart-cvr"></canvas></div>
+      </div>
+    </div>
+
+    <!-- KPIパネル -->
+    <div class="kpi-card">
+      <div class="kpi-head">
+        <h3>🎯 KPI × 目標（お金までの道のり）</h3>
+        <p>上から下へ「見つかる→来る→動く→登録→継続→お金」。上の7つは毎日自動更新。下の3つは月1回アフィリ管理画面で手動確認。目標は2026-10-15。</p>
+      </div>
+      <div style="overflow-x:auto;">
+        <table class="kpi-table">
+          <thead><tr><th>段階</th><th>指標</th><th>現在</th><th>目標</th><th>進捗</th><th>判定</th></tr></thead>
+          <tbody id="kpi-tbody"></tbody>
+        </table>
       </div>
     </div>
 
@@ -259,6 +291,7 @@ async function refreshData() {
     }
 
     renderCards(data.summary);
+    renderKPIs(data);
     renderCharts();
     renderTable();
   } catch (e) {
@@ -279,6 +312,61 @@ async function refreshData() {
 /* =========================================================
    RENDER — CARDS
 ========================================================= */
+// KPI × 目標パネル（お金までの道のり・10指標）
+const KPI_KEYS8 = ['/coupon-cj9852.html','/waribiki.html','/ryoukin.html','/tsukaikata.html','/touroku.html','/amazon-sourcing.html','/amazon-review-management.html','/amazon-competitor-analysis.html'];
+function renderKPIs(data){
+  const s = data.summary || {};
+  const rows = data.rows || [];
+  const imp = s.total_impressions||0, clk = s.total_clicks||0, cta = s.total_cta||0, cop = s.total_copies||0;
+  // 加重平均掲載順位
+  let wpos=0, timp=0;
+  rows.forEach(r=>{ if(r.impressions>0){ wpos+=r.position*r.impressions; timp+=r.impressions; }});
+  const avgPos = timp? wpos/timp : 0;
+  // 主要8ページの1ページ目カウント
+  let top10=0;
+  KPI_KEYS8.forEach(k=>{ const r=rows.find(x=>x.path===k); if(r && r.position>0 && r.position<=10) top10++; });
+  const ctr = imp? clk/imp*100 : 0;
+  const intent = cta+cop;
+  const cvr = clk? intent/clk*100 : 0;
+  const gscBroken = data.gsc_status==='error';
+
+  // [段階,色, 指標, 説明, 現在値, 表示, 目標値, 目標表示, higherBetter, 手動フラグ]
+  const K = [
+    ['見つかる','#2563eb','表示回数 (30日)','検索結果に出た回数', imp, imp.toLocaleString(), 5000, '5,000', true, false],
+    ['見つかる','#2563eb','平均掲載順位','低いほど上位（1位が最強）', avgPos, avgPos.toFixed(1)+'位', 10, '10位以内', false, false],
+    ['見つかる','#2563eb','1ページ目のページ数','主要8ページ中10位以内の数', top10, top10+'/8', 6, '6/8', true, false],
+    ['来る','#0891b2','CTR (クリック率)','出た中でクリックされた割合', ctr, ctr.toFixed(2)+'%', 3.5, '3.5%', true, false],
+    ['来る','#0891b2','検索クリック (30日)','実際に来た人数', clk, clk.toLocaleString(), 120, '120', true, false],
+    ['動く','#7c3aed','CTA＋コピー (30日)','登録に動いた回数', intent, String(intent), 12, '12', true, false],
+    ['動く','#7c3aed','意欲転換率 CVR','来た人が動いた割合', cvr, cvr.toFixed(1)+'%', 12, '12%', true, false],
+    ['登録','#c026d3','新規登録 / 月','コードで登録した人数', 5, '5人', 10, '10人', true, true],
+    ['継続','#db2777','継続課金ユーザー ★','毎月払い続けている人数', 13, '13人', 15, '15人', true, true],
+    ['お金','#16a34a','月間報酬 ★★','毎月入る報酬額', 3.75, '約¥3.75万', 4.5, '¥4.5万', true, true],
+  ];
+  const tb = document.getElementById('kpi-tbody');
+  tb.innerHTML = K.map(row=>{
+    const [stage,color,metric,desc,cur,curTxt,tgt,tgtTxt,higher,manual]=row;
+    let ratio = higher ? (tgt? cur/tgt : 0) : (cur? tgt/cur : 0);
+    ratio = Math.max(0, Math.min(1.2, ratio));
+    const pct = Math.round(ratio*100);
+    let barColor, badge, badgeBg, badgeTxt;
+    if(manual){ barColor='#9ca3af'; badgeBg='#f3f4f6'; badgeTxt='#6b7280'; badge='手動確認'; }
+    else if(gscBroken && (metric.includes('順位')||metric.includes('表示')||metric.includes('CTR')||metric.includes('クリック'))){ barColor='#9ca3af'; badgeBg='#f3f4f6'; badgeTxt='#6b7280'; badge='計測停止'; }
+    else if(ratio>=0.9){ barColor='#16a34a'; badgeBg='#dcfce7'; badgeTxt='#15803d'; badge='達成間近'; }
+    else if(ratio>=0.5){ barColor='#f59e0b'; badgeBg='#fef3c7'; badgeTxt='#b45309'; badge='途上'; }
+    else { barColor='#ef4444'; badgeBg='#fee2e2'; badgeTxt='#b91c1c'; badge='要注力'; }
+    const manualTag = manual ? '<span class="kpi-manual">月次</span>' : '';
+    return `<tr>
+      <td><span class="kpi-stage" style="background:${color}">${stage}</span></td>
+      <td><div class="kpi-metric">${metric}${manualTag}</div><div class="kpi-desc">${desc}</div></td>
+      <td><span class="kpi-cur">${curTxt}</span></td>
+      <td><span class="kpi-tgt">${tgtTxt}</span></td>
+      <td><div class="kpi-bar-wrap"><div class="kpi-bar" style="width:${Math.min(100,pct)}%;background:${barColor}"></div></div></td>
+      <td><span class="kpi-badge" style="background:${badgeBg};color:${badgeTxt}">${badge}</span></td>
+    </tr>`;
+  }).join('');
+}
+
 function renderCards(summary) {
   // Use pre-computed summary from data.json when available
   const totalPv  = summary ? summary.total_pv         : allRows.reduce((a, r) => a + r.pv, 0);
