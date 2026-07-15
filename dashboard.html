@@ -199,6 +199,24 @@ td.url-cell{max-width:280px;}
       </div>
     </div>
 
+    <!-- KPI推移グラフ -->
+    <div class="chart-card" style="margin-bottom:24px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+        <div class="chart-title" style="margin:0;">📉 KPIの推移（毎日記録・目標線つき）</div>
+        <select class="select" id="trend-metric" onchange="renderTrend()">
+          <option value="impressions">表示回数</option>
+          <option value="clicks">検索クリック</option>
+          <option value="ctr">CTR(%)</option>
+          <option value="avg_position">平均掲載順位（低いほど良い）</option>
+          <option value="top10_pages">1ページ目のページ数</option>
+          <option value="cta_plus_copy">CTA＋コピー</option>
+          <option value="cvr">意欲転換率CVR(%)</option>
+        </select>
+      </div>
+      <div class="chart-wrap" style="height:280px;"><canvas id="chart-trend"></canvas></div>
+      <p style="font-size:11px;color:var(--muted);margin:8px 0 0;">※点線＝3ヶ月目標。線が途切れている日＝計測停止（認証失効）で記録できなかった日。記録の元データは kpi_history.csv。</p>
+    </div>
+
     <!-- KPIパネル -->
     <div class="kpi-card">
       <div class="kpi-head">
@@ -292,6 +310,7 @@ async function refreshData() {
 
     renderCards(data.summary);
     renderKPIs(data);
+    renderTrend();
     renderCharts();
     renderTable();
   } catch (e) {
@@ -312,6 +331,48 @@ async function refreshData() {
 /* =========================================================
    RENDER — CARDS
 ========================================================= */
+let trendChart = null;
+let KPI_HISTORY = null;
+const TREND_TARGETS = {impressions:5000, clicks:120, ctr:3.5, avg_position:10, top10_pages:6, cta_plus_copy:12, cvr:12};
+const TREND_LABELS = {impressions:'表示回数', clicks:'検索クリック', ctr:'CTR(%)', avg_position:'平均掲載順位', top10_pages:'1ページ目のページ数', cta_plus_copy:'CTA＋コピー', cvr:'意欲転換率CVR(%)'};
+async function loadKpiHistory(){
+  if(KPI_HISTORY) return KPI_HISTORY;
+  try{
+    const txt = await fetch('kpi_history.csv?_='+Date.now()).then(r=>r.text());
+    const lines = txt.trim().split('\n');
+    const head = lines[0].split(',');
+    KPI_HISTORY = lines.slice(1).map(l=>{ const c=l.split(','); const o={}; head.forEach((k,i)=>o[k]=c[i]); return o; });
+  }catch(e){ KPI_HISTORY = []; }
+  return KPI_HISTORY;
+}
+async function renderTrend(){
+  const hist = await loadKpiHistory();
+  if(!hist.length) return;
+  const metric = document.getElementById('trend-metric').value;
+  const labels = hist.map(r=>r.date.slice(5)); // MM-DD
+  // 検索由来の指標は計測停止(error)の日を欠測(null)に
+  const searchMetrics = ['impressions','clicks','ctr','avg_position','top10_pages'];
+  const data = hist.map(r=>{
+    if(searchMetrics.includes(metric) && r.gsc_status==='error') return null;
+    const v = parseFloat(r[metric]);
+    return isNaN(v)?null:v;
+  });
+  const target = TREND_TARGETS[metric];
+  const targetLine = hist.map(()=>target);
+  const ctx = document.getElementById('chart-trend').getContext('2d');
+  if(trendChart) trendChart.destroy();
+  trendChart = new Chart(ctx, {
+    type:'line',
+    data:{ labels, datasets:[
+      { label:TREND_LABELS[metric]+'（実績）', data, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.08)', fill:true, tension:0.25, spanGaps:false, pointRadius:2.5 },
+      { label:'3ヶ月目標', data:targetLine, borderColor:'#16a34a', borderDash:[6,4], pointRadius:0, fill:false }
+    ]},
+    options:{ responsive:true, maintainAspectRatio:false,
+      plugins:{ legend:{ labels:{ font:{size:11} } } },
+      scales:{ y:{ beginAtZero: metric!=='avg_position', reverse: metric==='avg_position', ticks:{font:{size:10}} }, x:{ ticks:{font:{size:10}, maxRotation:0, autoSkip:true, maxTicksLimit:12} } }
+    }
+  });
+}
 // KPI × 目標パネル（お金までの道のり・10指標）
 const KPI_KEYS8 = ['/coupon-cj9852.html','/waribiki.html','/ryoukin.html','/tsukaikata.html','/touroku.html','/amazon-sourcing.html','/amazon-review-management.html','/amazon-competitor-analysis.html'];
 function renderKPIs(data){

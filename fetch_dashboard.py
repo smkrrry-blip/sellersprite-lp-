@@ -241,5 +241,46 @@ def main():
         json.dump(output, f, ensure_ascii=False, indent=2)
     print(f'[INFO] 書き出し完了: {OUTPUT_FILE} ({len(rows)} ページ)')
 
+    append_kpi_history(rows, output['summary'], gsc_status)
+
+# ── KPI日次履歴（CSV追記・1日1行） ─────────────────────────────────────────────
+HISTORY_FILE = os.path.join(os.path.dirname(__file__), 'kpi_history.csv')
+KEY8 = ['/coupon-cj9852.html', '/waribiki.html', '/ryoukin.html', '/tsukaikata.html',
+        '/touroku.html', '/amazon-sourcing.html', '/amazon-review-management.html',
+        '/amazon-competitor-analysis.html']
+
+def append_kpi_history(rows, summary, gsc_status):
+    import csv
+    imp = summary['total_impressions']; clk = summary['total_clicks']
+    cta = summary['total_cta']; cop = summary['total_copies']
+    # 加重平均掲載順位
+    wpos = sum(r['position'] * r['impressions'] for r in rows if r['impressions'] > 0)
+    timp = sum(r['impressions'] for r in rows if r['impressions'] > 0)
+    avg_pos = round(wpos / timp, 2) if timp else 0
+    # 主要8ページの1ページ目カウント
+    top10 = sum(1 for k in KEY8
+                for r in [next((x for x in rows if x['path'] == k), None)]
+                if r and 0 < r['position'] <= 10)
+    ctr = round(clk / imp * 100, 2) if imp else 0
+    cvr = round((cta + cop) / clk * 100, 2) if clk else 0
+    today = datetime.date.today().isoformat()
+
+    header = ['date', 'gsc_status', 'impressions', 'avg_position', 'top10_pages',
+              'ctr', 'clicks', 'cta_plus_copy', 'cvr']
+    newrow = [today, gsc_status, imp, avg_pos, top10, ctr, clk, cta + cop, cvr]
+
+    existing = []
+    if os.path.exists(HISTORY_FILE):
+        with open(HISTORY_FILE, newline='', encoding='utf-8') as f:
+            existing = list(csv.reader(f))
+    # 同日は上書き（1日1行を保証）、それ以外は追記
+    body = [r for r in existing[1:] if r and r[0] != today]
+    body.append([str(x) for x in newrow])
+    with open(HISTORY_FILE, 'w', newline='', encoding='utf-8') as f:
+        w = csv.writer(f)
+        w.writerow(header)
+        w.writerows(body)
+    print(f'[INFO] KPI履歴 追記: {HISTORY_FILE} ({len(body)}行)')
+
 if __name__ == '__main__':
     main()
