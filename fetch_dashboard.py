@@ -108,6 +108,17 @@ def fetch_ga4(token, start_date, end_date):
         path = row['dimensionValues'][0]['value']
         copy_map[path] = int(row['metricValues'][0]['value'] or 0)
 
+    # ページ別 cta_click イベント数（登録ボタンのクリック）
+    cta_body = dict(copy_body)
+    cta_body['dimensionFilter'] = {
+        'filter': {'fieldName': 'eventName', 'stringFilter': {'value': 'cta_click'}}
+    }
+    cta_data = run_report(cta_body)
+    cta_map = {}
+    for row in cta_data.get('rows', []):
+        path = row['dimensionValues'][0]['value']
+        cta_map[path] = int(row['metricValues'][0]['value'] or 0)
+
     result = {}
     for row in pv_data.get('rows', []):
         path = row['dimensionValues'][0]['value']
@@ -116,6 +127,7 @@ def fetch_ga4(token, start_date, end_date):
             'sessions': int(row['metricValues'][1]['value'] or 0),
             'users':    int(row['metricValues'][2]['value'] or 0),
             'copies':   copy_map.get(path, 0),
+            'cta':      cta_map.get(path, 0),
         }
     return result
 
@@ -184,7 +196,7 @@ def main():
     all_paths = sorted(set(list(ga4.keys()) + list(gsc.keys())))
     rows = []
     for path in all_paths:
-        g = ga4.get(path, {'pv': 0, 'sessions': 0, 'users': 0, 'copies': 0})
+        g = ga4.get(path, {'pv': 0, 'sessions': 0, 'users': 0, 'copies': 0, 'cta': 0})
         s = gsc.get(path, {'impressions': 0, 'clicks': 0, 'ctr': 0, 'position': 0})
         cvr = g['copies'] / g['sessions'] if g['sessions'] > 0 else 0
         rows.append({
@@ -193,6 +205,7 @@ def main():
             'sessions':    g['sessions'],
             'users':       g['users'],
             'copies':      g['copies'],
+            'cta':         g.get('cta', 0),
             'cvr':         round(cvr, 6),
             'impressions': s['impressions'],
             'clicks':      s['clicks'],
@@ -206,6 +219,7 @@ def main():
     total_clk = sum(r['clicks']  for r in rows)
     total_ses = sum(r['sessions'] for r in rows)
     total_cop = sum(r['copies']  for r in rows)
+    total_cta = sum(r['cta']     for r in rows)
 
     output = {
         'generated_at': datetime.datetime.now().isoformat(timespec='seconds'),
@@ -215,6 +229,8 @@ def main():
             'total_pv':          total_pv,
             'total_impressions': total_imp,
             'total_clicks':      total_clk,
+            'total_copies':      total_cop,
+            'total_cta':         total_cta,
             'avg_ctr':           round(total_clk / total_imp, 6) if total_imp else 0,
             'avg_cvr':           round(total_cop / total_ses, 6) if total_ses else 0,
         },
