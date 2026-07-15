@@ -7,8 +7,8 @@ LOG_DATE=$(date '+%Y-%m-%d %H:%M:%S')
 
 echo "[$LOG_DATE] 開始"
 
-# データ取得
-python3 "$REPO_DIR/fetch_dashboard.py"
+# データ取得（launchdと同じrequests入りのpythonを明示）
+/usr/local/bin/python3 "$REPO_DIR/fetch_dashboard.py"
 
 # 変更があればcommit & push（data.json と KPI履歴CSV）
 cd "$REPO_DIR"
