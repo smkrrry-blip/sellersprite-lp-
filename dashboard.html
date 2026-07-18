@@ -211,6 +211,7 @@ td.url-cell{max-width:280px;}
           <option value="top10_pages">1ページ目のページ数</option>
           <option value="cta_plus_copy">CTA＋コピー</option>
           <option value="cvr">意欲転換率CVR(%)</option>
+          <option value="ai_sessions">AI経由流入（ChatGPT等）</option>
         </select>
       </div>
       <div class="chart-wrap" style="height:280px;"><canvas id="chart-trend"></canvas></div>
@@ -333,8 +334,8 @@ async function refreshData() {
 ========================================================= */
 let trendChart = null;
 let KPI_HISTORY = null;
-const TREND_TARGETS = {impressions:5000, clicks:120, ctr:3.5, avg_position:10, top10_pages:6, cta_plus_copy:12, cvr:12};
-const TREND_LABELS = {impressions:'表示回数', clicks:'検索クリック', ctr:'CTR(%)', avg_position:'平均掲載順位', top10_pages:'1ページ目のページ数', cta_plus_copy:'CTA＋コピー', cvr:'意欲転換率CVR(%)'};
+const TREND_TARGETS = {impressions:5000, clicks:120, ctr:3.5, avg_position:10, top10_pages:6, cta_plus_copy:12, cvr:12, ai_sessions:5};
+const TREND_LABELS = {impressions:'表示回数', clicks:'検索クリック', ctr:'CTR(%)', avg_position:'平均掲載順位', top10_pages:'1ページ目のページ数', cta_plus_copy:'CTA＋コピー', cvr:'意欲転換率CVR(%)', ai_sessions:'AI経由流入'};
 async function loadKpiHistory(){
   if(KPI_HISTORY) return KPI_HISTORY;
   try{

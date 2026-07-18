@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-07-18T08:51:27",
+  "generated_at": "2026-07-18T08:56:42",
   "gsc_status": "ok",
   "date_range": {
     "start": "2026-06-19",
@@ -11,6 +11,7 @@
     "total_clicks": 40,
     "total_copies": 1,
     "total_cta": 2,
+    "total_ai_sessions": 1,
     "avg_ctr": 0.018913,
     "avg_cvr": 0.002053
   },

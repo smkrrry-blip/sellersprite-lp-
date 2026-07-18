@@ -25,6 +25,10 @@ SA_SCOPES = [
     'https://www.googleapis.com/auth/analytics.readonly',
 ]
 
+# AI検索・チャットボット経由の流入を検知するための参照元キーワード（導線B・LLMO計測）
+AI_SOURCE_KEYWORDS = ['chatgpt.com', 'chat.openai.com', 'perplexity.ai',
+                      'gemini.google.com', 'claude.ai', 'copilot.microsoft.com', 'you.com']
+
 # ── SA 認証 (GA4用) ───────────────────────────────────────────────────────────
 def get_sa_token():
     if not os.path.exists(KEY_FILE):
@@ -131,6 +135,27 @@ def fetch_ga4(token, start_date, end_date):
         }
     return result
 
+# ── AI経由流入（sessionSource から抽出） ──────────────────────────────────────
+def fetch_ai_referrals(token, start_date, end_date):
+    url = f'https://analyticsdata.googleapis.com/v1beta/properties/{GA4_PROPERTY}:runReport'
+    headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
+    body = {
+        'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
+        'dimensions': [{'name': 'sessionSource'}],
+        'metrics': [{'name': 'sessions'}],
+        'limit': 200,
+    }
+    r = requests.post(url, headers=headers, json=body, timeout=30)
+    r.raise_for_status()
+    data = r.json()
+    total = 0
+    for row in data.get('rows', []):
+        src = row['dimensionValues'][0]['value'].lower()
+        cnt = int(row['metricValues'][0]['value'] or 0)
+        if any(k in src for k in AI_SOURCE_KEYWORDS):
+            total += cnt
+    return total
+
 # ── Search Console API ────────────────────────────────────────────────────────
 def fetch_gsc(token, start_date, end_date):
     site = requests.utils.quote(GSC_SITE, safe='')
@@ -178,6 +203,14 @@ def main():
         print(f'[WARN] GA4 取得失敗: {e}', file=sys.stderr)
         ga4 = {}
 
+    print('[INFO] AI経由流入 集計中...')
+    try:
+        ai_sessions = fetch_ai_referrals(token, start_date, end_date)
+        print(f'[INFO] AI経由セッション: {ai_sessions}')
+    except Exception as e:
+        print(f'[WARN] AI経由流入 取得失敗: {e}', file=sys.stderr)
+        ai_sessions = 0
+
     print('[INFO] Search Console 取得中...')
     gsc_status = 'ok'
     try:
@@ -220,6 +253,7 @@ def main():
     total_ses = sum(r['sessions'] for r in rows)
     total_cop = sum(r['copies']  for r in rows)
     total_cta = sum(r['cta']     for r in rows)
+    total_ai  = ai_sessions
 
     output = {
         'generated_at': datetime.datetime.now().isoformat(timespec='seconds'),
@@ -231,6 +265,7 @@ def main():
             'total_clicks':      total_clk,
             'total_copies':      total_cop,
             'total_cta':         total_cta,
+            'total_ai_sessions': total_ai,
             'avg_ctr':           round(total_clk / total_imp, 6) if total_imp else 0,
             'avg_cvr':           round(total_cop / total_ses, 6) if total_ses else 0,
         },
@@ -241,7 +276,7 @@ def main():
         json.dump(output, f, ensure_ascii=False, indent=2)
     print(f'[INFO] 書き出し完了: {OUTPUT_FILE} ({len(rows)} ページ)')
 
-    append_kpi_history(rows, output['summary'], gsc_status)
+    append_kpi_history(rows, output['summary'], gsc_status, total_ai)
 
 # ── KPI日次履歴（CSV追記・1日1行） ─────────────────────────────────────────────
 HISTORY_FILE = os.path.join(os.path.dirname(__file__), 'kpi_history.csv')
@@ -249,7 +284,7 @@ KEY8 = ['/coupon-cj9852.html', '/waribiki.html', '/ryoukin.html', '/tsukaikata.h
         '/touroku.html', '/amazon-sourcing.html', '/amazon-review-management.html',
         '/amazon-competitor-analysis.html']
 
-def append_kpi_history(rows, summary, gsc_status):
+def append_kpi_history(rows, summary, gsc_status, ai_sessions=0):
     import csv
     imp = summary['total_impressions']; clk = summary['total_clicks']
     cta = summary['total_cta']; cop = summary['total_copies']
@@ -266,8 +301,8 @@ def append_kpi_history(rows, summary, gsc_status):
     today = datetime.date.today().isoformat()
 
     header = ['date', 'gsc_status', 'impressions', 'avg_position', 'top10_pages',
-              'ctr', 'clicks', 'cta_plus_copy', 'cvr']
-    newrow = [today, gsc_status, imp, avg_pos, top10, ctr, clk, cta + cop, cvr]
+              'ctr', 'clicks', 'cta_plus_copy', 'cvr', 'ai_sessions']
+    newrow = [today, gsc_status, imp, avg_pos, top10, ctr, clk, cta + cop, cvr, ai_sessions]
 
     existing = []
     if os.path.exists(HISTORY_FILE):

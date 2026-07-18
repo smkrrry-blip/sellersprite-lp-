@@ -6,8 +6,8 @@
     <string>com.sellersprite.dashboard</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/python3</string>
-        <string>/Users/shoichionizuka/sellersprite-lp-/fetch_dashboard.py</string>
+        <string>/bin/bash</string>
+        <string>/Users/shoichionizuka/sellersprite-lp-/run_dashboard.sh</string>
     </array>
     <!-- 毎朝 07:00 JST に実行 -->
     <key>StartCalendarInterval</key>
