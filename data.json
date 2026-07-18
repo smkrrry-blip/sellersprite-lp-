@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-07-18T07:00:08",
+  "generated_at": "2026-07-18T08:51:27",
   "gsc_status": "ok",
   "date_range": {
     "start": "2026-06-19",
     "end": "2026-07-18"
   },
   "summary": {
-    "total_pv": 549,
+    "total_pv": 556,
     "total_impressions": 2115,
     "total_clicks": 40,
     "total_copies": 1,
     "total_cta": 2,
     "avg_ctr": 0.018913,
-    "avg_cvr": 0.00207
+    "avg_cvr": 0.002053
   },
   "rows": [
     {
@@ -56,9 +56,9 @@
     },
     {
       "path": "/amazon-a-content-strategy.html",
-      "pv": 3,
-      "sessions": 2,
-      "users": 2,
+      "pv": 5,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -82,9 +82,9 @@
     },
     {
       "path": "/amazon-a-plus.html",
-      "pv": 3,
-      "sessions": 2,
-      "users": 2,
+      "pv": 4,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -95,9 +95,9 @@
     },
     {
       "path": "/amazon-a9-algorithm.html",
-      "pv": 2,
-      "sessions": 1,
-      "users": 1,
+      "pv": 3,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -264,9 +264,9 @@
     },
     {
       "path": "/amazon-arbitrage-online.html",
-      "pv": 3,
-      "sessions": 2,
-      "users": 2,
+      "pv": 4,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -1473,7 +1473,7 @@
     },
     {
       "path": "/amazon-invoice.html",
-      "pv": 14,
+      "pv": 15,
       "sessions": 14,
       "users": 14,
       "copies": 0,
@@ -2760,7 +2760,7 @@
     },
     {
       "path": "/amazon-sell-handmade-craft.html",
-      "pv": 3,
+      "pv": 4,
       "sessions": 4,
       "users": 4,
       "copies": 0,
