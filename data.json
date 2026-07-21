@@ -1,33 +1,33 @@
 {
-  "generated_at": "2026-07-20T07:00:09",
+  "generated_at": "2026-07-21T07:00:09",
   "gsc_status": "ok",
   "date_range": {
-    "start": "2026-06-21",
-    "end": "2026-07-20"
+    "start": "2026-06-22",
+    "end": "2026-07-21"
   },
   "summary": {
-    "total_pv": 467,
-    "total_impressions": 2225,
-    "total_clicks": 42,
+    "total_pv": 376,
+    "total_impressions": 2269,
+    "total_clicks": 41,
     "total_copies": 1,
     "total_cta": 2,
     "total_ai_sessions": 1,
-    "avg_ctr": 0.018876,
-    "avg_cvr": 0.002519
+    "avg_ctr": 0.01807,
+    "avg_cvr": 0.003268
   },
   "rows": [
     {
       "path": "/",
-      "pv": 24,
-      "sessions": 18,
-      "users": 17,
+      "pv": 21,
+      "sessions": 15,
+      "users": 14,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 45,
+      "impressions": 47,
       "clicks": 1,
-      "ctr": 0.022222,
-      "position": 15
+      "ctr": 0.021277,
+      "position": 14.68
     },
     {
       "path": "/alibaba-research.html",
@@ -44,9 +44,9 @@
     },
     {
       "path": "/amazon-2nd-product.html",
-      "pv": 4,
-      "sessions": 3,
-      "users": 3,
+      "pv": 3,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -89,10 +89,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 1,
+      "impressions": 0,
       "clicks": 0,
       "ctr": 0,
-      "position": 7
+      "position": 0
     },
     {
       "path": "/amazon-a9-algorithm.html",
@@ -109,9 +109,9 @@
     },
     {
       "path": "/amazon-account-health-score.html",
-      "pv": 4,
-      "sessions": 3,
-      "users": 3,
+      "pv": 3,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -154,10 +154,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 1,
+      "impressions": 0,
       "clicks": 0,
       "ctr": 0,
-      "position": 11
+      "position": 0
     },
     {
       "path": "/amazon-accounting.html",
@@ -167,10 +167,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 30,
+      "impressions": 35,
       "clicks": 1,
-      "ctr": 0.033333,
-      "position": 17.63
+      "ctr": 0.028571,
+      "position": 17.06
     },
     {
       "path": "/amazon-acos-improvement.html",
@@ -219,10 +219,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 1,
+      "impressions": 0,
       "clicks": 0,
       "ctr": 0,
-      "position": 6
+      "position": 0
     },
     {
       "path": "/amazon-ai-listing.html",
@@ -245,10 +245,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 42,
+      "impressions": 38,
       "clicks": 0,
       "ctr": 0,
-      "position": 30.71
+      "position": 29.45
     },
     {
       "path": "/amazon-apparel-selling.html",
@@ -278,9 +278,9 @@
     },
     {
       "path": "/amazon-arbitrage-tools.html",
-      "pv": 3,
-      "sessions": 2,
-      "users": 2,
+      "pv": 2,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -356,9 +356,9 @@
     },
     {
       "path": "/amazon-b2b-selling.html",
-      "pv": 3,
-      "sessions": 2,
-      "users": 2,
+      "pv": 2,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -408,9 +408,9 @@
     },
     {
       "path": "/amazon-brand-analytics-guide.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -440,16 +440,16 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 349,
+      "impressions": 361,
       "clicks": 0,
       "ctr": 0,
-      "position": 53.17
+      "position": 52.44
     },
     {
       "path": "/amazon-brand-store.html",
-      "pv": 3,
-      "sessions": 2,
-      "users": 2,
+      "pv": 2,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -499,9 +499,9 @@
     },
     {
       "path": "/amazon-bundle-product.html",
-      "pv": 3,
-      "sessions": 2,
-      "users": 2,
+      "pv": 2,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -564,9 +564,9 @@
     },
     {
       "path": "/amazon-business-incorporation.html",
-      "pv": 3,
-      "sessions": 2,
-      "users": 2,
+      "pv": 2,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -596,10 +596,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 130,
+      "impressions": 133,
       "clicks": 0,
       "ctr": 0,
-      "position": 19.65
+      "position": 19.52
     },
     {
       "path": "/amazon-canada-market.html",
@@ -661,10 +661,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 47,
+      "impressions": 48,
       "clicks": 0,
       "ctr": 0,
-      "position": 6.94
+      "position": 6.98
     },
     {
       "path": "/amazon-category.html",
@@ -729,7 +729,7 @@
       "impressions": 111,
       "clicks": 1,
       "ctr": 0.009009,
-      "position": 14.77
+      "position": 14.97
     },
     {
       "path": "/amazon-competitor-keyword.html",
@@ -759,9 +759,9 @@
     },
     {
       "path": "/amazon-competitor-spy.html",
-      "pv": 3,
-      "sessions": 2,
-      "users": 2,
+      "pv": 2,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -811,12 +811,12 @@
     },
     {
       "path": "/amazon-coupon-strategy.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 2,
       "clicks": 0,
       "ctr": 0,
@@ -836,19 +836,6 @@
       "position": 37.78
     },
     {
-      "path": "/amazon-data-analysis.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-deals-strategy.html",
       "pv": 1,
       "sessions": 1,
@@ -863,12 +850,12 @@
     },
     {
       "path": "/amazon-demand-forecast.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 1,
       "clicks": 0,
       "ctr": 0,
@@ -876,9 +863,9 @@
     },
     {
       "path": "/amazon-demand-planning.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -889,9 +876,9 @@
     },
     {
       "path": "/amazon-digital-coupon.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 2,
+      "sessions": 2,
+      "users": 2,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -915,12 +902,12 @@
     },
     {
       "path": "/amazon-email-list.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 1,
       "clicks": 0,
       "ctr": 0,
@@ -960,10 +947,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 17,
+      "impressions": 16,
       "clicks": 1,
-      "ctr": 0.058824,
-      "position": 15.41
+      "ctr": 0.0625,
+      "position": 15.31
     },
     {
       "path": "/amazon-fba-canada.html",
@@ -980,19 +967,6 @@
     },
     {
       "path": "/amazon-fba-fee-calculator.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-fba-fees-calculation.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -1044,19 +1018,6 @@
       "position": 0
     },
     {
-      "path": "/amazon-fba-storage.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-fba-vs-fbm.html",
       "pv": 1,
       "sessions": 1,
@@ -1077,10 +1038,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 0,
+      "impressions": 1,
       "clicks": 0,
       "ctr": 0,
-      "position": 0
+      "position": 8
     },
     {
       "path": "/amazon-flat-file.html",
@@ -1103,36 +1064,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 12,
+      "impressions": 11,
       "clicks": 0,
       "ctr": 0,
-      "position": 27.25
-    },
-    {
-      "path": "/amazon-generative-ai.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-germany-market.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "position": 28.64
     },
     {
       "path": "/amazon-gift-wrapping.html",
@@ -1149,12 +1084,12 @@
     },
     {
       "path": "/amazon-global-selling.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 3,
       "clicks": 0,
       "ctr": 0,
@@ -1162,19 +1097,6 @@
     },
     {
       "path": "/amazon-global.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-grocery-category.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -1207,36 +1129,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 5,
+      "impressions": 6,
       "clicks": 0,
       "ctr": 0,
-      "position": 7.8
-    },
-    {
-      "path": "/amazon-handmade.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-hazmat.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "position": 7.83
     },
     {
       "path": "/amazon-high-ticket.html",
@@ -1265,19 +1161,6 @@
       "position": 10
     },
     {
-      "path": "/amazon-import.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-influencer-program.html",
       "pv": 1,
       "sessions": 1,
@@ -1304,19 +1187,6 @@
       "position": 6.5
     },
     {
-      "path": "/amazon-inventory-age.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-inventory-replenishment.html",
       "pv": 0,
       "sessions": 0,
@@ -1331,9 +1201,9 @@
     },
     {
       "path": "/amazon-invoice.html",
-      "pv": 14,
-      "sessions": 13,
-      "users": 13,
+      "pv": 13,
+      "sessions": 12,
+      "users": 12,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -1363,16 +1233,16 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0,
-      "impressions": 51,
+      "impressions": 54,
       "clicks": 0,
       "ctr": 0,
-      "position": 9.43
+      "position": 9.33
     },
     {
       "path": "/amazon-kdp-publishing.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -1389,10 +1259,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 30,
+      "impressions": 28,
       "clicks": 1,
-      "ctr": 0.033333,
-      "position": 9.03
+      "ctr": 0.035714,
+      "position": 8.64
     },
     {
       "path": "/amazon-keyword-indexing.html",
@@ -1402,10 +1272,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 6,
+      "impressions": 4,
       "clicks": 0,
       "ctr": 0,
-      "position": 7.5
+      "position": 7
     },
     {
       "path": "/amazon-keyword-rank-tracking.html",
@@ -1467,10 +1337,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 22,
+      "impressions": 23,
       "clicks": 0,
       "ctr": 0,
-      "position": 8.55
+      "position": 8.52
     },
     {
       "path": "/amazon-lightning-deals.html",
@@ -1497,32 +1367,6 @@
       "clicks": 0,
       "ctr": 0,
       "position": 30
-    },
-    {
-      "path": "/amazon-listing.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-long-term-storage.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
     },
     {
       "path": "/amazon-lost-damaged.html",
@@ -1558,10 +1402,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 2,
+      "impressions": 0,
       "clicks": 0,
       "ctr": 0,
-      "position": 9.5
+      "position": 0
     },
     {
       "path": "/amazon-marketplace-comparison.html",
@@ -1571,10 +1415,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 8,
+      "impressions": 7,
       "clicks": 0,
       "ctr": 0,
-      "position": 13.5
+      "position": 11.57
     },
     {
       "path": "/amazon-merch-on-demand.html",
@@ -1591,32 +1435,6 @@
     },
     {
       "path": "/amazon-mexico-market.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-mobile-tool.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-multi-channel.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -1694,19 +1512,6 @@
       "position": 7.62
     },
     {
-      "path": "/amazon-new-release-ranking.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-niche-keyword.html",
       "pv": 1,
       "sessions": 1,
@@ -1727,23 +1532,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 4,
+      "impressions": 3,
       "clicks": 0,
       "ctr": 0,
-      "position": 8
-    },
-    {
-      "path": "/amazon-order-defect-rate.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "position": 8.33
     },
     {
       "path": "/amazon-outsourcing.html",
@@ -1779,23 +1571,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 6,
+      "impressions": 7,
       "clicks": 1,
-      "ctr": 0.166667,
-      "position": 10.17
-    },
-    {
-      "path": "/amazon-patent-design.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "ctr": 0.142857,
+      "position": 9.86
     },
     {
       "path": "/amazon-posts.html",
@@ -1821,23 +1600,10 @@
       "impressions": 19,
       "clicks": 0,
       "ctr": 0,
-      "position": 25.11
+      "position": 25.16
     },
     {
       "path": "/amazon-ppc-basics.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-ppc-new-launch.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -1890,9 +1656,9 @@
     },
     {
       "path": "/amazon-print-on-demand.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -2019,32 +1785,6 @@
       "position": 0
     },
     {
-      "path": "/amazon-profit.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-profitability.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-prohibited-items.html",
       "pv": 1,
       "sessions": 1,
@@ -2052,39 +1792,13 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 10,
+      "impressions": 11,
       "clicks": 0,
       "ctr": 0,
-      "position": 13.6
-    },
-    {
-      "path": "/amazon-rank-hijacking.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "position": 13.36
     },
     {
       "path": "/amazon-rank-recovery.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-rank-up.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -2104,10 +1818,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 13,
+      "impressions": 12,
       "clicks": 1,
-      "ctr": 0.076923,
-      "position": 13.69
+      "ctr": 0.083333,
+      "position": 13.92
     },
     {
       "path": "/amazon-removal-order.html",
@@ -2124,9 +1838,9 @@
     },
     {
       "path": "/amazon-repricer.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -2188,19 +1902,6 @@
       "position": 0
     },
     {
-      "path": "/amazon-return-management.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-return-rate.html",
       "pv": 1,
       "sessions": 1,
@@ -2215,9 +1916,9 @@
     },
     {
       "path": "/amazon-review-increase.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -2234,10 +1935,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 99,
+      "impressions": 106,
       "clicks": 0,
       "ctr": 0,
-      "position": 10.45
+      "position": 10.27
     },
     {
       "path": "/amazon-review-tool.html",
@@ -2306,12 +2007,12 @@
     },
     {
       "path": "/amazon-search-rank.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 6,
       "clicks": 0,
       "ctr": 0,
@@ -2370,43 +2071,17 @@
       "position": 3
     },
     {
-      "path": "/amazon-seasonal-ranking.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-sell-handmade-craft.html",
-      "pv": 4,
-      "sessions": 4,
-      "users": 4,
+      "pv": 3,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 111,
+      "impressions": 112,
       "clicks": 2,
-      "ctr": 0.018018,
-      "position": 9.1
-    },
-    {
-      "path": "/amazon-seller-analysis.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "ctr": 0.017857,
+      "position": 9.05
     },
     {
       "path": "/amazon-seller-app.html",
@@ -2416,10 +2091,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 56,
+      "impressions": 58,
       "clicks": 0,
       "ctr": 0,
-      "position": 8.95
+      "position": 8.93
     },
     {
       "path": "/amazon-seller-central.html",
@@ -2474,19 +2149,6 @@
       "position": 0
     },
     {
-      "path": "/amazon-seller-tools-comparison.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-seller-vacation.html",
       "pv": 1,
       "sessions": 1,
@@ -2511,32 +2173,6 @@
       "clicks": 0,
       "ctr": 0,
       "position": 6
-    },
-    {
-      "path": "/amazon-small-and-light.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-sop-creation.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
     },
     {
       "path": "/amazon-sourcing-india.html",
@@ -2572,10 +2208,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 244,
+      "impressions": 251,
       "clicks": 5,
-      "ctr": 0.020492,
-      "position": 9.84
+      "ctr": 0.01992,
+      "position": 9.68
     },
     {
       "path": "/amazon-sp-ads-optimization.html",
@@ -2605,16 +2241,16 @@
     },
     {
       "path": "/amazon-sponsored-products.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 3,
-      "clicks": 1,
-      "ctr": 0.333333,
-      "position": 6.67
+      "impressions": 2,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 7
     },
     {
       "path": "/amazon-stock-alert.html",
@@ -2663,23 +2299,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 8,
+      "impressions": 6,
       "clicks": 0,
       "ctr": 0,
-      "position": 9.25
-    },
-    {
-      "path": "/amazon-subscribe-save-strategy.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "position": 9.33
     },
     {
       "path": "/amazon-subscribe-save.html",
@@ -2689,32 +2312,19 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 8,
+      "impressions": 6,
       "clicks": 0,
       "ctr": 0,
-      "position": 9.88
-    },
-    {
-      "path": "/amazon-subscription-box.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "position": 10.83
     },
     {
       "path": "/amazon-tax-consumption.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 9,
       "clicks": 0,
       "ctr": 0,
@@ -2722,55 +2332,29 @@
     },
     {
       "path": "/amazon-tax-filing.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 1,
       "clicks": 0,
       "ctr": 0,
       "position": 9
     },
     {
-      "path": "/amazon-team-building.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-tiktok-amazon.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 5,
       "clicks": 0,
       "ctr": 0,
-      "position": 8.2
-    },
-    {
-      "path": "/amazon-title-optimization.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "position": 7.6
     },
     {
       "path": "/amazon-title.html",
@@ -2806,36 +2390,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 132,
+      "impressions": 135,
       "clicks": 2,
-      "ctr": 0.015152,
-      "position": 22.18
-    },
-    {
-      "path": "/amazon-variation.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-vine-program.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "ctr": 0.014815,
+      "position": 22.38
     },
     {
       "path": "/amazon-virtual-assistant.html",
@@ -2864,32 +2422,6 @@
       "position": 9.12
     },
     {
-      "path": "/amazon-warehouse-deal.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-warehouse-management.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-wholesale-direct.html",
       "pv": 1,
       "sessions": 1,
@@ -2904,51 +2436,25 @@
     },
     {
       "path": "/amazon-wholesale-fba.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 1,
       "clicks": 0,
       "ctr": 0,
       "position": 36
     },
     {
-      "path": "/amazon-wholesale-sourcing.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/amazon-wholesale.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/amazon-winner-products.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 1,
       "clicks": 0,
       "ctr": 0,
@@ -2979,19 +2485,6 @@
       "clicks": 0,
       "ctr": 0,
       "position": 10.79
-    },
-    {
-      "path": "/china-import.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
     },
     {
       "path": "/competitor-spy.html",
@@ -3027,23 +2520,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0,
-      "impressions": 26,
+      "impressions": 27,
       "clicks": 0,
       "ctr": 0,
-      "position": 11.35
-    },
-    {
-      "path": "/fba-keisan.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "position": 11.33
     },
     {
       "path": "/fba-research.html",
@@ -3060,19 +2540,6 @@
     },
     {
       "path": "/fba-vs-fbm.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/getsuu.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
@@ -3098,19 +2565,6 @@
       "position": 64
     },
     {
-      "path": "/helium10-muryou.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/hyouban.html",
       "pv": 1,
       "sessions": 1,
@@ -3121,7 +2575,7 @@
       "impressions": 34,
       "clicks": 1,
       "ctr": 0.029412,
-      "position": 7.88
+      "position": 7.74
     },
     {
       "path": "/index.html",
@@ -3164,12 +2618,12 @@
     },
     {
       "path": "/keyword-rank.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 3,
       "clicks": 0,
       "ctr": 0,
@@ -3200,32 +2654,6 @@
       "clicks": 0,
       "ctr": 0,
       "position": 4.75
-    },
-    {
-      "path": "/kuchikomi.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/long-tail-keyword.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
     },
     {
       "path": "/low-competition.html",
@@ -3261,10 +2689,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0,
-      "impressions": 5,
+      "impressions": 6,
       "clicks": 0,
       "ctr": 0,
-      "position": 19.8
+      "position": 18.17
     },
     {
       "path": "/muryou.html",
@@ -3274,10 +2702,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 53,
+      "impressions": 57,
       "clicks": 4,
-      "ctr": 0.075472,
-      "position": 7.89
+      "ctr": 0.070175,
+      "position": 8
     },
     {
       "path": "/niche-shohin.html",
@@ -3287,10 +2715,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 11,
+      "impressions": 13,
       "clicks": 0,
       "ctr": 0,
-      "position": 11.18
+      "position": 11.15
     },
     {
       "path": "/nihon-seller.html",
@@ -3332,19 +2760,6 @@
       "position": 0
     },
     {
-      "path": "/pricelabo-hikaku.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/private-label.html",
       "pv": 0,
       "sessions": 0,
@@ -3356,19 +2771,6 @@
       "clicks": 0,
       "ctr": 0,
       "position": 28
-    },
-    {
-      "path": "/product-hunting.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
     },
     {
       "path": "/product-research-hub.html",
@@ -3384,36 +2786,23 @@
       "position": 0
     },
     {
-      "path": "/profit-margin.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
       "path": "/rakuten-amazon.html",
-      "pv": 3,
-      "sessions": 3,
-      "users": 3,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 2,
-      "clicks": 2,
-      "ctr": 1,
-      "position": 2
-    },
-    {
-      "path": "/ranking-tool.html",
       "pv": 2,
       "sessions": 2,
       "users": 2,
+      "copies": 0,
+      "cta": 0,
+      "cvr": 0.0,
+      "impressions": 3,
+      "clicks": 2,
+      "ctr": 0.666667,
+      "position": 4.33
+    },
+    {
+      "path": "/ranking-tool.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -3424,9 +2813,9 @@
     },
     {
       "path": "/resell-tool.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -3437,29 +2826,16 @@
     },
     {
       "path": "/review-bunseki.html",
-      "pv": 2,
-      "sessions": 2,
-      "users": 2,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 2,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 21.5
-    },
-    {
-      "path": "/rival-tool.html",
       "pv": 1,
       "sessions": 1,
       "users": 1,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 0,
+      "impressions": 1,
       "clicks": 0,
       "ctr": 0,
-      "position": 0
+      "position": 4
     },
     {
       "path": "/ryoukin.html",
@@ -3469,58 +2845,19 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 44,
+      "impressions": 48,
       "clicks": 3,
-      "ctr": 0.068182,
-      "position": 8.98
-    },
-    {
-      "path": "/sedori-research.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/sedori-tool.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
-    },
-    {
-      "path": "/seller-bunseki.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "ctr": 0.0625,
+      "position": 8.94
     },
     {
       "path": "/seo-keyword.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
+      "pv": 0,
+      "sessions": 0,
+      "users": 0,
       "copies": 0,
       "cta": 0,
-      "cvr": 0.0,
+      "cvr": 0,
       "impressions": 1,
       "clicks": 0,
       "ctr": 0,
@@ -3538,19 +2875,6 @@
       "clicks": 0,
       "ctr": 0,
       "position": 11
-    },
-    {
-      "path": "/supply-chain.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
     },
     {
       "path": "/topseller-houhou.html",
@@ -3573,23 +2897,10 @@
       "copies": 1,
       "cta": 2,
       "cvr": 0.166667,
-      "impressions": 20,
+      "impressions": 22,
       "clicks": 1,
-      "ctr": 0.05,
-      "position": 6.05
-    },
-    {
-      "path": "/trend-shohin.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "ctr": 0.045455,
+      "position": 5.91
     },
     {
       "path": "/tsukaikata.html",
@@ -3599,10 +2910,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0,
-      "impressions": 9,
+      "impressions": 10,
       "clicks": 0,
       "ctr": 0,
-      "position": 10.78
+      "position": 10.4
     },
     {
       "path": "/uresuji.html",
@@ -3612,10 +2923,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 48,
+      "impressions": 49,
       "clicks": 1,
-      "ctr": 0.020833,
-      "position": 17.33
+      "ctr": 0.020408,
+      "position": 17.04
     },
     {
       "path": "/uriage-fuyasu.html",
@@ -3651,10 +2962,10 @@
       "copies": 0,
       "cta": 0,
       "cvr": 0,
-      "impressions": 21,
+      "impressions": 20,
       "clicks": 0,
       "ctr": 0,
-      "position": 25.48
+      "position": 26.3
     },
     {
       "path": "/vs-keepa.html",
@@ -3671,29 +2982,16 @@
     },
     {
       "path": "/waribiki.html",
-      "pv": 3,
-      "sessions": 4,
-      "users": 3,
+      "pv": 2,
+      "sessions": 3,
+      "users": 2,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
-      "impressions": 56,
+      "impressions": 57,
       "clicks": 1,
-      "ctr": 0.017857,
-      "position": 9.07
-    },
-    {
-      "path": "/winning-product.html",
-      "pv": 1,
-      "sessions": 1,
-      "users": 1,
-      "copies": 0,
-      "cta": 0,
-      "cvr": 0.0,
-      "impressions": 0,
-      "clicks": 0,
-      "ctr": 0,
-      "position": 0
+      "ctr": 0.017544,
+      "position": 9.02
     }
   ]
 }
