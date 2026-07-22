@@ -94,7 +94,7 @@
         ]
       },
       "datePublished": "2024-01-01",
-      "dateModified": "2026-05-24",
+      "dateModified": "2026-07-22",
       "url": "https://sellersprite.blog/",
       "image": "https://sellersprite.blog/images/ss-features.png"
     },
@@ -181,13 +181,6 @@
       "operatingSystem": "Web",
       "applicationCategory": "BusinessApplication",
       "url": "https://www.sellersprite.com/jp/w/user/login",
-      "aggregateRating": {
-        "@type": "AggregateRating",
-        "ratingValue": "4.7",
-        "reviewCount": "1700000",
-        "bestRating": "5",
-        "worstRating": "1"
-      },
       "offers": {
         "@type": "Offer",
         "price": "9799",
@@ -337,6 +330,26 @@ img{max-width:100%;height:auto;display:block;}
 .step-title{font-size:15px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;}
 .step-body{font-size:13px;color:#666;line-height:1.75;}
 
+/* ===== REGISTER STEP CARDS (touroku式・縦導線) ===== */
+.reg-steps{max-width:680px;margin:0 auto;}
+.step-card{background:#fff;border:2px solid #f0ede8;border-radius:12px;padding:26px 22px;margin-bottom:18px;}
+.step-num{display:inline-block;background:#FB8C1E;color:#fff;font-size:12px;font-weight:bold;padding:4px 14px;border-radius:20px;letter-spacing:1px;margin-bottom:12px;}
+.step-card h3{font-size:16px;font-weight:bold;color:#1a1a1a;margin-bottom:8px;}
+.step-card p{font-size:14px;color:#444;line-height:1.9;margin:0;}
+.step-card .tip{background:#fff8f2;border-left:3px solid #FB8C1E;padding:10px 14px;border-radius:0 6px 6px 0;margin-top:12px;font-size:13px;color:#555;line-height:1.85;}
+.step-card-btn{display:inline-block;background:#FB8C1E;color:#fff;font-size:14px;font-weight:bold;padding:11px 26px;border-radius:6px;margin-top:16px;transition:opacity 0.2s;}
+.step-card-btn:hover{opacity:0.88;color:#fff;}
+.step-arrow{text-align:center;color:#FB8C1E;font-size:22px;margin:-4px 0 14px;line-height:1;}
+
+/* ===== PRICE TABLE ===== */
+.price-table{width:100%;border-collapse:collapse;background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 12px rgba(0,0,0,0.06);min-width:520px;}
+.price-table th{background:#1a1a1a;color:#fff;font-size:13px;font-weight:bold;padding:14px 16px;text-align:left;}
+.price-table td{font-size:14px;padding:14px 16px;border-bottom:1px solid #f0ede8;color:#444;}
+.price-table tr:last-child td{border-bottom:none;}
+.price-table tr.reco td{background:#fff5eb;}
+.price-off{color:#FB8C1E;font-weight:bold;}
+.price-note{font-size:12px;color:#aaa;margin-top:12px;text-align:center;}
+
 /* FAQ SECTION */
 .faq-section{background:#fff;padding:64px 24px;}
 .faq-inner{max-width:760px;margin:0 auto;}
@@ -457,7 +470,10 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
   .coupon-code{font-size:22px;padding:10px 16px;letter-spacing:4px;}
   .cta-section h2{font-size:1.3em;}
   .cta-btn{padding:18px 32px;font-size:17px;}
+  .cta-coupon .cl{display:none;}
+  .cta-coupon .cc{font-size:20px;padding:12px 14px;letter-spacing:3px;}
 }
+.nobr{display:inline-block;}
 .sticky-inner{display:flex;align-items:center;justify-content:center;gap:32px;padding:0 24px;height:64px;max-width:900px;margin:0 auto;}
 .sticky-code{display:flex;align-items:center;gap:12px;}
 .sticky-label{color:#aaa;font-size:11px;letter-spacing:1px;white-space:nowrap;}
@@ -492,7 +508,7 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
 </head>
 <body>
 
-<div class="announce-bar">⚡ 割引コード <strong>CJ9852</strong> で全プラン30%OFF ── 30%OFF</div>
+<div class="announce-bar">⚡ 期間限定：割引コード <strong>CJ9852</strong> で全プラン30%OFF（月¥13,998 → ¥9,799）</div>
 
 <div class="nav-bar">
   <div class="nav-inner">
@@ -503,7 +519,7 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
         onerror="this.style.display='none'"
         alt="SellerSprite" width="140" height="28" loading="lazy" decoding="async">
     </div>
-    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" rel="noopener noreferrer" class="nav-cta">30%OFFで始める →</a>
+    <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener noreferrer" class="nav-cta">30%OFFで始める →</a>
   </div>
 </div>
 
@@ -512,27 +528,22 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
     <div class="hero-col-text">
       <p class="hero-sub">世界170万人が使うAmazonリサーチツール</p>
       <h1>商品リサーチの時間を<br><em>10分の1</em>に。</h1>
-      <p class="hero-lead">データで勝つAmazon物販を、今日から始めましょう。</p>
+      <p class="hero-lead">売れる商品を「勘」ではなくデータで見つける。Amazon物販の定番リサーチツールを、このページ限定の割引コードで<strong style="color:#FB8C1E;">30%OFF</strong>から始められます。</p>
       <div style="background:#fff8f2;border-left:4px solid #FB8C1E;padding:18px 22px;border-radius:0 8px 8px 0;margin:24px 0;font-size:15px;color:#444;line-height:1.9;">【2026年7月確認】セラースプライトの割引コードは「CJ9852」。公式サイトの料金ページ右上にあるクーポン欄に入力して「適用」を押すと、全プランが30%OFFになります（2026年7月14日に実際に適用して有効を確認済み）。</div>
 
       <div class="coupon-wrap">
-        <p class="coupon-label-sm">今すぐコードをコピーして登録時に入力：</p>
+        <p class="coupon-label-sm">今すぐコードをコピー（登録後、料金ページで入力します）：</p>
         <div class="coupon-block">
           <span class="coupon-tag">30%OFF CODE</span>
           <span class="coupon-code">CJ9852</span>
-          <button class="copy-btn" id="heroBtn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});copyCode('heroBtn')">コピー</button>
+          <button class="copy-btn" id="heroBtn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="copyCode('heroBtn','hero')">コピー</button>
         </div>
-        <p class="coupon-note">コードをコピーして、公式サイト登録画面で入力するだけ。30%OFFが即適用されます</p>
+        <p class="coupon-note">コピーして、公式サイトの料金ページ右上「クーポンコード」欄に入力するだけ。30%OFFが即適用されます</p>
       </div>
       <p class="price-display">割引後の料金: <strong class="price-highlight">¥9,799/月〜</strong><span class="price-original">（通常 <span class="price-strike">¥13,998</span>）</span></p>
 
-      <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" rel="noopener noreferrer" class="hero-cta-btn">セラースプライトを30%OFFで始める →</a>
-      <p class="hero-assure">無料プランあり・日本語対応・いつでも解約OK</p>
-      <p style="font-size:0.85em;color:#888;margin-top:12px;line-height:1.6;">
-        ✅ まず無料プランで試せます。有料へのアップグレードはいつでも<br>
-        ✅ 年商3億円の現役セラーが実際に毎日使っているツールです<br>
-        ✅ 使い方で困ったら、このサイトの解説ページですべてカバーしています
-      </p>
+      <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener noreferrer" class="hero-cta-btn">セラースプライトを30%OFFで始める →</a>
+      <p class="hero-assure">✅ 無料プランあり ✅ 完全日本語対応 ✅ いつでも解約OK</p>
     </div>
     <div class="hero-col-img">
       <picture>
@@ -568,6 +579,55 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
         <p class="quote-sig">― 鬼束壮一｜Amazon年商3億円・セラースプライト最安値ガイド</p>
       </div>
     </div>
+  </div>
+</div>
+
+<div class="section bg-gray" id="register-steps">
+  <div class="section-inner">
+    <h2 class="section-title"><span class="nobr">30%OFFで始める</span><em class="nobr">登録の3ステップ</em></h2>
+    <p class="section-desc">実際の登録の流れをそのまま解説します。かかる時間は約3分です。</p>
+    <div class="reg-steps">
+      <div class="step-card">
+        <div class="step-num">STEP 1</div>
+        <h3>割引コード「CJ9852」をコピーして公式サイトへ</h3>
+        <p>まず上のコピーボタンでコードを控えてから、下のボタンで公式サイトの登録ページに移動します。</p>
+        <div class="tip">💡 スマートフォンからでも登録できます。PC・スマホどちらでも問題ありません。</div>
+        <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener noreferrer" class="step-card-btn">公式サイトへ移動する →</a>
+      </div>
+      <div class="step-arrow">↓</div>
+      <div class="step-card">
+        <div class="step-num">STEP 2</div>
+        <h3>GoogleまたはFacebookアカウントで登録</h3>
+        <p>「Googleでログイン」または「Facebookでログイン」をクリックし、お使いのアカウントで連携するだけ。メールアドレスやパスワードを新しく入力する必要はありません。約1分で完了します。</p>
+        <div class="tip">💡 2026年7月確認：現在の登録はGoogle／Facebook連携のみです。</div>
+      </div>
+      <div class="step-arrow">↓</div>
+      <div class="step-card">
+        <div class="step-num">STEP 3</div>
+        <h3>料金ページで「CJ9852」を入力して30%OFF</h3>
+        <p>料金ページ（プラン一覧）の右上に「クーポンコード」の入力欄があります（2026年7月14日 実際の画面で確認済み）。そこに <strong style="color:#FB8C1E;">CJ9852</strong> を入力して「適用」を押すと、全プラン共通で30%OFFが即座に適用されます。</p>
+        <div class="tip">⚠️ 割引コードは支払い前の入力が必要です。後から適用はできないため、必ずプラン購入前に入力してください。</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="section bg-white" id="price-plans">
+  <div class="section-inner">
+    <h2 class="section-title"><span class="nobr">料金プラン</span><em class="nobr">（割引コード適用後）</em></h2>
+    <p class="section-desc">「CJ9852」入力で全プラン30%OFF。個人セラーならまずスタンダード（月払い）で十分です。</p>
+    <div style="overflow-x:auto;-webkit-overflow-scrolling:touch;">
+    <table class="price-table">
+      <thead><tr><th>プラン</th><th>通常価格</th><th>30%OFF後</th><th>主な用途</th></tr></thead>
+      <tbody>
+        <tr><td>無料</td><td>¥0</td><td class="price-off">¥0</td><td>機能体験・試用</td></tr>
+        <tr class="reco"><td>スタンダード（月）⭐</td><td><span style="text-decoration:line-through;color:#999;">¥13,998/月</span></td><td class="price-off">約¥9,799/月</td><td>個人セラー向け</td></tr>
+        <tr><td>アドバンス（年）</td><td><span style="text-decoration:line-through;color:#999;">¥269,831/年</span></td><td class="price-off">約¥188,882/年</td><td>月商100万円以上</td></tr>
+        <tr><td>VIP（年）</td><td><span style="text-decoration:line-through;color:#999;">¥339,998/年</span></td><td class="price-off">約¥237,999/年</td><td>チーム・大規模運用</td></tr>
+      </tbody>
+    </table>
+    </div>
+    <p class="price-note">※2026年7月21日に公式料金ページで実地確認した価格です。最新価格は公式サイトでご確認ください。</p>
   </div>
 </div>
 
@@ -760,32 +820,6 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
   </div>
 </div>
 
-<div class="section bg-gray">
-  <div class="section-inner">
-    <h2 class="section-title"><em>3ステップ</em>で始める使い方</h2>
-    <p class="section-desc">登録から最初のリサーチ完了まで、最短15分で動けます。</p>
-    <h3 style="text-align:center;font-size:1.05em;color:#555;font-weight:600;margin-bottom:28px;">セラースプライト30%OFFクーポンコード「CJ9852」の使い方</h3>
-    <div class="step-list">
-      <div class="step-connector"></div>
-      <div class="step-item">
-        <div class="step-n">1</div>
-        <div class="step-title">割引コードをコピーして登録</div>
-        <div class="step-body">「CJ9852」をコピーし、公式サイトの料金ページで「適用」。その後プランを選ぶと30%OFFが適用されます。</div>
-      </div>
-      <div class="step-item">
-        <div class="step-n">2</div>
-        <div class="step-title">気になる商品・キーワードを検索</div>
-        <div class="step-body">「商品リサーチ」か「キーワードリサーチ」に仕入れ候補ワードを入力。月間検索数・売上推定・競合数が即表示されます。</div>
-      </div>
-      <div class="step-item">
-        <div class="step-n">3</div>
-        <div class="step-title">データを見て仕入れ判断する</div>
-        <div class="step-body">競合数が少なく月間検索数が多い商品を選ぶだけ。感覚ではなくデータで「売れる商品」を特定できます。</div>
-      </div>
-    </div>
-  </div>
-</div>
-
 <div class="section" style="background:#f9f8f6;padding:56px 24px;" id="guide-hub-section">
   <div style="max-width:960px;margin:0 auto;">
     <h2 class="section-title">目的別ガイド｜<em>知りたいことから</em>選んでください</h2>
@@ -899,11 +933,11 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
     <div class="cta-coupon">
       <span class="cl">30%OFF CODE</span>
       <span class="cc">CJ9852</span>
-      <button class="cb copy-btn" id="ctaBtn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});copyCode('ctaBtn')">コピー</button>
+      <button class="cb copy-btn" id="ctaBtn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="copyCode('ctaBtn','cta_bottom')">コピー</button>
     </div>
   </div>
 
-  <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" rel="noopener noreferrer" class="cta-btn cta-main">セラースプライト公式サイトへ →</a>
+  <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener noreferrer" class="cta-btn cta-main">セラースプライト公式サイトへ →</a>
   <p class="cta-btn-note">料金ページの「クーポンコード」欄に「CJ9852」を入力して30%OFFを適用</p>
 </div>
 
@@ -989,7 +1023,13 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
 <footer>© 2026 鬼束壮一 | 本ページはアフィリエイトリンクを含みます</footer>
 
 <script>
-function copyCode(btnId){
+function trackCopy(loc){
+  if(typeof gtag==='function'){
+    gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852','copy_location':loc||'page'});
+  }
+}
+function copyCode(btnId,loc){
+  trackCopy(loc);
   navigator.clipboard.writeText('CJ9852').then(function(){
     var b=document.getElementById(btnId);
     var orig=b.textContent;
@@ -1018,9 +1058,9 @@ function toggleFaq(btn){
     <div class="exit-code-box">
       <span class="exit-code-label">30%OFF CODE</span>
       <span class="exit-code-text">CJ9852</span>
-      <button class="exit-copy-btn copy-btn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});exitCopy(this)">コピーする</button>
+      <button class="exit-copy-btn copy-btn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="exitCopy(this)">コピーする</button>
     </div>
-    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" rel="noopener noreferrer" class="exit-cta-btn modal-cta">このまま30%OFFで登録する →</a>
+    <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener noreferrer" class="exit-cta-btn modal-cta">このまま30%OFFで登録する →</a>
     <p class="exit-footer">無料プランあり・いつでも解約OK</p>
   </div>
 </div>
@@ -1047,6 +1087,7 @@ function closeExitPopup(){
   document.getElementById('exit-overlay').style.display='none';
 }
 function exitCopy(btn){
+  trackCopy('exit_intent');
   navigator.clipboard.writeText('CJ9852').then(function(){
     btn.textContent='✓ コピー済み';
     setTimeout(function(){ btn.textContent='コピーする'; },2000);
@@ -1058,13 +1099,14 @@ function exitCopy(btn){
     <div class="sticky-code">
       <span class="sticky-label">30%OFF CODE</span>
       <span class="sticky-code-text">CJ9852</span>
-      <button class="sticky-copy-btn copy-btn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="gtag('event','code_copy',{'event_category':'engagement','event_label':'CJ9852'});stickyCopy(this)">コピー</button>
+      <button class="sticky-copy-btn copy-btn" data-copy-code="CJ9852" aria-label="割引コードCJ9852をコピー" onclick="stickyCopy(this)">コピー</button>
     </div>
-    <a href="https://www.sellersprite.com/jp/w/user/login" onclick="gtag('event','cta_click',{'event_category':'conversion','event_label':location.pathname});" target="_blank" rel="noopener noreferrer" class="sticky-cta-btn">今すぐ30%OFFで登録する →</a>
+    <a href="https://www.sellersprite.com/jp/w/user/login" target="_blank" rel="noopener noreferrer" class="sticky-cta-btn">今すぐ30%OFFで登録する →</a>
   </div>
 </div>
 <script>
 function stickyCopy(btn){
+  trackCopy('sticky');
   navigator.clipboard.writeText('CJ9852').then(function(){
     btn.textContent='✓ コピー済み';
     setTimeout(function(){btn.textContent='コピー';},2000);
@@ -1082,6 +1124,7 @@ function stickyCopy(btn){
       if(cls.indexOf('hero-cta')>-1)      loc = 'hero';
       else if(cls.indexOf('cta-main')>-1) loc = 'cta';
       else if(cls.indexOf('modal-cta')>-1)loc = 'modal';
+      else if(cls.indexOf('step-card-btn')>-1) loc = 'step';
       else if(cls.indexOf('nav-cta')>-1)  loc = 'nav';
       else if(a.closest && a.closest('.announce-bar')) loc = 'announce';
       else if(a.closest && a.closest('#sticky-cta'))   loc = 'sticky';
