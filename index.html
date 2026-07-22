@@ -474,6 +474,17 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
   .cta-coupon .cc{font-size:20px;padding:12px 14px;letter-spacing:3px;}
 }
 .nobr{display:inline-block;}
+.feature-icon-wrap svg{width:30px;height:30px;color:#FB8C1E;}
+
+/* ===== FLOW DIAGRAM ===== */
+.flow-diagram{background:#fff;border:1px solid #f0ede8;border-radius:14px;padding:32px 24px;margin:28px 0 0;}
+.flow-title{font-size:12px;font-weight:700;color:#888;text-align:center;letter-spacing:2px;margin-bottom:22px;}
+.flow-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:0;}
+@media(max-width:680px){.flow-steps{grid-template-columns:1fr;gap:12px;}.flow-steps .flow-arrow{display:none;}}
+.flow-step{text-align:center;padding:0 6px;position:relative;}
+.flow-step-num{width:44px;height:44px;background:linear-gradient(135deg,#FB8C1E,#f57c00);color:#fff;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:18px;margin:0 auto 12px;box-shadow:0 4px 14px rgba(251,140,30,0.35);}
+.flow-step-text{font-size:12.5px;color:#444;font-weight:600;line-height:1.5;}
+.flow-arrow{position:absolute;top:18px;right:-12px;color:#fddbb5;font-size:18px;font-weight:bold;}
 .sticky-inner{display:flex;align-items:center;justify-content:center;gap:32px;padding:0 24px;height:64px;max-width:900px;margin:0 auto;}
 .sticky-code{display:flex;align-items:center;gap:12px;}
 .sticky-label{color:#aaa;font-size:11px;letter-spacing:1px;white-space:nowrap;}
@@ -654,7 +665,7 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
 
 <div class="section bg-white">
   <div class="section-inner">
-    <h2 class="section-title">こんな人に、<em>特に使ってほしい</em></h2>
+    <h2 class="section-title"><span class="nobr">こんな人に、</span><em class="nobr">特に使ってほしい</em></h2>
     <p class="section-desc">Amazon物販をやっている・始めたい方へ。あなたに当てはまるものはありますか？</p>
     <div class="forwho-grid">
       <div class="forwho-card">
@@ -678,72 +689,82 @@ footer{background:#0f0f0f;color:#444;text-align:center;padding:20px;font-size:12
 
 <div class="section bg-gray">
   <div class="section-inner">
-    <h2 class="section-title">セラースプライトで<em>できること</em></h2>
+    <h2 class="section-title"><span class="nobr">セラースプライトで</span><em class="nobr">できること</em></h2>
     <p class="section-desc">商品選定から広告最適化まで、Amazon物販に必要な分析がすべて揃っています。</p>
     <h3 style="text-align:center;font-size:1.05em;color:#555;font-weight:600;margin-bottom:28px;">セラースプライトの主要機能一覧</h3>
     <div class="feature-list">
       <div class="feature-item">
-        <div class="feature-icon-wrap">🔍</div>
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg></div>
         <div>
           <div class="feature-name">商品リサーチ</div>
           <div class="feature-desc">月間売上推定・BSRトレンド・競合数を一画面で確認。「売れるか売れないか」の判断が秒速に。</div>
         </div>
       </div>
       <div class="feature-item">
-        <div class="feature-icon-wrap">🔑</div>
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg></div>
         <div>
           <div class="feature-name">キーワードリサーチ</div>
           <div class="feature-desc">月間検索数・CPC単価・転換率を横断分析。顧客がどのワードで商品を探しているかが丸見え。</div>
         </div>
       </div>
       <div class="feature-item">
-        <div class="feature-icon-wrap">🔄</div>
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg></div>
         <div>
           <div class="feature-name">逆引きASINリサーチ</div>
           <div class="feature-desc">競合ASINからランクインキーワードを全件抽出。ライバルの流入源を丸ごとパクれる。</div>
         </div>
       </div>
       <div class="feature-item">
-        <div class="feature-icon-wrap">📊</div>
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></div>
         <div>
           <div class="feature-name">市場リサーチ</div>
           <div class="feature-desc">カテゴリ全体の市場規模・成長トレンド・参入難易度を一括分析。ニッチ市場の発掘に最適。</div>
         </div>
       </div>
       <div class="feature-item">
-        <div class="feature-icon-wrap">⭐</div>
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.196-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.783-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"/></svg></div>
         <div>
           <div class="feature-name">レビュー分析</div>
           <div class="feature-desc">競合商品のレビューをAI解析。「良い点」「不満点」「改善要望」を自動で抽出。差別化のヒントに。</div>
         </div>
       </div>
       <div class="feature-item">
-        <div class="feature-icon-wrap">🏆</div>
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></div>
         <div>
           <div class="feature-name">ABAデータ活用</div>
           <div class="feature-desc">Amazon公式のブランド分析データを活用。検索クエリごとの購買率・クリック率が確認可能。</div>
         </div>
       </div>
       <div class="feature-item">
-        <div class="feature-icon-wrap">🛒</div>
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg></div>
         <div>
           <div class="feature-name">ライバルセラー調査</div>
           <div class="feature-desc">競合ストアの全出品商品を売れている順に並べて表示。ヒット商品の共通点を一瞬で把握。</div>
         </div>
       </div>
       <div class="feature-item">
-        <div class="feature-icon-wrap">🔔</div>
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg></div>
         <div>
           <div class="feature-name">商品モニタリング</div>
           <div class="feature-desc">価格・ランキング・相乗り出品をリアルタイム監視。異常があればスマホへ即通知。</div>
         </div>
       </div>
       <div class="feature-item">
-        <div class="feature-icon-wrap">🧩</div>
+        <div class="feature-icon-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M11 4a2 2 0 114 0v1a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-1a2 2 0 100 4h1a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-1a2 2 0 10-4 0v1a1 1 0 01-1 1H7a1 1 0 01-1-1v-3a1 1 0 00-1-1H4a2 2 0 110-4h1a1 1 0 001-1V7a1 1 0 011-1h3a1 1 0 001-1V4z"/></svg></div>
         <div>
           <div class="feature-name">ブラウザ拡張機能</div>
           <div class="feature-desc">Amazon検索結果ページに直接データを表示。商品を開かずに売上推定・競合数を確認。Keepa代替にも。</div>
         </div>
+      </div>
+    </div>
+    <div class="flow-diagram">
+      <div class="flow-title">データで仕入れを決める5ステップ</div>
+      <div class="flow-steps">
+        <div class="flow-step"><div class="flow-step-num">1</div><div class="flow-step-text">候補商品を<br>見つける</div><span class="flow-arrow">→</span></div>
+        <div class="flow-step"><div class="flow-step-num">2</div><div class="flow-step-text">需要を数字で<br>確認する</div><span class="flow-arrow">→</span></div>
+        <div class="flow-step"><div class="flow-step-num">3</div><div class="flow-step-text">競合の数と強さを<br>調べる</div><span class="flow-arrow">→</span></div>
+        <div class="flow-step"><div class="flow-step-num">4</div><div class="flow-step-text">利益を<br>試算する</div><span class="flow-arrow">→</span></div>
+        <div class="flow-step"><div class="flow-step-num">5</div><div class="flow-step-text">発注を<br>判断する</div></div>
       </div>
     </div>
   </div>
