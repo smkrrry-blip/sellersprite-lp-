@@ -26,8 +26,9 @@ SA_SCOPES = [
 ]
 
 # AI検索・チャットボット経由の流入を検知するための参照元キーワード（導線B・LLMO計測）
-AI_SOURCE_KEYWORDS = ['chatgpt.com', 'chat.openai.com', 'perplexity.ai',
-                      'gemini.google.com', 'claude.ai', 'copilot.microsoft.com', 'you.com']
+# ドメインを丸ごと書くと copilot.com / openai(単体) のような表記ゆれを取りこぼすため、語幹で照合する
+AI_SOURCE_KEYWORDS = ['chatgpt', 'openai', 'perplexity', 'gemini',
+                      'claude.ai', 'copilot', 'you.com', 'phind', 'poe.com']
 
 # ── SA 認証 (GA4用) ───────────────────────────────────────────────────────────
 def get_sa_token():
@@ -141,7 +142,7 @@ def fetch_ai_referrals(token, start_date, end_date):
     headers = {'Authorization': f'Bearer {token}', 'Content-Type': 'application/json'}
     body = {
         'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
-        'dimensions': [{'name': 'sessionSource'}],
+        'dimensions': [{'name': 'sessionSource'}, {'name': 'sessionMedium'}],
         'metrics': [{'name': 'sessions'}],
         'limit': 200,
     }
@@ -151,8 +152,10 @@ def fetch_ai_referrals(token, start_date, end_date):
     total = 0
     for row in data.get('rows', []):
         src = row['dimensionValues'][0]['value'].lower()
+        med = row['dimensionValues'][1]['value'].lower()
         cnt = int(row['metricValues'][0]['value'] or 0)
-        if any(k in src for k in AI_SOURCE_KEYWORDS):
+        # GA4自身が ai-assistant と分類したものも拾う（新しいAI検索が増えても取りこぼさない）
+        if med == 'ai-assistant' or any(k in src for k in AI_SOURCE_KEYWORDS):
             total += cnt
     return total
 

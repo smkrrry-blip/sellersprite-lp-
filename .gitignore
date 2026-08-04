@@ -29,3 +29,4 @@ __pycache__/
 
 # Office docs (バイナリは別管理)
 *.docx
+logs/
