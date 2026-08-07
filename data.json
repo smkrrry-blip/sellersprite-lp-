@@ -1,19 +1,19 @@
 {
-  "generated_at": "2026-08-07T07:00:10",
+  "generated_at": "2026-08-07T15:32:46",
   "gsc_status": "ok",
   "date_range": {
     "start": "2026-07-09",
     "end": "2026-08-07"
   },
   "summary": {
-    "total_pv": 194,
+    "total_pv": 196,
     "total_impressions": 2909,
     "total_clicks": 52,
     "total_copies": 5,
-    "total_cta": 3,
-    "total_ai_sessions": 4,
+    "total_cta": 7,
+    "total_ai_sessions": 6,
     "avg_ctr": 0.017876,
-    "avg_cvr": 0.026596
+    "avg_cvr": 0.026316
   },
   "rows": [
     {
@@ -28,6 +28,19 @@
       "clicks": 0,
       "ctr": 0,
       "position": 11
+    },
+    {
+      "path": "/2024/07/01/セラースプライトをお得に使う割引コード-31/",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cta": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
     },
     {
       "path": "/alibaba-research.html",
@@ -603,9 +616,9 @@
     },
     {
       "path": "/amazon-fba-size-weight.html",
-      "pv": 3,
-      "sessions": 3,
-      "users": 3,
+      "pv": 4,
+      "sessions": 4,
+      "users": 4,
       "copies": 0,
       "cta": 0,
       "cvr": 0.0,
@@ -1413,7 +1426,7 @@
       "sessions": 4,
       "users": 4,
       "copies": 0,
-      "cta": 2,
+      "cta": 6,
       "cvr": 0.0,
       "impressions": 4,
       "clicks": 0,

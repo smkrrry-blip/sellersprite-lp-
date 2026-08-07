@@ -301,18 +301,23 @@ def append_kpi_history(rows, summary, gsc_status, ai_sessions=0):
                 if r and 0 < r['position'] <= 10)
     ctr = round(clk / imp * 100, 2) if imp else 0
     cvr = round((cta + cop) / clk * 100, 2) if clk else 0
+    # 復元記事コホート（2026-08-07 旧WordPress記事11本を復元・獲得エンジン検証）
+    restored_imp = sum(r['impressions'] for r in rows if r['path'].startswith(('/2023/', '/2024/')))
+    restored_clk = sum(r['clicks'] for r in rows if r['path'].startswith(('/2023/', '/2024/')))
     today = datetime.date.today().isoformat()
 
     header = ['date', 'gsc_status', 'impressions', 'avg_position', 'top10_pages',
-              'ctr', 'clicks', 'cta_plus_copy', 'cvr', 'ai_sessions']
-    newrow = [today, gsc_status, imp, avg_pos, top10, ctr, clk, cta + cop, cvr, ai_sessions]
+              'ctr', 'clicks', 'cta_plus_copy', 'cvr', 'ai_sessions',
+              'restored_imp', 'restored_clicks']
+    newrow = [today, gsc_status, imp, avg_pos, top10, ctr, clk, cta + cop, cvr, ai_sessions,
+              restored_imp, restored_clk]
 
     existing = []
     if os.path.exists(HISTORY_FILE):
         with open(HISTORY_FILE, newline='', encoding='utf-8') as f:
             existing = list(csv.reader(f))
     # 同日は上書き（1日1行を保証）、それ以外は追記
-    body = [r for r in existing[1:] if r and r[0] != today]
+    body = [r + [''] * (len(header) - len(r)) for r in existing[1:] if r and r[0] != today]
     body.append([str(x) for x in newrow])
     with open(HISTORY_FILE, 'w', newline='', encoding='utf-8') as f:
         w = csv.writer(f)
