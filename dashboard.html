@@ -136,6 +136,27 @@ td.url-cell{max-width:280px;}
 .kpi-bar{height:100%;border-radius:20px;}
 .kpi-badge{font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;white-space:nowrap;}
 .kpi-manual{font-size:10px;color:#b45309;background:#fef3c7;padding:1px 6px;border-radius:4px;margin-left:6px;}
+/* 司令塔パネル（今どこを向いているか） */
+.cmd{background:linear-gradient(135deg,#1e293b,#334155);color:#fff;border-radius:14px;padding:18px 20px;margin:0 0 20px;}
+.cmd-top{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:6px;}
+.cmd-ver{background:#38bdf8;color:#0f172a;font-weight:800;font-size:12px;padding:3px 10px;border-radius:20px;}
+.cmd-phase{font-weight:800;font-size:16px;}
+.cmd-count{margin-left:auto;background:rgba(255,255,255,.12);padding:5px 12px;border-radius:8px;font-size:12px;font-weight:700;}
+.cmd-doing{font-size:12.5px;color:#cbd5e1;line-height:1.7;}
+.cmd-doing b{color:#fff;}
+.cmd-sec{font-size:10.5px;color:#94a3b8;font-weight:700;letter-spacing:.05em;margin:16px 0 7px;}
+.cmd-funnel{display:flex;gap:6px;flex-wrap:wrap;}
+.fn{flex:1;min-width:96px;background:rgba(255,255,255,.08);border-radius:10px;padding:9px 11px;}
+.fn-l{font-size:10.5px;color:#94a3b8;margin-bottom:3px;}
+.fn-v{font-size:19px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.2;}
+.fn-s{font-size:10px;color:#64748b;margin-top:2px;}
+.fn.money{background:rgba(56,189,248,.2);}
+.fn.stop .fn-v{color:#f87171;}
+.cmd-exp{display:flex;gap:10px;flex-wrap:wrap;}
+.exp{flex:1;min-width:240px;background:rgba(255,255,255,.06);border-left:3px solid #38bdf8;border-radius:8px;padding:9px 12px;}
+.exp-n{font-size:12.5px;font-weight:700;}
+.exp-m{font-size:11px;color:#94a3b8;margin-top:4px;line-height:1.6;}
+.cmd-warn{margin-top:14px;font-size:11px;color:#fbbf24;line-height:1.8;}
 </style>
 </head>
 <body>
@@ -158,6 +179,9 @@ td.url-cell{max-width:280px;}
       <div class="page-title">パフォーマンス概要</div>
       <div class="page-subtitle" id="dash-subtitle">読み込み中...</div>
     </div>
+
+    <!-- 司令塔パネル：今どこを向いているか -->
+    <div class="cmd" id="cmd-panel" style="display:none;"></div>
 
     <!-- Summary Cards -->
     <div class="cards">
@@ -209,7 +233,11 @@ td.url-cell{max-width:280px;}
           <option value="ctr">CTR(%)</option>
           <option value="avg_position">平均掲載順位（低いほど良い）</option>
           <option value="top10_pages">1ページ目のページ数</option>
-          <option value="cta_plus_copy">CTA＋コピー</option>
+          <option value="cta_plus_copy_jp">CTA＋コピー（日本のみ・実数）</option>
+          <option value="cvr_jp">意欲転換率CVR（日本のみ・実数）</option>
+          <option value="restored_imp">復元記事の表示回数🔬</option>
+          <option value="restored_clicks">復元記事のクリック🔬</option>
+          <option value="cta_plus_copy">CTA＋コピー（bot込み・参考）</option>
           <option value="cvr">意欲転換率CVR(%)</option>
           <option value="ai_sessions">AI経由流入（ChatGPT等）</option>
         </select>
@@ -309,6 +337,7 @@ async function refreshData() {
       }
     }
 
+    await renderCommand(data);   // KPIパネルが STRATEGY を使うので先に読む
     renderCards(data.summary);
     renderKPIs(data);
     renderTrend();
@@ -330,17 +359,61 @@ async function refreshData() {
 }
 
 /* =========================================================
+   RENDER — 司令塔パネル（今どこを向いているか）
+   strategy.json（手動更新）＋ data.json（自動）を1枚にまとめる
+========================================================= */
+let STRATEGY = null;   // KPIパネルの手動3項目（登録・継続・報酬）もここから取る
+async function renderCommand(data){
+  let s;
+  try{ s = await fetch('strategy.json?_='+Date.now()).then(r=>r.json()); }
+  catch(e){ return; }  // strategy.json が無くてもダッシュボード本体は動かす
+  STRATEGY = s;
+  const sm = data.summary || {}, mk = s.manual_kpi || {};
+  const actJp = (sm.total_cta_jp||0) + (sm.total_copies_jp||0);
+  const left = Math.ceil((new Date(s.next_decision.date) - new Date())/86400000);
+  const cells = [
+    ['見つかる','表示回数', fmtNum(sm.total_impressions), '30日', ''],
+    ['来る','検索クリック', fmtNum(sm.total_clicks), '30日', ''],
+    ['動く','行動（日本）', actJp, 'CTA＋コピー・bot除去後', ''],
+    ['登録','新規登録', mk.new_signups_month.value+'人', mk.new_signups_month.note, 'stop'],
+    ['継続','稼働ユーザー', mk.active_users.value+'人', mk.active_users.checked+' 時点', ''],
+    ['お金','月間報酬', '$'+mk.monthly_reward_usd.value, mk.monthly_reward_usd.note, 'money'],
+  ];
+  const funnel = cells.map(c=>
+    `<div class="fn ${c[4]}"><div class="fn-l">${c[0]}｜${c[1]}</div>`+
+    `<div class="fn-v">${c[2]}</div><div class="fn-s">${c[3]}</div></div>`).join('');
+  const exps = (s.experiments||[]).map(x=>
+    `<div class="exp"><div class="exp-n">🔬 ${x.name}（${x.status}）</div>`+
+    `<div class="exp-m">${x.started} 開始 → 判定 ${x.judge_from}〜${x.judge_by}<br>`+
+    `見る指標：${(x.watch||[]).join(' / ')}｜${x.note||''}</div></div>`).join('');
+  const warns = (s.warnings||[]).map(w=>'⚠️ '+w).join('<br>');
+  document.getElementById('cmd-panel').innerHTML =
+    `<div class="cmd-top"><span class="cmd-ver">戦略 ${s.version}</span>`+
+    `<span class="cmd-phase">${s.phase.label}：${s.phase.name}</span>`+
+    `<span class="cmd-count">次の判断 ${s.next_decision.date}（あと${left}日）</span></div>`+
+    `<div class="cmd-doing"><b>目標：</b>${s.headline}<br><b>いま：</b>${s.phase.doing}<br>`+
+    `<b>やらない：</b>${s.phase.not_doing}</div>`+
+    `<div class="cmd-sec">お金までの実数（見つかる → 来る → 動く → 登録 → 継続 → お金）</div>`+
+    `<div class="cmd-funnel">${funnel}</div>`+
+    `<div class="cmd-sec">進行中の実験</div><div class="cmd-exp">${exps}</div>`+
+    `<div class="cmd-warn">${warns}<br>📌 判定基準：${s.next_decision.criteria}</div>`;
+  document.getElementById('cmd-panel').style.display = '';
+}
+
+/* =========================================================
    RENDER — CARDS
 ========================================================= */
 let trendChart = null;
 let KPI_HISTORY = null;
-const TREND_TARGETS = {impressions:5000, clicks:120, ctr:3.5, avg_position:10, top10_pages:6, cta_plus_copy:12, cvr:12, ai_sessions:5};
-const TREND_LABELS = {impressions:'表示回数', clicks:'検索クリック', ctr:'CTR(%)', avg_position:'平均掲載順位', top10_pages:'1ページ目のページ数', cta_plus_copy:'CTA＋コピー', cvr:'意欲転換率CVR(%)', ai_sessions:'AI経由流入'};
+const TREND_TARGETS = {impressions:5000, clicks:120, ctr:3.5, avg_position:10, top10_pages:6, cta_plus_copy:12, cvr:12, ai_sessions:5, cta_plus_copy_jp:12, cvr_jp:12, restored_imp:null, restored_clicks:null};
+const TREND_LABELS = {impressions:'表示回数', clicks:'検索クリック', ctr:'CTR(%)', avg_position:'平均掲載順位', top10_pages:'1ページ目のページ数', cta_plus_copy:'CTA＋コピー(bot込み)', cvr:'意欲転換率CVR(%)(bot込み)', ai_sessions:'AI経由流入', cta_plus_copy_jp:'CTA＋コピー（日本のみ）', cvr_jp:'意欲転換率CVR(%)（日本のみ）', restored_imp:'復元記事の表示回数', restored_clicks:'復元記事のクリック'};
 async function loadKpiHistory(){
   if(KPI_HISTORY) return KPI_HISTORY;
   try{
     const txt = await fetch('kpi_history.csv?_='+Date.now()).then(r=>r.text());
-    const lines = txt.trim().split('\n');
+    // csv.writer が CRLF で書くため、行末の \r を落とす。
+    // これを怠ると「最終列の名前が cvr_jp\r になり、その列だけ永久に読めない」（2026-08-10 発見・修正）
+    const lines = txt.trim().split('\n').map(l=>l.replace(/\r$/,''));
     const head = lines[0].split(',');
     KPI_HISTORY = lines.slice(1).map(l=>{ const c=l.split(','); const o={}; head.forEach((k,i)=>o[k]=c[i]); return o; });
   }catch(e){ KPI_HISTORY = []; }
@@ -366,7 +439,8 @@ async function renderTrend(){
     type:'line',
     data:{ labels, datasets:[
       { label:TREND_LABELS[metric]+'（実績）', data, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.08)', fill:true, tension:0.25, spanGaps:false, pointRadius:2.5 },
-      { label:'3ヶ月目標', data:targetLine, borderColor:'#16a34a', borderDash:[6,4], pointRadius:0, fill:false }
+      // 復元記事など目標値を置いていない指標では目標線を出さない
+      ...(target==null ? [] : [{ label:'3ヶ月目標', data:targetLine, borderColor:'#16a34a', borderDash:[6,4], pointRadius:0, fill:false }])
     ]},
     options:{ responsive:true, maintainAspectRatio:false,
       plugins:{ legend:{ labels:{ font:{size:11} } } },
@@ -379,7 +453,9 @@ const KPI_KEYS8 = ['/coupon-cj9852.html','/waribiki.html','/ryoukin.html','/tsuk
 function renderKPIs(data){
   const s = data.summary || {};
   const rows = data.rows || [];
-  const imp = s.total_impressions||0, clk = s.total_clicks||0, cta = s.total_cta||0, cop = s.total_copies||0;
+  const imp = s.total_impressions||0, clk = s.total_clicks||0;
+  // KPI6・7は日本限定を正とする（海外botの連打で2〜3倍に跳ねるため。2026-08-10）
+  const cta = s.total_cta_jp ?? s.total_cta ?? 0, cop = s.total_copies_jp ?? s.total_copies ?? 0;
   // 加重平均掲載順位
   let wpos=0, timp=0;
   rows.forEach(r=>{ if(r.impressions>0){ wpos+=r.position*r.impressions; timp+=r.impressions; }});
@@ -392,6 +468,9 @@ function renderKPIs(data){
   const cvr = clk? intent/clk*100 : 0;
   const gscBroken = data.gsc_status==='error';
 
+  // 手動KPI（登録・継続・報酬）は strategy.json を唯一の出所にする（旧実装はハードコードで古くなっていた）
+  const mkNum = (key, fallback) => STRATEGY?.manual_kpi?.[key]?.value ?? fallback;
+
   // [段階,色, 指標, 説明, 現在値, 表示, 目標値, 目標表示, higherBetter, 手動フラグ]
   const K = [
     ['見つかる','#2563eb','表示回数 (30日)','検索結果に出た回数', imp, imp.toLocaleString(), 5000, '5,000', true, false],
@@ -399,11 +478,11 @@ function renderKPIs(data){
     ['見つかる','#2563eb','1ページ目のページ数','主要8ページ中10位以内の数', top10, top10+'/8', 6, '6/8', true, false],
     ['来る','#0891b2','CTR (クリック率)','出た中でクリックされた割合', ctr, ctr.toFixed(2)+'%', 3.5, '3.5%', true, false],
     ['来る','#0891b2','検索クリック (30日)','実際に来た人数', clk, clk.toLocaleString(), 120, '120', true, false],
-    ['動く','#7c3aed','CTA＋コピー (30日)','登録に動いた回数', intent, String(intent), 12, '12', true, false],
-    ['動く','#7c3aed','意欲転換率 CVR','来た人が動いた割合', cvr, cvr.toFixed(1)+'%', 12, '12%', true, false],
-    ['登録','#c026d3','新規登録 / 月','コードで登録した人数', 5, '5人', 10, '10人', true, true],
-    ['継続','#db2777','継続課金ユーザー ★','毎月払い続けている人数', 13, '13人', 15, '15人', true, true],
-    ['お金','#16a34a','月間報酬 ★★','毎月入る報酬額', 3.75, '約¥3.75万', 4.5, '¥4.5万', true, true],
+    ['動く','#7c3aed','CTA＋コピー (30日)','登録に動いた回数（日本のみ・bot除去後）', intent, String(intent), 12, '12', true, false],
+    ['動く','#7c3aed','意欲転換率 CVR','来た人が動いた割合（日本のみ）', cvr, cvr.toFixed(1)+'%', 12, '12%', true, false],
+    ['登録','#c026d3','新規登録 / 月','コードで登録した人数', mkNum('new_signups_month',0), mkNum('new_signups_month',0)+'人', 10, '10人', true, true],
+    ['継続','#db2777','継続課金ユーザー ★','毎月払い続けている人数', mkNum('active_users',13), mkNum('active_users',13)+'人', 15, '15人', true, true],
+    ['お金','#16a34a','月間報酬 ★★','毎月入る報酬額（実額）', mkNum('monthly_reward_usd',0), '$'+mkNum('monthly_reward_usd',0), 310, '$310(≒¥4.5万)', true, true],
   ];
   const tb = document.getElementById('kpi-tbody');
   tb.innerHTML = K.map(row=>{

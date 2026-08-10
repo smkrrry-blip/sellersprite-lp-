@@ -1,0 +1,51 @@
+{
+  "updated": "2026-08-10",
+  "version": "v7",
+  "headline": "スケールへ — 目標は月¥30万（稼働100人）",
+  "phase": {
+    "label": "Phase 0 → 1",
+    "name": "衛生と可視化 ／ 復元実験の判定待ち",
+    "doing": "旧WordPress記事11本を復元し、それが新規獲得を生むかを待っている段階。判定が出るまで復元記事には触らない（変数を汚さないため）。",
+    "not_doing": "一斉配信・LP追加改修・?ref=nav の深追い・旧記事の全面復元"
+  },
+  "next_decision": {
+    "date": "2026-09-04",
+    "label": "復元実験のGO/NG判定",
+    "criteria": "復元11本のうち3本以上が imp>0 かつ順位30位以内、または copy_location=restored_article が1件以上でGO"
+  },
+  "experiments": [
+    {
+      "name": "旧記事の復元（11本）",
+      "started": "2026-08-07",
+      "judge_from": "2026-08-21",
+      "judge_by": "2026-09-04",
+      "status": "計測中",
+      "watch": ["restored_imp", "restored_clicks"],
+      "note": "本命。獲得エンジン再起動の検証"
+    },
+    {
+      "name": "AI検索の開放（Cloudflareブロック解除）",
+      "started": "2026-08-07",
+      "judge_from": "2026-09-01",
+      "judge_by": "2026-09-30",
+      "status": "計測中",
+      "watch": ["ai_sessions"],
+      "note": "コストゼロの伸びしろ"
+    }
+  ],
+  "manual_kpi": {
+    "new_signups_month": { "value": 0, "checked": "2026-08-06", "note": "2026-05-28を最後にゼロ" },
+    "active_users": { "value": 13, "checked": "2026-08-06", "note": "ピークは2024年8月の21人" },
+    "monthly_reward_usd": { "value": 304.57, "checked": "2026-08-05", "note": "2026年8月分の実額（請求書メール）" }
+  },
+  "targets": {
+    "now": "稼働13人 ／ 月$304.57",
+    "mid_2026": "稼働25〜30人 ／ 月¥8〜9万（新規 月4人ペース）",
+    "goal": "稼働100人 ／ 月¥30万（新規 月8〜10人を継続）"
+  },
+  "warnings": [
+    "KPI6・7は無印列がbot汚染される。正は cta_plus_copy_jp / cvr_jp（日本限定）で見る",
+    "表示回数の増加を成果と読まない。CTRが下がっていれば2ページ目以降の露出が増えただけ",
+    "robots.txt はCloudflareのUI操作で再びAIボットブロックが復活しうる。週次でcurl確認する"
+  ]
+}

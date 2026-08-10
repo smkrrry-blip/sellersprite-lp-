@@ -73,6 +73,27 @@ def date_range(days):
     start = end - datetime.timedelta(days=days - 1)
     return str(start), str(end)
 
+# ── イベントのページ別集計 ────────────────────────────────────────────────────
+def event_page_map(run_report, start_date, end_date, event_name, jp_only=False):
+    """指定イベントのページ別件数を返す。jp_only=True で日本からのアクセスに限定する。
+
+    サイトの母数が小さい（30日で約190PV）ため、海外botが1体CTAを連打するだけで
+    KPI6・7が2〜3倍に跳ねてしまう。実際 2026-08-10 に、30日15件のうち10件（67%）が
+    米国発のbotだったことが判明した。実数は日本限定の集計で見る。
+    """
+    expr = [{'filter': {'fieldName': 'eventName', 'stringFilter': {'value': event_name}}}]
+    if jp_only:
+        expr.append({'filter': {'fieldName': 'countryId', 'stringFilter': {'value': 'JP'}}})
+    body = {
+        'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
+        'dimensions': [{'name': 'pagePath'}],
+        'metrics': [{'name': 'eventCount'}],
+        'dimensionFilter': expr[0] if len(expr) == 1 else {'andGroup': {'expressions': expr}},
+        'limit': 2000,
+    }
+    return {r['dimensionValues'][0]['value']: int(r['metricValues'][0]['value'] or 0)
+            for r in run_report(body).get('rows', [])}
+
 # ── GA4 Data API ──────────────────────────────────────────────────────────────
 def fetch_ga4(token, start_date, end_date):
     url = f'https://analyticsdata.googleapis.com/v1beta/properties/{GA4_PROPERTY}:runReport'
@@ -96,33 +117,13 @@ def fetch_ga4(token, start_date, end_date):
     }
     pv_data = run_report(pv_body)
 
-    # ページ別 code_copy イベント数
-    copy_body = {
-        'dateRanges': [{'startDate': start_date, 'endDate': end_date}],
-        'dimensions': [{'name': 'pagePath'}],
-        'metrics': [{'name': 'eventCount'}],
-        'dimensionFilter': {
-            'filter': {'fieldName': 'eventName', 'stringFilter': {'value': 'code_copy'}}
-        },
-        'limit': 2000,
-    }
-    copy_data = run_report(copy_body)
-
-    copy_map = {}
-    for row in copy_data.get('rows', []):
-        path = row['dimensionValues'][0]['value']
-        copy_map[path] = int(row['metricValues'][0]['value'] or 0)
-
-    # ページ別 cta_click イベント数（登録ボタンのクリック）
-    cta_body = dict(copy_body)
-    cta_body['dimensionFilter'] = {
-        'filter': {'fieldName': 'eventName', 'stringFilter': {'value': 'cta_click'}}
-    }
-    cta_data = run_report(cta_body)
-    cta_map = {}
-    for row in cta_data.get('rows', []):
-        path = row['dimensionValues'][0]['value']
-        cta_map[path] = int(row['metricValues'][0]['value'] or 0)
+    # ページ別 code_copy / cta_click（登録ボタンのクリック）
+    # _jp 付きは日本からのアクセスのみ＝bot汚染を除いた実数。KPI6・7の正はこちら
+    em = lambda name, jp: event_page_map(run_report, start_date, end_date, name, jp)
+    copy_map    = em('code_copy', False)
+    cta_map     = em('cta_click', False)
+    copy_map_jp = em('code_copy', True)
+    cta_map_jp  = em('cta_click', True)
 
     result = {}
     for row in pv_data.get('rows', []):
@@ -133,6 +134,8 @@ def fetch_ga4(token, start_date, end_date):
             'users':    int(row['metricValues'][2]['value'] or 0),
             'copies':   copy_map.get(path, 0),
             'cta':      cta_map.get(path, 0),
+            'copies_jp': copy_map_jp.get(path, 0),
+            'cta_jp':    cta_map_jp.get(path, 0),
         }
     return result
 
@@ -232,7 +235,8 @@ def main():
     all_paths = sorted(set(list(ga4.keys()) + list(gsc.keys())))
     rows = []
     for path in all_paths:
-        g = ga4.get(path, {'pv': 0, 'sessions': 0, 'users': 0, 'copies': 0, 'cta': 0})
+        g = ga4.get(path, {'pv': 0, 'sessions': 0, 'users': 0, 'copies': 0, 'cta': 0,
+                           'copies_jp': 0, 'cta_jp': 0})
         s = gsc.get(path, {'impressions': 0, 'clicks': 0, 'ctr': 0, 'position': 0})
         cvr = g['copies'] / g['sessions'] if g['sessions'] > 0 else 0
         rows.append({
@@ -242,6 +246,8 @@ def main():
             'users':       g['users'],
             'copies':      g['copies'],
             'cta':         g.get('cta', 0),
+            'copies_jp':   g.get('copies_jp', 0),
+            'cta_jp':      g.get('cta_jp', 0),
             'cvr':         round(cvr, 6),
             'impressions': s['impressions'],
             'clicks':      s['clicks'],
@@ -256,6 +262,8 @@ def main():
     total_ses = sum(r['sessions'] for r in rows)
     total_cop = sum(r['copies']  for r in rows)
     total_cta = sum(r['cta']     for r in rows)
+    total_cop_jp = sum(r['copies_jp'] for r in rows)
+    total_cta_jp = sum(r['cta_jp']    for r in rows)
     total_ai  = ai_sessions
 
     output = {
@@ -268,6 +276,8 @@ def main():
             'total_clicks':      total_clk,
             'total_copies':      total_cop,
             'total_cta':         total_cta,
+            'total_copies_jp':   total_cop_jp,
+            'total_cta_jp':      total_cta_jp,
             'total_ai_sessions': total_ai,
             'avg_ctr':           round(total_clk / total_imp, 6) if total_imp else 0,
             'avg_cvr':           round(total_cop / total_ses, 6) if total_ses else 0,
@@ -291,6 +301,7 @@ def append_kpi_history(rows, summary, gsc_status, ai_sessions=0):
     import csv
     imp = summary['total_impressions']; clk = summary['total_clicks']
     cta = summary['total_cta']; cop = summary['total_copies']
+    cta_jp = summary.get('total_cta_jp', 0); cop_jp = summary.get('total_copies_jp', 0)
     # 加重平均掲載順位
     wpos = sum(r['position'] * r['impressions'] for r in rows if r['impressions'] > 0)
     timp = sum(r['impressions'] for r in rows if r['impressions'] > 0)
@@ -306,11 +317,13 @@ def append_kpi_history(rows, summary, gsc_status, ai_sessions=0):
     restored_clk = sum(r['clicks'] for r in rows if r['path'].startswith(('/2023/', '/2024/')))
     today = datetime.date.today().isoformat()
 
+    # KPI6・7の正は _jp 列（日本限定＝bot除去後の実数）。無印は過去との連続性のため残す
+    cvr_jp = round((cta_jp + cop_jp) / clk * 100, 2) if clk else 0
     header = ['date', 'gsc_status', 'impressions', 'avg_position', 'top10_pages',
               'ctr', 'clicks', 'cta_plus_copy', 'cvr', 'ai_sessions',
-              'restored_imp', 'restored_clicks']
+              'restored_imp', 'restored_clicks', 'cta_plus_copy_jp', 'cvr_jp']
     newrow = [today, gsc_status, imp, avg_pos, top10, ctr, clk, cta + cop, cvr, ai_sessions,
-              restored_imp, restored_clk]
+              restored_imp, restored_clk, cta_jp + cop_jp, cvr_jp]
 
     existing = []
     if os.path.exists(HISTORY_FILE):
