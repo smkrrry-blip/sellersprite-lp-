@@ -157,6 +157,19 @@ td.url-cell{max-width:280px;}
 .exp-n{font-size:12.5px;font-weight:700;}
 .exp-m{font-size:11px;color:#94a3b8;margin-top:4px;line-height:1.6;}
 .cmd-warn{margin-top:14px;font-size:11px;color:#fbbf24;line-height:1.8;}
+/* KPIツリー（KGI／主KPI／行動KPI の3階建て） */
+.tree{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:4px;}
+.tree-box{flex:1;min-width:200px;border-radius:12px;padding:14px 16px;position:relative;}
+.tree-box.kgi{background:rgba(248,113,113,.15);border:1.5px solid rgba(248,113,113,.5);}
+.tree-box.primary{background:rgba(56,189,248,.15);border:1.5px solid rgba(56,189,248,.5);}
+.tree-box.action{background:rgba(52,211,153,.15);border:1.5px solid rgba(52,211,153,.5);}
+.tree-tag{font-size:10px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;opacity:.85;}
+.tree-label{font-size:13px;font-weight:700;margin-top:2px;}
+.tree-val{font-size:32px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.15;margin-top:4px;}
+.tree-tgt{font-size:11px;color:#cbd5e1;margin-top:3px;}
+.tree-note{font-size:10.5px;color:#94a3b8;margin-top:6px;line-height:1.6;}
+.tree-arrow{align-self:center;font-size:20px;color:#64748b;padding:0 2px;}
+.cmd-ref{font-size:10px;color:#64748b;margin-top:10px;}
 </style>
 </head>
 <body>
@@ -228,11 +241,13 @@ td.url-cell{max-width:280px;}
       <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
         <div class="chart-title" style="margin:0;">📉 KPIの推移（毎日記録・目標線つき）</div>
         <select class="select" id="trend-metric" onchange="renderTrend()">
-          <option value="impressions">表示回数</option>
-          <option value="clicks">検索クリック</option>
+          <option value="clicks" selected>検索クリック（主KPI）</option>
+          <option value="impressions">表示回数(参考)</option>
           <option value="ctr">CTR(%)</option>
           <option value="avg_position">平均掲載順位（低いほど良い）</option>
           <option value="top10_pages">1ページ目のページ数</option>
+          <option value="clicks_dup_ignore" disabled>──主KPI・行動KPI──</option>
+          <option value="earner_pages">稼ぎ頭ページ数（行動KPI）</option>
           <option value="cta_plus_copy_jp">CTA＋コピー（日本のみ・実数）</option>
           <option value="cvr_jp">意欲転換率CVR（日本のみ・実数）</option>
           <option value="restored_imp">復元記事の表示回数🔬</option>
@@ -368,34 +383,55 @@ async function renderCommand(data){
   try{ s = await fetch('strategy.json?_='+Date.now()).then(r=>r.json()); }
   catch(e){ return; }  // strategy.json が無くてもダッシュボード本体は動かす
   STRATEGY = s;
-  const sm = data.summary || {}, mk = s.manual_kpi || {};
+  const sm = data.summary || {}, mk = s.manual_kpi || {}, kt = s.kpi_tree || {};
   const actJp = (sm.total_cta_jp||0) + (sm.total_copies_jp||0);
   const left = Math.ceil((new Date(s.next_decision.date) - new Date())/86400000);
-  const cells = [
-    ['見つかる','表示回数', fmtNum(sm.total_impressions), '30日', ''],
-    ['来る','検索クリック', fmtNum(sm.total_clicks), '30日', ''],
-    ['動く','行動（日本）', actJp, 'CTA＋コピー・bot除去後', ''],
-    ['登録','新規登録', mk.new_signups_month.value+'人', mk.new_signups_month.note, 'stop'],
-    ['継続','稼働ユーザー', mk.active_users.value+'人', mk.active_users.checked+' 時点', ''],
-    ['お金','月間報酬', '$'+mk.monthly_reward_usd.value, mk.monthly_reward_usd.note, 'money'],
-  ];
-  const funnel = cells.map(c=>
-    `<div class="fn ${c[4]}"><div class="fn-l">${c[0]}｜${c[1]}</div>`+
-    `<div class="fn-v">${c[2]}</div><div class="fn-s">${c[3]}</div></div>`).join('');
+
+  // 実測値は自動計測(data.json)を優先。primary_kpiは検索クリック(GSC自動計測)、
+  // action_kpiは稼ぎ頭ページ数(自動計測)。KGIは手動確認(アフィリ管理画面)のみなのでstrategy.json値をそのまま使う
+  const kgiVal = mk.new_signups_month ? mk.new_signups_month.value : kt.kgi.value;
+  const primVal = sm.total_clicks ?? kt.primary_kpi.value;
+  const actVal  = sm.total_earner_pages ?? kt.action_kpi.value;
+
+  const box = (cls, tag, k, val) => `
+    <div class="tree-box ${cls}">
+      <div class="tree-tag">${tag}</div>
+      <div class="tree-label">${k.label}</div>
+      <div class="tree-val">${fmtNum(val)}</div>
+      <div class="tree-tgt">中間目標 ${fmtNum(k.target_mid)} ／ 最終目標 ${k.target_final}</div>
+      <div class="tree-note">${k.note}</div>
+    </div>`;
+  const tree = box('kgi','KGI（自分では直接動かせない）', kt.kgi, kgiVal) +
+    '<div class="tree-arrow">←</div>' +
+    box('primary','主KPI（毎週追う）', kt.primary_kpi, primVal) +
+    '<div class="tree-arrow">←</div>' +
+    box('action','行動KPI（自分の作業と1対1）', kt.action_kpi, actVal);
+
   const exps = (s.experiments||[]).map(x=>
     `<div class="exp"><div class="exp-n">🔬 ${x.name}（${x.status}）</div>`+
     `<div class="exp-m">${x.started} 開始 → 判定 ${x.judge_from}〜${x.judge_by}<br>`+
     `見る指標：${(x.watch||[]).join(' / ')}｜${x.note||''}</div></div>`).join('');
   const warns = (s.warnings||[]).map(w=>'⚠️ '+w).join('<br>');
+  const refCells = [
+    ['稼働ユーザー', mk.active_users.value+'人', mk.active_users.checked+' 時点'],
+    ['月間報酬', '$'+mk.monthly_reward_usd.value, mk.monthly_reward_usd.note],
+    ['表示回数', fmtNum(sm.total_impressions), '30日・参考値'],
+    ['行動(日本)', actJp, 'CTA＋コピー・bot除去後'],
+  ];
+  const refFunnel = refCells.map(c=>
+    `<div class="fn"><div class="fn-l">${c[0]}</div><div class="fn-v" style="font-size:15px;">${c[1]}</div>`+
+    `<div class="fn-s">${c[2]}</div></div>`).join('');
+
   document.getElementById('cmd-panel').innerHTML =
     `<div class="cmd-top"><span class="cmd-ver">戦略 ${s.version}</span>`+
     `<span class="cmd-phase">${s.phase.label}：${s.phase.name}</span>`+
     `<span class="cmd-count">次の判断 ${s.next_decision.date}（あと${left}日）</span></div>`+
     `<div class="cmd-doing"><b>目標：</b>${s.headline}<br><b>いま：</b>${s.phase.doing}<br>`+
     `<b>やらない：</b>${s.phase.not_doing}</div>`+
-    `<div class="cmd-sec">お金までの実数（見つかる → 来る → 動く → 登録 → 継続 → お金）</div>`+
-    `<div class="cmd-funnel">${funnel}</div>`+
+    `<div class="cmd-sec">お金の伸ばし方（2026-08-11 KGI/KPI設計）</div>`+
+    `<div class="tree">${tree}</div>`+
     `<div class="cmd-sec">進行中の実験</div><div class="cmd-exp">${exps}</div>`+
+    `<div class="cmd-sec">参考値（成果としては報告しない）</div><div class="cmd-funnel">${refFunnel}</div>`+
     `<div class="cmd-warn">${warns}<br>📌 判定基準：${s.next_decision.criteria}</div>`;
   document.getElementById('cmd-panel').style.display = '';
 }
@@ -405,8 +441,8 @@ async function renderCommand(data){
 ========================================================= */
 let trendChart = null;
 let KPI_HISTORY = null;
-const TREND_TARGETS = {impressions:5000, clicks:120, ctr:3.5, avg_position:10, top10_pages:6, cta_plus_copy:12, cvr:12, ai_sessions:5, cta_plus_copy_jp:12, cvr_jp:12, restored_imp:null, restored_clicks:null};
-const TREND_LABELS = {impressions:'表示回数', clicks:'検索クリック', ctr:'CTR(%)', avg_position:'平均掲載順位', top10_pages:'1ページ目のページ数', cta_plus_copy:'CTA＋コピー(bot込み)', cvr:'意欲転換率CVR(%)(bot込み)', ai_sessions:'AI経由流入', cta_plus_copy_jp:'CTA＋コピー（日本のみ）', cvr_jp:'意欲転換率CVR(%)（日本のみ）', restored_imp:'復元記事の表示回数', restored_clicks:'復元記事のクリック'};
+const TREND_TARGETS = {impressions:5000, clicks:250, ctr:3.5, avg_position:10, top10_pages:6, cta_plus_copy:12, cvr:12, ai_sessions:5, cta_plus_copy_jp:12, cvr_jp:12, restored_imp:null, restored_clicks:null, earner_pages:40};
+const TREND_LABELS = {impressions:'表示回数(参考)', clicks:'検索クリック（主KPI）', ctr:'CTR(%)', avg_position:'平均掲載順位(参考)', top10_pages:'1ページ目のページ数(参考・降格済)', cta_plus_copy:'CTA＋コピー(bot込み)', cvr:'意欲転換率CVR(%)(bot込み)', ai_sessions:'AI経由流入', cta_plus_copy_jp:'CTA＋コピー（日本のみ）', cvr_jp:'意欲転換率CVR(%)（日本のみ）', restored_imp:'復元記事の表示回数', restored_clicks:'復元記事のクリック', earner_pages:'稼ぎ頭ページ数（行動KPI）'};
 async function loadKpiHistory(){
   if(KPI_HISTORY) return KPI_HISTORY;
   try{

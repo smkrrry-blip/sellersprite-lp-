@@ -265,6 +265,8 @@ def main():
     total_cop_jp = sum(r['copies_jp'] for r in rows)
     total_cta_jp = sum(r['cta_jp']    for r in rows)
     total_ai  = ai_sessions
+    # 稼ぎ頭ページ数（月3クリック以上）＝主KPIを支える行動KPI（append_kpi_historyと同じ定義）
+    total_earner_pages = sum(1 for r in rows if r['clicks'] >= 3)
 
     output = {
         'generated_at': datetime.datetime.now().isoformat(timespec='seconds'),
@@ -279,6 +281,7 @@ def main():
             'total_copies_jp':   total_cop_jp,
             'total_cta_jp':      total_cta_jp,
             'total_ai_sessions': total_ai,
+            'total_earner_pages': total_earner_pages,
             'avg_ctr':           round(total_clk / total_imp, 6) if total_imp else 0,
             'avg_cvr':           round(total_cop / total_ses, 6) if total_ses else 0,
         },
@@ -319,11 +322,17 @@ def append_kpi_history(rows, summary, gsc_status, ai_sessions=0):
 
     # KPI6・7の正は _jp 列（日本限定＝bot除去後の実数）。無印は過去との連続性のため残す
     cvr_jp = round((cta_jp + cop_jp) / clk * 100, 2) if clk else 0
+
+    # 稼ぎ頭ページ数（月3クリック以上）＝主KPI「検索クリック」を支える行動KPI（2026-08-11 戦略v7で新設）
+    # 「1ページ目のページ数」は検索されないクエリで1位を取っても増える無意味な指標だったため降格。
+    # 代わりに「実際にクリックを生んでいるページが何枚あるか」を追う（記事執筆・リライトと1対1で対応する）
+    earner_pages = sum(1 for r in rows if r['clicks'] >= 3)
+
     header = ['date', 'gsc_status', 'impressions', 'avg_position', 'top10_pages',
               'ctr', 'clicks', 'cta_plus_copy', 'cvr', 'ai_sessions',
-              'restored_imp', 'restored_clicks', 'cta_plus_copy_jp', 'cvr_jp']
+              'restored_imp', 'restored_clicks', 'cta_plus_copy_jp', 'cvr_jp', 'earner_pages']
     newrow = [today, gsc_status, imp, avg_pos, top10, ctr, clk, cta + cop, cvr, ai_sessions,
-              restored_imp, restored_clk, cta_jp + cop_jp, cvr_jp]
+              restored_imp, restored_clk, cta_jp + cop_jp, cvr_jp, earner_pages]
 
     existing = []
     if os.path.exists(HISTORY_FILE):
