@@ -190,6 +190,26 @@ def fetch_gsc(token, start_date, end_date):
         }
     return result
 
+# ── 今週の手直しターゲット ────────────────────────────────────────────────────
+def build_targets(rows):
+    """「あと一押しで稼ぎ頭になるページ」の在庫リストを作る（2026-08-14 新設）。
+
+    行動KPI（稼ぎ頭ページ数＝月3クリック以上）を増やすための実作業リスト。
+    週次ループでここから3〜4枚を選んで手直しする。直せばリストから自然に外れ、
+    新しい候補が入ってくるので、毎週「何をやるか」を考え直す必要がない。
+    """
+    def slim(r):
+        return {'path': r['path'], 'clicks': r['clicks'], 'impressions': r['impressions'],
+                'position': r['position'], 'ctr': r['ctr']}
+    # 露出は十分あるのにクリックゼロ＝タイトル/説明文が悪い。最優先で直す
+    ctr_fix = [r for r in rows if r['clicks'] == 0 and r['impressions'] >= 40 and 0 < r['position'] <= 25]
+    # あと1〜2クリックで稼ぎ頭に届く。内部リンク・見出し・CTA導線で押し上げる
+    near_miss = [r for r in rows if 1 <= r['clicks'] <= 2 and r['impressions'] >= 15]
+    return {
+        'ctr_fix':   [slim(r) for r in sorted(ctr_fix,   key=lambda r: -r['impressions'])[:10]],
+        'near_miss': [slim(r) for r in sorted(near_miss, key=lambda r: (-r['clicks'], r['position']))[:20]],
+    }
+
 # ── マージ & 書き出し ─────────────────────────────────────────────────────────
 def main():
     start_date, end_date = date_range(DAYS)
@@ -267,6 +287,7 @@ def main():
     total_ai  = ai_sessions
     # 稼ぎ頭ページ数（月3クリック以上）＝主KPIを支える行動KPI（append_kpi_historyと同じ定義）
     total_earner_pages = sum(1 for r in rows if r['clicks'] >= 3)
+    targets = build_targets(rows)
 
     output = {
         'generated_at': datetime.datetime.now().isoformat(timespec='seconds'),
@@ -285,6 +306,7 @@ def main():
             'avg_ctr':           round(total_clk / total_imp, 6) if total_imp else 0,
             'avg_cvr':           round(total_cop / total_ses, 6) if total_ses else 0,
         },
+        'targets': targets,
         'rows': rows,
     }
 
