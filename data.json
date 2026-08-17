@@ -1,12 +1,12 @@
 {
-  "generated_at": "2026-08-17T13:35:16",
+  "generated_at": "2026-08-17T20:22:41",
   "gsc_status": "ok",
   "date_range": {
     "start": "2026-07-19",
     "end": "2026-08-17"
   },
   "summary": {
-    "total_pv": 170,
+    "total_pv": 171,
     "total_impressions": 2934,
     "total_clicks": 44,
     "total_copies": 6,
@@ -16,7 +16,7 @@
     "total_ai_sessions": 5,
     "total_earner_pages": 3,
     "avg_ctr": 0.014997,
-    "avg_cvr": 0.035294
+    "avg_cvr": 0.035088
   },
   "targets": {
     "ctr_fix": [
@@ -1420,9 +1420,9 @@
     },
     {
       "path": "/amazon-review-management.html",
-      "pv": 4,
-      "sessions": 4,
-      "users": 4,
+      "pv": 5,
+      "sessions": 5,
+      "users": 5,
       "copies": 0,
       "cta": 0,
       "copies_jp": 0,
