@@ -1,22 +1,22 @@
 {
-  "generated_at": "2026-08-27T07:00:12",
+  "generated_at": "2026-08-27T15:42:14",
   "gsc_status": "ok",
   "date_range": {
     "start": "2026-07-29",
     "end": "2026-08-27"
   },
   "summary": {
-    "total_pv": 176,
+    "total_pv": 179,
     "total_impressions": 2851,
     "total_clicks": 42,
-    "total_copies": 4,
-    "total_cta": 11,
-    "total_copies_jp": 2,
-    "total_cta_jp": 5,
+    "total_copies": 5,
+    "total_cta": 13,
+    "total_copies_jp": 3,
+    "total_cta_jp": 7,
     "total_ai_sessions": 4,
     "total_earner_pages": 5,
     "avg_ctr": 0.014732,
-    "avg_cvr": 0.022472
+    "avg_cvr": 0.027473
   },
   "targets": {
     "ctr_fix": [
@@ -267,14 +267,14 @@
     },
     {
       "path": "/2024/07/01/セラースプライトをお得に使う割引コード-31/",
-      "pv": 4,
-      "sessions": 4,
-      "users": 4,
-      "copies": 0,
-      "cta": 0,
-      "copies_jp": 0,
-      "cta_jp": 0,
-      "cvr": 0.0,
+      "pv": 5,
+      "sessions": 5,
+      "users": 5,
+      "copies": 1,
+      "cta": 2,
+      "copies_jp": 1,
+      "cta_jp": 2,
+      "cvr": 0.2,
       "impressions": 0,
       "clicks": 0,
       "ctr": 0,
@@ -837,9 +837,9 @@
     },
     {
       "path": "/amazon-fba-size-weight.html",
-      "pv": 5,
-      "sessions": 6,
-      "users": 5,
+      "pv": 6,
+      "sessions": 7,
+      "users": 6,
       "copies": 0,
       "cta": 0,
       "copies_jp": 0,
@@ -868,8 +868,8 @@
     {
       "path": "/amazon-flat-file.html",
       "pv": 2,
-      "sessions": 2,
-      "users": 2,
+      "sessions": 3,
+      "users": 3,
       "copies": 0,
       "cta": 0,
       "copies_jp": 0,
@@ -1719,6 +1719,21 @@
       "clicks": 0,
       "ctr": 0,
       "position": 4.2
+    },
+    {
+      "path": "/amazon-seasonal-selling.html",
+      "pv": 1,
+      "sessions": 1,
+      "users": 1,
+      "copies": 0,
+      "cta": 0,
+      "copies_jp": 0,
+      "cta_jp": 0,
+      "cvr": 0.0,
+      "impressions": 0,
+      "clicks": 0,
+      "ctr": 0,
+      "position": 0
     },
     {
       "path": "/amazon-sell-handmade-craft.html",
