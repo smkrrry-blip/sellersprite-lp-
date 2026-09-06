@@ -215,27 +215,38 @@ def main():
     start_date, end_date = date_range(DAYS)
     print(f'[INFO] 取得期間: {start_date} 〜 {end_date}')
 
-    token = get_token()
-    print('[INFO] SA認証完了')
+    ga4_status = 'ok'
+    try:
+        token = get_token()
+        print('[INFO] SA認証完了')
+    except Exception as e:
+        # GA4のSA鍵が失効してもGSC計測まで道連れにしない（2026-09-02〜06の5日間欠測の原因）
+        print(f'[WARN] SA認証失敗（GA4をスキップ）: {e}', file=sys.stderr)
+        token = None
+        ga4_status = 'error'
 
     user_token = get_user_token()
     print(f'[INFO] ユーザートークン: {"取得済" if user_token else "なし（GSCスキップ）"}')
 
     print('[INFO] GA4 取得中...')
-    try:
-        ga4 = fetch_ga4(token, start_date, end_date)
-        print(f'[INFO] GA4: {len(ga4)} ページ')
-    except Exception as e:
-        print(f'[WARN] GA4 取得失敗: {e}', file=sys.stderr)
-        ga4 = {}
-
-    print('[INFO] AI経由流入 集計中...')
-    try:
-        ai_sessions = fetch_ai_referrals(token, start_date, end_date)
-        print(f'[INFO] AI経由セッション: {ai_sessions}')
-    except Exception as e:
-        print(f'[WARN] AI経由流入 取得失敗: {e}', file=sys.stderr)
-        ai_sessions = 0
+    ga4 = {}
+    ai_sessions = 0
+    if token is None:
+        print('[WARN] GA4トークンなし。GA4・AI経由流入をスキップ。', file=sys.stderr)
+    else:
+        try:
+            ga4 = fetch_ga4(token, start_date, end_date)
+            print(f'[INFO] GA4: {len(ga4)} ページ')
+        except Exception as e:
+            print(f'[WARN] GA4 取得失敗: {e}', file=sys.stderr)
+            ga4_status = 'error'
+        try:
+            print('[INFO] AI経由流入 集計中...')
+            ai_sessions = fetch_ai_referrals(token, start_date, end_date)
+            print(f'[INFO] AI経由セッション: {ai_sessions}')
+        except Exception as e:
+            print(f'[WARN] AI経由流入 取得失敗: {e}', file=sys.stderr)
+            ga4_status = 'error'
 
     print('[INFO] Search Console 取得中...')
     gsc_status = 'ok'
@@ -292,6 +303,7 @@ def main():
     output = {
         'generated_at': datetime.datetime.now().isoformat(timespec='seconds'),
         'gsc_status':   gsc_status,
+        'ga4_status':   ga4_status,
         'date_range':   {'start': start_date, 'end': end_date},
         'summary': {
             'total_pv':          total_pv,
@@ -314,7 +326,7 @@ def main():
         json.dump(output, f, ensure_ascii=False, indent=2)
     print(f'[INFO] 書き出し完了: {OUTPUT_FILE} ({len(rows)} ページ)')
 
-    append_kpi_history(rows, output['summary'], gsc_status, total_ai)
+    append_kpi_history(rows, output['summary'], gsc_status, total_ai, ga4_status)
 
 # ── KPI日次履歴（CSV追記・1日1行） ─────────────────────────────────────────────
 HISTORY_FILE = os.path.join(os.path.dirname(__file__), 'kpi_history.csv')
@@ -322,7 +334,7 @@ KEY8 = ['/coupon-cj9852.html', '/waribiki.html', '/ryoukin.html', '/tsukaikata.h
         '/touroku.html', '/amazon-sourcing.html', '/amazon-review-management.html',
         '/amazon-competitor-analysis.html']
 
-def append_kpi_history(rows, summary, gsc_status, ai_sessions=0):
+def append_kpi_history(rows, summary, gsc_status, ai_sessions=0, ga4_status='ok'):
     import csv
     imp = summary['total_impressions']; clk = summary['total_clicks']
     cta = summary['total_cta']; cop = summary['total_copies']
@@ -352,9 +364,9 @@ def append_kpi_history(rows, summary, gsc_status, ai_sessions=0):
 
     header = ['date', 'gsc_status', 'impressions', 'avg_position', 'top10_pages',
               'ctr', 'clicks', 'cta_plus_copy', 'cvr', 'ai_sessions',
-              'restored_imp', 'restored_clicks', 'cta_plus_copy_jp', 'cvr_jp', 'earner_pages']
+              'restored_imp', 'restored_clicks', 'cta_plus_copy_jp', 'cvr_jp', 'earner_pages', 'ga4_status']
     newrow = [today, gsc_status, imp, avg_pos, top10, ctr, clk, cta + cop, cvr, ai_sessions,
-              restored_imp, restored_clk, cta_jp + cop_jp, cvr_jp, earner_pages]
+              restored_imp, restored_clk, cta_jp + cop_jp, cvr_jp, earner_pages, ga4_status]
 
     existing = []
     if os.path.exists(HISTORY_FILE):

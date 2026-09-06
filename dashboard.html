@@ -341,8 +341,14 @@ async function refreshData() {
     if (data.generated_at) {
       const ageHours = (Date.now() - new Date(data.generated_at).getTime()) / 3600000;
       const banner = document.getElementById('age-banner');
-      if (data.gsc_status === 'error') {
+      if (data.gsc_status === 'error' && data.ga4_status === 'error') {
+        banner.textContent = '🚨 GSC・GA4とも計測停止中。数字はゼロではなく「取得不能」です。復旧: GSC=python3 ~/sellersprite-lp-/get_user_token.py ／ GA4=service_account.json の鍵を再発行';
+        banner.classList.add('show');
+      } else if (data.gsc_status === 'error') {
         banner.textContent = '🚨 GSC計測停止中（認証失効）。検索データはゼロではなく「取得不能」です。復旧: python3 ~/sellersprite-lp-/get_user_token.py';
+        banner.classList.add('show');
+      } else if (data.ga4_status === 'error') {
+        banner.textContent = '🚨 GA4計測停止中（サービスアカウント鍵の失効）。PV・CTA・コピー・AI経由流入はゼロではなく「取得不能」です。復旧: Google Cloud Console で service_account.json の鍵を再発行';
         banner.classList.add('show');
       } else if (ageHours > 25) {
         banner.textContent = `⚠️ データが ${Math.floor(ageHours)} 時間前のものです。fetch_dashboard.py を実行して更新してください。`;
@@ -462,8 +468,10 @@ async function renderTrend(){
   const labels = hist.map(r=>r.date.slice(5)); // MM-DD
   // 検索由来の指標は計測停止(error)の日を欠測(null)に
   const searchMetrics = ['impressions','clicks','ctr','avg_position','top10_pages'];
+  const ga4Metrics = ['cta_plus_copy','cvr','ai_sessions','cta_plus_copy_jp','cvr_jp'];
   const data = hist.map(r=>{
     if(searchMetrics.includes(metric) && r.gsc_status==='error') return null;
+    if(ga4Metrics.includes(metric) && r.ga4_status==='error') return null;
     const v = parseFloat(r[metric]);
     return isNaN(v)?null:v;
   });
