@@ -30,3 +30,6 @@ __pycache__/
 # Office docs (バイナリは別管理)
 *.docx
 logs/
+
+# 3d-shopee-bot は別プロジェクト。2026-09-07に ~/3d-shopee-bot/ へ移設し、このリポジトリからは追跡外にした。
+3d-shopee-bot/
