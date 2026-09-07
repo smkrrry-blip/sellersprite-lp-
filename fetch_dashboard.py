@@ -20,6 +20,12 @@ GA4_PROPERTY = '530190563'
 GSC_SITE     = 'sc-domain:sellersprite.blog'
 OUTPUT_FILE  = os.path.join(os.path.dirname(__file__), 'data.json')
 DAYS         = 30   # 直近 N 日分を取得
+# GSCは直近2〜3日分のデータを後から補完し続ける。終端を「当日」にしていた頃は、
+# 毎回その未確定分を取りこぼしたまま記録していた（2026-09-07に実測で確認：
+# 9/05を後から取り直すとクリック47、実測記録は9/06が46・9/07が44）。
+# 終端を3日前にずらして、毎日「確定済みの完全な30日」を見る。
+# GA4側にも同じ窓を使う。別々の期間で CVR（コピー÷クリック）を割ると意味を失うため。
+GSC_LAG_DAYS = 3
 
 SA_SCOPES = [
     'https://www.googleapis.com/auth/analytics.readonly',
@@ -69,8 +75,8 @@ def get_token():
     return get_sa_token()
 
 # ── 日付 ──────────────────────────────────────────────────────────────────────
-def date_range(days):
-    end   = datetime.date.today()
+def date_range(days, end=None):
+    end   = (end or datetime.date.today()) - datetime.timedelta(days=GSC_LAG_DAYS)
     start = end - datetime.timedelta(days=days - 1)
     return str(start), str(end)
 
@@ -212,9 +218,16 @@ def build_targets(rows):
     }
 
 # ── マージ & 書き出し ─────────────────────────────────────────────────────────
-def main():
-    start_date, end_date = date_range(DAYS)
-    print(f'[INFO] 取得期間: {start_date} 〜 {end_date}')
+def main(as_of=None):
+    """as_of を指定すると、その日を終端とする30日窓を取り直して履歴CSVだけを埋める。
+
+    ⚠️ バックフィルの値は「当時記録できたはずの値」とは一致しない。
+    GSCは過去数日分のデータを後から補完し続けるため、いま6月の窓を取り直すと
+    当時より完全なデータが返る。実測行と混ぜて比較すると誤読するので、
+    バックフィル行は gsc_status に 'backfill:' を前置して見分けられるようにする。
+    """
+    start_date, end_date = date_range(DAYS, as_of)
+    print(f'[INFO] 取得期間: {start_date} 〜 {end_date}' + ('  ※バックフィル' if as_of else ''))
 
     ga4_status = 'ok'
     try:
@@ -333,11 +346,17 @@ def main():
         'rows': rows,
     }
 
-    with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
-        json.dump(output, f, ensure_ascii=False, indent=2)
-    print(f'[INFO] 書き出し完了: {OUTPUT_FILE} ({len(rows)} ページ)')
+    if as_of:
+        print('[INFO] バックフィルのため data.json は更新しない（現在値を過去値で壊さない）')
+    else:
+        with open(OUTPUT_FILE, 'w', encoding='utf-8') as f:
+            json.dump(output, f, ensure_ascii=False, indent=2)
+        print(f'[INFO] 書き出し完了: {OUTPUT_FILE} ({len(rows)} ページ)')
 
-    append_kpi_history(rows, output['summary'], gsc_status, total_ai, ga4_status)
+    # 3日ラグを入れて以降、後から埋めた行も実測行と同じ「確定済みの30日」を見ているため、
+    # 両者は方法論的に同等。区別の印は付けない（2026-09-07）。
+    append_kpi_history(rows, output['summary'], gsc_status, total_ai, ga4_status,
+                       row_date=as_of.isoformat() if as_of else None)
 
 # ── KPI日次履歴（CSV追記・1日1行） ─────────────────────────────────────────────
 HISTORY_FILE = os.path.join(os.path.dirname(__file__), 'kpi_history.csv')
@@ -345,7 +364,7 @@ KEY8 = ['/coupon-cj9852.html', '/waribiki.html', '/ryoukin.html', '/tsukaikata.h
         '/touroku.html', '/amazon-sourcing.html', '/amazon-review-management.html',
         '/amazon-competitor-analysis.html']
 
-def append_kpi_history(rows, summary, gsc_status, ai_sessions=0, ga4_status='ok'):
+def append_kpi_history(rows, summary, gsc_status, ai_sessions=0, ga4_status='ok', row_date=None):
     import csv
     imp = summary['total_impressions']; clk = summary['total_clicks']
     cta = summary['total_cta']; cop = summary['total_copies']
@@ -363,7 +382,7 @@ def append_kpi_history(rows, summary, gsc_status, ai_sessions=0, ga4_status='ok'
     # 復元記事コホート（2026-08-07 旧WordPress記事11本を復元・獲得エンジン検証）
     restored_imp = sum(r['impressions'] for r in rows if r['path'].startswith(('/2023/', '/2024/')))
     restored_clk = sum(r['clicks'] for r in rows if r['path'].startswith(('/2023/', '/2024/')))
-    today = datetime.date.today().isoformat()
+    today = row_date or datetime.date.today().isoformat()
 
     # KPI6・7の正は _jp 列（日本限定＝bot除去後の実数）。無印は過去との連続性のため残す
     cvr_jp = round((cta_jp + cop_jp) / clk * 100, 2) if clk else 0
@@ -386,6 +405,7 @@ def append_kpi_history(rows, summary, gsc_status, ai_sessions=0, ga4_status='ok'
     # 同日は上書き（1日1行を保証）、それ以外は追記
     body = [r + [''] * (len(header) - len(r)) for r in existing[1:] if r and r[0] != today]
     body.append([str(x) for x in newrow])
+    body.sort(key=lambda r: r[0])   # バックフィル行が末尾に付くとグラフが乱れるため日付順に整える
     with open(HISTORY_FILE, 'w', newline='', encoding='utf-8') as f:
         w = csv.writer(f)
         w.writerow(header)
@@ -393,4 +413,10 @@ def append_kpi_history(rows, summary, gsc_status, ai_sessions=0, ga4_status='ok'
     print(f'[INFO] KPI履歴 追記: {HISTORY_FILE} ({len(body)}行)')
 
 if __name__ == '__main__':
-    main()
+    # 使い方:
+    #   python3 fetch_dashboard.py                    通常（当日を記録し data.json も更新）
+    #   python3 fetch_dashboard.py --date 2026-06-05  その日を終端とする30日窓で履歴だけ埋める
+    _as_of = None
+    if '--date' in sys.argv:
+        _as_of = datetime.date.fromisoformat(sys.argv[sys.argv.index('--date') + 1])
+    main(_as_of)

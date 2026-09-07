@@ -258,7 +258,7 @@ td.url-cell{max-width:280px;}
         </select>
       </div>
       <div class="chart-wrap" style="height:280px;"><canvas id="chart-trend"></canvas></div>
-      <p style="font-size:11px;color:var(--muted);margin:8px 0 0;">※点線＝3ヶ月目標。線が途切れている日＝計測停止（認証失効）で記録できなかった日。記録の元データは kpi_history.csv。</p>
+      <p style="font-size:11px;color:var(--muted);margin:8px 0 0;">※点線＝3ヶ月目標。線が途切れている日＝計測停止（認証失効）で記録できなかった日。集計期間は<b>3日前を終端とする30日</b>（GSCは直近2〜3日を後から補完するため、当日を終端にすると毎回低く出る。2026-09-07に全記録をこの定義で再計算済み）。記録の元データは kpi_history.csv。</p>
     </div>
 
     <!-- KPIパネル -->
@@ -473,7 +473,8 @@ async function renderTrend(){
   const searchMetrics = ['impressions','clicks','ctr','avg_position','top10_pages'];
   const ga4Metrics = ['cta_plus_copy','cvr','ai_sessions','cta_plus_copy_jp','cvr_jp'];
   const data = hist.map(r=>{
-    if(searchMetrics.includes(metric) && (r.gsc_status==='error'||r.gsc_status==='warn')) return null;
+    const gs = (r.gsc_status||'').replace('backfill:','');
+    if(searchMetrics.includes(metric) && (gs==='error'||gs==='warn')) return null;
     if(ga4Metrics.includes(metric) && r.ga4_status==='error') return null;
     const v = parseFloat(r[metric]);
     return isNaN(v)?null:v;
@@ -485,7 +486,13 @@ async function renderTrend(){
   trendChart = new Chart(ctx, {
     type:'line',
     data:{ labels, datasets:[
-      { label:TREND_LABELS[metric]+'（実績）', data, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.08)', fill:true, tension:0.25, spanGaps:false, pointRadius:2.5 },
+      { label:TREND_LABELS[metric]+'（実績）', data, borderColor:'#2563eb', backgroundColor:'rgba(37,99,235,0.08)', fill:true, tension:0.25, spanGaps:false,
+        // 欠測日を後から埋めた行は白抜きの大きい点にする。GSCが後から補完したデータで
+        // 取り直しているため実測行よりわずかに高く出る。実測と混ぜて読ませない。
+        pointRadius: hist.map(r=>String(r.gsc_status||'').startsWith('backfill')?5:2.5),
+        pointStyle: hist.map(r=>String(r.gsc_status||'').startsWith('backfill')?'circle':'circle'),
+        pointBackgroundColor: hist.map(r=>String(r.gsc_status||'').startsWith('backfill')?'#fff':'#2563eb'),
+        pointBorderColor:'#2563eb', pointBorderWidth:2 },
       // 復元記事など目標値を置いていない指標では目標線を出さない
       ...(target==null ? [] : [{ label:'3ヶ月目標', data:targetLine, borderColor:'#16a34a', borderDash:[6,4], pointRadius:0, fill:false }])
     ]},
