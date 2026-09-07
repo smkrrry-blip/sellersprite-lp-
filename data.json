@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-07T11:37:49",
+  "generated_at": "2026-09-07T14:35:54",
   "gsc_status": "ok",
   "ga4_status": "ok",
   "date_range": {
@@ -20,120 +20,93 @@
     "avg_cvr": 0.019324
   },
   "targets": {
+    "scope": "jp",
     "ctr_fix": [
       {
         "path": "/amazon-sourcing.html",
         "clicks": 0,
         "impressions": 342,
         "position": 10.32,
-        "ctr": 0
+        "ctr": 0,
+        "jp_clicks": 0,
+        "jp_impressions": 217,
+        "top_query": "amazon販売 仕入れ 効率化",
+        "top_query_position": 10.3,
+        "jp_query_count": 10
       },
       {
         "path": "/amazon-feedback.html",
         "clicks": 0,
         "impressions": 305,
         "position": 9.38,
-        "ctr": 0
-      },
-      {
-        "path": "/ryoukin.html",
-        "clicks": 0,
-        "impressions": 174,
-        "position": 8.21,
-        "ctr": 0
-      },
-      {
-        "path": "/",
-        "clicks": 0,
-        "impressions": 145,
-        "position": 9.02,
-        "ctr": 0
-      },
-      {
-        "path": "/amazon-storefront.html",
-        "clicks": 0,
-        "impressions": 92,
-        "position": 19.59,
-        "ctr": 0
-      },
-      {
-        "path": "/amazon-export.html",
-        "clicks": 0,
-        "impressions": 73,
-        "position": 17.96,
-        "ctr": 0
-      },
-      {
-        "path": "/uresuji.html",
-        "clicks": 0,
-        "impressions": 47,
-        "position": 14.49,
-        "ctr": 0
-      },
-      {
-        "path": "/muryou.html",
-        "clicks": 0,
-        "impressions": 42,
-        "position": 8.33,
-        "ctr": 0
-      }
-    ],
-    "near_miss": [
-      {
-        "path": "/category-rank.html",
-        "clicks": 2,
-        "impressions": 20,
-        "position": 4.65,
-        "ctr": 0.1
-      },
-      {
-        "path": "/touroku.html",
-        "clicks": 2,
-        "impressions": 17,
-        "position": 6.29,
-        "ctr": 0.117647
-      },
-      {
-        "path": "/amazon-reimbursement.html",
-        "clicks": 2,
-        "impressions": 24,
-        "position": 16.25,
-        "ctr": 0.083333
-      },
-      {
-        "path": "/amazon-category-bsr.html",
-        "clicks": 1,
-        "impressions": 100,
-        "position": 7.53,
-        "ctr": 0.01
-      },
-      {
-        "path": "/amazon-parent-child.html",
-        "clicks": 1,
-        "impressions": 15,
-        "position": 7.93,
-        "ctr": 0.066667
-      },
-      {
-        "path": "/2024/01/30/%E3%82%BB%E3%83%A9%E3%83%BC%E3%82%B9%E3%83%97%E3%83%A9%E3%82%A4%E3%83%88%E3%81%A7amazon%E3%81%AE%E3%83%97%E3%83%AD%E3%83%95%E3%82%A3%E3%83%83%E3%83%88%E3%82%92%E6%9C%80%E5%A4%A7%E5%8C%96/",
-        "clicks": 1,
-        "impressions": 18,
-        "position": 8.11,
-        "ctr": 0.055556
-      },
-      {
-        "path": "/niche-shohin.html",
-        "clicks": 1,
-        "impressions": 74,
-        "position": 9.24,
-        "ctr": 0.013514
+        "ctr": 0,
+        "jp_clicks": 0,
+        "jp_impressions": 211,
+        "top_query": "amazon フィードバックとは",
+        "top_query_position": 8.4,
+        "jp_query_count": 7
       },
       {
         "path": "/amazon-buy-box.html",
         "clicks": 1,
         "impressions": 226,
         "position": 12.27,
-        "ctr": 0.004425
+        "ctr": 0.004425,
+        "jp_clicks": 0,
+        "jp_impressions": 195,
+        "top_query": "buy box",
+        "top_query_position": 10.2,
+        "jp_query_count": 11
+      },
+      {
+        "path": "/amazon-export.html",
+        "clicks": 0,
+        "impressions": 73,
+        "position": 17.96,
+        "ctr": 0,
+        "jp_clicks": 0,
+        "jp_impressions": 65,
+        "top_query": "日本のものを海外に売る amazon",
+        "top_query_position": 18.9,
+        "jp_query_count": 3
+      },
+      {
+        "path": "/amazon-review-management.html",
+        "clicks": 3,
+        "impressions": 107,
+        "position": 11.4,
+        "ctr": 0.028037,
+        "jp_clicks": 0,
+        "jp_impressions": 46,
+        "top_query": "amazon 口コミ対策",
+        "top_query_position": 14.2,
+        "jp_query_count": 3
+      },
+      {
+        "path": "/ryoukin.html",
+        "clicks": 0,
+        "impressions": 174,
+        "position": 8.21,
+        "ctr": 0,
+        "jp_clicks": 0,
+        "jp_impressions": 45,
+        "top_query": "セラースプライト 料金",
+        "top_query_position": 10.4,
+        "jp_query_count": 3
+      }
+    ],
+    "near_miss": [
+      {
+        "path": "/amazon-jp-logistics-strategy.html",
+        "clicks": 5,
+        "impressions": 145,
+        "position": 8.5,
+        "ctr": 0.034483,
+        "jp_clicks": 2,
+        "jp_impressions": 82,
+        "top_query": "amazon mfnとは",
+        "top_query_position": 7.5,
+        "jp_query_count": 5
       }
     ]
   },

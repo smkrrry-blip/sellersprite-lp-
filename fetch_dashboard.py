@@ -197,22 +197,85 @@ def fetch_gsc(token, start_date, end_date):
         }
     return result
 
+# ── 日本のクエリ×ページ（在庫リスト専用） ────────────────────────────────────
+def fetch_gsc_jp_queries(token, start_date, end_date):
+    """日本のクエリ×ページを取得し、ページ単位に集計する（2026-09-07 新設）。
+
+    build_targets() 専用。KPI本体（fetch_gsc）は全世界のままにする＝
+    2026-09-07に再計算した116日の履歴との連続性を壊さないため。在庫リストだけを日本基準にする。
+    """
+    site = requests.utils.quote(GSC_SITE, safe='')
+    url  = f'https://searchconsole.googleapis.com/webmasters/v3/sites/{site}/searchAnalytics/query'
+    body = {
+        'startDate': start_date, 'endDate': end_date,
+        'dimensions': ['page', 'query'], 'rowLimit': 25000,
+        'dimensionFilterGroups': [{'filters': [
+            {'dimension': 'country', 'operator': 'equals', 'expression': 'jpn'}]}],
+    }
+    r = requests.post(url, headers={'Authorization': f'Bearer {token}',
+                                    'Content-Type': 'application/json'}, json=body, timeout=60)
+    r.raise_for_status()
+    base = 'https://sellersprite.blog'
+    agg = {}
+    for row in r.json().get('rows', []):
+        path = row['keys'][0].replace(base, '') or '/'
+        a = agg.setdefault(path, {'impressions': 0, 'clicks': 0, '_q': []})
+        a['impressions'] += row.get('impressions', 0)
+        a['clicks']      += row.get('clicks', 0)
+        a['_q'].append((row['keys'][1], row.get('impressions', 0), row.get('position', 0)))
+    for a in agg.values():
+        top = max(a['_q'], key=lambda q: q[1])
+        a['top_query'] = top[0]
+        a['top_query_position'] = round(top[2], 1)
+        a['query_count'] = len(a['_q'])
+        del a['_q']
+    return agg
+
 # ── 今週の手直しターゲット ────────────────────────────────────────────────────
-def build_targets(rows):
+def build_targets(rows, jp=None):
     """「あと一押しで稼ぎ頭になるページ」の在庫リストを作る（2026-08-14 新設）。
 
     行動KPI（稼ぎ頭ページ数＝月3クリック以上）を増やすための実作業リスト。
     週次ループでここから3〜4枚を選んで手直しする。直せばリストから自然に外れ、
     新しい候補が入ってくるので、毎週「何をやるか」を考え直す必要がない。
+
+    2026-09-07 改訂：jp（日本のクエリ×ページ集計）が渡されたら日本基準で作る。
+    全世界基準では海外表示や `site:github.io ...` のようなbot的クエリが混ざり、
+    実際には触る価値のないページが上位に並んでいた（トップページは全世界145表示だが
+    日本では9表示、うち5件がbot的クエリだった）。jp が無い場合は従来の全世界基準。
     """
-    def slim(r):
-        return {'path': r['path'], 'clicks': r['clicks'], 'impressions': r['impressions'],
-                'position': r['position'], 'ctr': r['ctr']}
+    def slim(r, j=None):
+        d = {'path': r['path'], 'clicks': r['clicks'], 'impressions': r['impressions'],
+             'position': r['position'], 'ctr': r['ctr']}
+        if j:
+            d.update({'jp_clicks': j['clicks'], 'jp_impressions': j['impressions'],
+                      'top_query': j['top_query'],
+                      'top_query_position': j['top_query_position'],
+                      'jp_query_count': j['query_count']})
+        return d
+
+    if jp:
+        cand = [(r, jp[r['path']]) for r in rows if r['path'] in jp]
+        # 日本で露出があるのにクリック0。最大クエリが20位以内＝スニペットが実際に見られる位置。
+        # 20位より遠いページは description を直しても届かない（順位の問題であってCTRの問題ではない）。
+        ctr_fix = [(r, j) for r, j in cand
+                   if j['clicks'] == 0 and j['impressions'] >= 30 and 0 < j['top_query_position'] <= 20]
+        near_miss = [(r, j) for r, j in cand
+                     if 1 <= j['clicks'] <= 2 and j['impressions'] >= 30]
+        return {
+            'scope': 'jp',
+            'ctr_fix':   [slim(r, j) for r, j in
+                          sorted(ctr_fix, key=lambda x: -x[1]['impressions'])[:10]],
+            'near_miss': [slim(r, j) for r, j in
+                          sorted(near_miss, key=lambda x: (-x[1]['clicks'], x[1]['top_query_position']))[:20]],
+        }
+
     # 露出は十分あるのにクリックゼロ＝タイトル/説明文が悪い。最優先で直す
     ctr_fix = [r for r in rows if r['clicks'] == 0 and r['impressions'] >= 40 and 0 < r['position'] <= 25]
     # あと1〜2クリックで稼ぎ頭に届く。内部リンク・見出し・CTA導線で押し上げる
     near_miss = [r for r in rows if 1 <= r['clicks'] <= 2 and r['impressions'] >= 15]
     return {
+        'scope': 'global',
         'ctr_fix':   [slim(r) for r in sorted(ctr_fix,   key=lambda r: -r['impressions'])[:10]],
         'near_miss': [slim(r) for r in sorted(near_miss, key=lambda r: (-r['clicks'], r['position']))[:20]],
     }
@@ -287,6 +350,17 @@ def main(as_of=None):
         gsc = {}
         gsc_status = 'error'
 
+    # 在庫リスト（targets）専用の日本データ。ここが落ちても本体の計測は絶対に止めない
+    # ＝2026-09の5日間欠測は「手前の1箇所が落ちて全部を道連れにした」のが原因だったため。
+    jp_queries = None
+    try:
+        if user_token:
+            jp_queries = fetch_gsc_jp_queries(user_token, start_date, end_date)
+            print(f'[INFO] GSC(日本・クエリ×ページ): {len(jp_queries)} ページ')
+    except Exception as e:
+        print(f'[WARN] 日本クエリ取得失敗。在庫リストは全世界基準にフォールバック: {e}', file=sys.stderr)
+        jp_queries = None
+
     all_paths = sorted(set(list(ga4.keys()) + list(gsc.keys())))
     rows = []
     for path in all_paths:
@@ -322,7 +396,7 @@ def main(as_of=None):
     total_ai  = ai_sessions
     # 稼ぎ頭ページ数（月3クリック以上）＝主KPIを支える行動KPI（append_kpi_historyと同じ定義）
     total_earner_pages = sum(1 for r in rows if r['clicks'] >= 3)
-    targets = build_targets(rows)
+    targets = build_targets(rows, jp_queries)
 
     output = {
         'generated_at': datetime.datetime.now().isoformat(timespec='seconds'),
