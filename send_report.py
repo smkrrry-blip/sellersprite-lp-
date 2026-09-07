@@ -30,7 +30,8 @@ def send_email(changes: str) -> None:
         raise EnvironmentError("環境変数 GMAIL_APP_PASSWORD が未設定です。")
 
     now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    subject = f"【LP自動改善完了】{now}"
+    # 失敗アラートにも使い回せるよう件名を差し替え可能にする（既定は従来どおり）
+    subject = f"{os.environ.get('REPORT_SUBJECT', '【LP自動改善完了】')}{now}"
 
     body = f"""\
 LP自動改善エージェントによる修正が完了しました。
@@ -67,7 +68,7 @@ def send_desktop_notification(changes: str) -> None:
 
     script = (
         f'display notification "{body}" '
-        f'with title "【LP自動改善完了】" '
+        f'with title "{os.environ.get("REPORT_SUBJECT", "【LP自動改善完了】")}" '
         f'subtitle "sellersprite-lp" '
         f'sound name "Glass"'
     )

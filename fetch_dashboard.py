@@ -33,8 +33,9 @@ AI_SOURCE_KEYWORDS = ['chatgpt', 'openai', 'perplexity', 'gemini',
 # ── SA 認証 (GA4用) ───────────────────────────────────────────────────────────
 def get_sa_token():
     if not os.path.exists(KEY_FILE):
-        print(f'[ERROR] キーファイルが見つかりません: {KEY_FILE}', file=sys.stderr)
-        sys.exit(1)
+        # sys.exit() は SystemExit を投げ、呼び出し側の except Exception をすり抜けて
+        # スクリプト全体を落とす（GSC計測まで道連れになる）。必ず通常の例外にする。
+        raise RuntimeError(f'GA4キーファイルが見つかりません: {KEY_FILE}')
     creds = service_account.Credentials.from_service_account_file(KEY_FILE, scopes=SA_SCOPES)
     creds.refresh(Request())
     return creds.token
@@ -54,7 +55,7 @@ def get_user_token():
         'client_secret': cs['client_secret'],
         'refresh_token': tok['refresh_token'],
         'grant_type': 'refresh_token',
-    })
+    }, timeout=30)
     if r.status_code == 200:
         new_tok = r.json()
         tok['access_token'] = new_tok['access_token']
@@ -225,7 +226,12 @@ def main():
         token = None
         ga4_status = 'error'
 
-    user_token = get_user_token()
+    try:
+        user_token = get_user_token()
+    except Exception as e:
+        # ネットワーク未接続（Mac復帰直後のWi-Fi未確立）でも計測全体を落とさない。
+        print(f'[WARN] ユーザートークン取得失敗: {e}', file=sys.stderr)
+        user_token = None
     print(f'[INFO] ユーザートークン: {"取得済" if user_token else "なし（GSCスキップ）"}')
 
     print('[INFO] GA4 取得中...')
@@ -254,6 +260,11 @@ def main():
         if user_token:
             gsc = fetch_gsc(user_token, start_date, end_date)
             print(f'[INFO] GSC: {len(gsc)} ページ')
+            if not gsc:
+                # HTTP 200 なのに1行も返らない＝認証は通っているがデータが取れていない。
+                # これを ok として記録すると「本当にゼロだった日」と区別がつかなくなる。
+                print('[WARN] GSCが200を返したが0件。ゼロと区別するため warn を記録。', file=sys.stderr)
+                gsc_status = 'warn'
         else:
             print('[WARN] GSCトークンなし（認証失効の可能性）。GSCデータをスキップ。', file=sys.stderr)
             gsc = {}

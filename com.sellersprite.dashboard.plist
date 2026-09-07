@@ -18,11 +18,12 @@
         <integer>0</integer>
     </dict>
     <key>StandardOutPath</key>
-    <string>/tmp/sellersprite-dashboard.log</string>
+    <string>/Users/shoichionizuka/sellersprite-lp-/logs/dashboard.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/sellersprite-dashboard.err</string>
+    <string>/Users/shoichionizuka/sellersprite-lp-/logs/dashboard.err</string>
+    <!-- スリープ中に07:00を跨いだ日も、復帰・ログイン時に1回走らせて欠測を防ぐ -->
     <key>RunAtLoad</key>
-    <false/>
+    <true/>
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>

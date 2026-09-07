@@ -350,6 +350,9 @@ async function refreshData() {
       } else if (data.ga4_status === 'error') {
         banner.textContent = '🚨 GA4計測停止中（サービスアカウント鍵の失効）。PV・CTA・コピー・AI経由流入はゼロではなく「取得不能」です。復旧: Google Cloud Console で service_account.json の鍵を再発行';
         banner.classList.add('show');
+      } else if (data.gsc_status === 'warn') {
+        banner.textContent = '⚠️ GSCは応答したが0件でした。検索データが「本当にゼロ」なのか「取得できなかった」のか区別できません。翌日の値と見比べてください。';
+        banner.classList.add('show');
       } else if (ageHours > 25) {
         banner.textContent = `⚠️ データが ${Math.floor(ageHours)} 時間前のものです。fetch_dashboard.py を実行して更新してください。`;
         banner.classList.add('show');
@@ -470,7 +473,7 @@ async function renderTrend(){
   const searchMetrics = ['impressions','clicks','ctr','avg_position','top10_pages'];
   const ga4Metrics = ['cta_plus_copy','cvr','ai_sessions','cta_plus_copy_jp','cvr_jp'];
   const data = hist.map(r=>{
-    if(searchMetrics.includes(metric) && r.gsc_status==='error') return null;
+    if(searchMetrics.includes(metric) && (r.gsc_status==='error'||r.gsc_status==='warn')) return null;
     if(ga4Metrics.includes(metric) && r.ga4_status==='error') return null;
     const v = parseFloat(r[metric]);
     return isNaN(v)?null:v;
