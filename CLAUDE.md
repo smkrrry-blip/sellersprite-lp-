@@ -14,7 +14,7 @@ curl -sL https://smkrrry-blip.github.io/sellersprite-lp-/ でHTMLを取得して
 - 比較表ヘッダーが4列か
 - CTAボタンがファーストビューにあるか
 - 画像のloading=lazy・altテキストの状態
-- 表記統一（「公式代理店」に統一されているか）
+- 表記統一（「セラースプライト30%OFF活用ガイド」になっているか。**「公式代理店」は使用禁止**＝2026-05-26に全376ページから削除済み。復活させない）
 
 ### STEP2：問題点・不足点を全てリストアップ
 SEO・CVR・デザイン・表記の観点で評価する
@@ -40,6 +40,7 @@ osascript -e 'display notification "修正内容テキスト" with title "【LP�
 ## 固定情報
 - 割引コード：CJ9852（30%OFF）
 - 公式サイト：https://www.sellersprite.com/jp/w/user/login
-- 表記統一：「セラースプライト公式代理店」
+- 表記統一：「セラースプライト30%OFF活用ガイド」／著者表記：「Amazon3億円プレイヤー」
+- 🔴 **禁止表記：「公式代理店」**（実態と異なるため2026-05-26に全削除。二度と使わない）
 - LP URL：https://smkrrry-blip.github.io/sellersprite-lp-/
 - 壮一さん写真：https://amazing-japan.jp/wp-content/uploads/2022/09/IMG_4969.jpg
