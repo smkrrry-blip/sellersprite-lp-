@@ -126,11 +126,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/demand-tool.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/amazon-export.html</loc>
     <lastmod>2026-09-07</lastmod>
     <priority>0.8</priority>
@@ -187,11 +182,6 @@
   </url>
   <url>
     <loc>https://sellersprite.blog/keyword-mining.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sellersprite.blog/trend-shohin.html</loc>
     <lastmod>2026-04-16</lastmod>
     <priority>0.8</priority>
   </url>
@@ -321,11 +311,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/inventory-tool.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/amazon-europe.html</loc>
     <lastmod>2026-04-16</lastmod>
     <priority>0.8</priority>
@@ -368,11 +353,6 @@
   </url>
   <url>
     <loc>https://sellersprite.blog/fba-vs-fbm.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sellersprite.blog/amazon-season.html</loc>
     <lastmod>2026-04-16</lastmod>
     <priority>0.8</priority>
   </url>
@@ -442,11 +422,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/amazon-demand-forecast.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/long-tail-keyword.html</loc>
     <lastmod>2026-04-16</lastmod>
     <priority>0.8</priority>
@@ -473,7 +448,7 @@
   </url>
   <url>
     <loc>https://sellersprite.blog/amazon-seasonal-trend.html</loc>
-    <lastmod>2026-04-16</lastmod>
+    <lastmod>2026-09-15</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
@@ -553,11 +528,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/amazon-stock-alert.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/amazon-dropshipping.html</loc>
     <lastmod>2026-04-19</lastmod>
     <changefreq>monthly</changefreq>
@@ -625,11 +595,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/amazon-restock.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/amazon-hazmat.html</loc>
     <lastmod>2026-04-19</lastmod>
     <changefreq>monthly</changefreq>
@@ -637,11 +602,6 @@
   </url>
   <url>
     <loc>https://sellersprite.blog/amazon-ip-complaint.html</loc>
-    <lastmod>2026-04-19</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sellersprite.blog/amazon-stranded-inventory.html</loc>
     <lastmod>2026-04-19</lastmod>
     <priority>0.8</priority>
   </url>
@@ -697,11 +657,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/amazon-price-history.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/amazon-winner-products.html</loc>
     <lastmod>2026-04-16</lastmod>
     <priority>0.8</priority>
@@ -714,11 +669,6 @@
   <url>
     <loc>https://sellersprite.blog/amazon-long-term-storage.html</loc>
     <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sellersprite.blog/amazon-inventory-age.html</loc>
-    <lastmod>2026-04-19</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
@@ -763,11 +713,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/amazon-stock-replenishment.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/amazon-customer-service.html</loc>
     <lastmod>2026-04-16</lastmod>
     <priority>0.8</priority>
@@ -789,11 +734,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/amazon-demand-planning.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/amazon-return-policy.html</loc>
     <lastmod>2026-04-16</lastmod>
     <priority>0.8</priority>
@@ -811,11 +751,6 @@
   </url>
   <url>
     <loc>https://sellersprite.blog/amazon-new-release-ranking.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sellersprite.blog/amazon-seasonal-products.html</loc>
     <lastmod>2026-04-16</lastmod>
     <priority>0.8</priority>
   </url>
@@ -917,18 +852,13 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/amazon-seasonal-ranking.html</loc>
-    <lastmod>2026-04-16</lastmod>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/amazon-virtual-bundle.html</loc>
     <lastmod>2026-04-19</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://sellersprite.blog/amazon-inventory-replenishment.html</loc>
-    <lastmod>2026-04-16</lastmod>
+    <lastmod>2026-09-15</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
@@ -940,11 +870,6 @@
     <loc>https://sellersprite.blog/amazon-listing-images.html</loc>
     <lastmod>2026-04-19</lastmod>
     <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sellersprite.blog/amazon-inventory-forecast.html</loc>
-    <lastmod>2026-04-16</lastmod>
     <priority>0.8</priority>
   </url>
   <url>
@@ -1356,12 +1281,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/amazon-seasonal-selling.html</loc>
-    <lastmod>2026-04-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/amazon-bundle-strategy.html</loc>
     <lastmod>2026-04-19</lastmod>
     <changefreq>monthly</changefreq>
@@ -1369,12 +1288,6 @@
   </url>
   <url>
     <loc>https://sellersprite.blog/amazon-arbitrage-online.html</loc>
-    <lastmod>2026-04-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://sellersprite.blog/amazon-fba-inventory.html</loc>
     <lastmod>2026-04-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -1764,12 +1677,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://sellersprite.blog/amazon-seasonal-ppc.html</loc>
-    <lastmod>2026-04-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://sellersprite.blog/amazon-fba-inbound-error.html</loc>
     <lastmod>2026-04-19</lastmod>
     <changefreq>monthly</changefreq>
@@ -1807,12 +1714,6 @@
   </url>
   <url>
     <loc>https://sellersprite.blog/amazon-repricing-tools.html</loc>
-    <lastmod>2026-04-19</lastmod>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://sellersprite.blog/amazon-inventory-age-fee.html</loc>
     <lastmod>2026-04-19</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
