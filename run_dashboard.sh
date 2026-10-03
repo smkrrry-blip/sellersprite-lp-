@@ -31,8 +31,16 @@ notify_failure() {
 }
 
 # データ取得（launchdと同じrequests入りのpythonを明示）
-if ! /usr/local/bin/python3 "$REPO_DIR/fetch_dashboard.py"; then
-    notify_failure "fetch_dashboard.py が異常終了した"
+# Mac復帰直後はWi-Fi・DNSが未確立で失敗する（2026-09-28 DNS失敗・10-01 SSL失敗で実発生）。
+# 10分おきに最大3回試し、それでも駄目なら通知する。
+ok=0
+for try in 1 2 3; do
+    if /usr/local/bin/python3 "$REPO_DIR/fetch_dashboard.py"; then ok=1; break; fi
+    echo "[$(date '+%H:%M:%S')] 取得失敗（${try}回目）" >&2
+    [ "$try" -lt 3 ] && sleep 600
+done
+if [ "$ok" -ne 1 ]; then
+    notify_failure "fetch_dashboard.py が3回とも失敗した（ネットワーク不通の可能性）"
     exit 1
 fi
 

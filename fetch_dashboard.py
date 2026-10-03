@@ -420,6 +420,13 @@ def main(as_of=None):
         'rows': rows,
     }
 
+    # 2026-10-03：ネットワーク不通の朝（9/28 DNS失敗・10/1 SSL失敗）に、ゼロの行と空の data.json を
+    # 書き込み、公開ダッシュボードまで空にしていた。GSCが取れない日は何も書かずに異常終了する。
+    # 再試行と通知は run_dashboard.sh が受け持つ。欠測は「行が無い」で表す（ゼロ行は誤読の元）。
+    if gsc_status == 'error':
+        print('[ERROR] GSC取得不可のため data.json・履歴CSVとも書き込まずに終了する', file=sys.stderr)
+        sys.exit(2)
+
     if as_of:
         print('[INFO] バックフィルのため data.json は更新しない（現在値を過去値で壊さない）')
     else:
